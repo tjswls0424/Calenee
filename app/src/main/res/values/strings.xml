@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">Calenee</string>
+    <string name="app_name_eng">Calenee</string>
+    <string name="app_name_kor">캘린이</string>
+
+    <string name="calendar">캘린더</string>
+    <string name="memo">메모</string>
+    <string name="todo_list">할 일</string>
+
 </resources>

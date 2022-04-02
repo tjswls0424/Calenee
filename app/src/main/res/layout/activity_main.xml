@@ -27,12 +27,15 @@
         </com.google.android.material.appbar.AppBarLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+
+
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:fabAlignmentMode="center"
+        app:fabAlignmentMode="end"
         app:fabCradleMargin="10dp"
         app:fabCradleRoundedCornerRadius="10dp"
         app:fabCradleVerticalOffset="0dp">
@@ -41,12 +44,12 @@
             style="@style/Theme.LightPurple"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="100dp"
             android:background="@android:color/transparent"
             android:outlineProvider="none"
+            app:itemRippleColor="@android:color/transparent"
             app:menu="@menu/main_bottom_menu" />
     </com.google.android.material.bottomappbar.BottomAppBar>
-
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_memo_btn"
@@ -56,5 +59,4 @@
         app:backgroundTint="@color/sub_color3"
         app:layout_anchor="@id/bottom_app_bar"
         app:tint="@color/white" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

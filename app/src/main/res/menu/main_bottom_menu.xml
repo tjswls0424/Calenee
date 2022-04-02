@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/calendar"
+        android:enabled="true"
+        android:icon="@drawable/ic_calendar"
+        android:title="@string/calendar" />
     <item
         android:id="@+id/memo"
         android:enabled="true"
         android:icon="@drawable/ic_outline_note"
-        android:title="메모"/>
-    <item
-        android:id="@+id/empty_item"
-        android:enabled="false"
-        android:checkable="false"
-        android:title=""/>
+        android:title="@string/memo" />
 
     <item
         android:id="@+id/todo_list"
         android:enabled="true"
         android:icon="@drawable/ic_outline_check_box_24"
-        android:title="할 일"/>
+        android:title="@string/todo_list" />
 </menu>
