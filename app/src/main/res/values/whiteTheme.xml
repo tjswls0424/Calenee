@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.blackWhite" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.BlackWhite" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryVariant">@color/white</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="android:textColor">@color/black</item>
+        <item name="android:textColor">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">@color/white</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="android:windowLightStatusBar">false</item>
         <!--        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>-->
 
         <!-- activity background color -->
-        <!--        <item name="android:background">#FFFFFF</item>-->
+<!--                <item name="android:background">@color/black</item>-->
         <item name="android:colorBackground">@color/white</item> <!-- only main window background-->
     </style>
 
-    <style name="Theme.lightPurple" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.LightPurple" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/sub_color4</item>
         <item name="colorPrimaryVariant">@color/white</item>
@@ -38,5 +38,12 @@
         <!-- activity background color -->
         <!--        <item name="android:background">#FFFFFF</item>-->
         <item name="android:colorBackground">@color/white</item> <!-- only main window background-->
+        <item name="android:itemBackground">@color/white</item>
+
+        <!-- for bottom navigation view icon -->
+        <item name="itemTextColor">@color/bottom_menu_selector_light_purple</item>
+        <item name="itemIconTint">@color/bottom_menu_selector_light_purple</item>
+
+        <item name="actionOverflowButtonStyle">@style/MainActionbar.Button</item>
     </style>
 </resources>
