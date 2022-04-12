@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <style name="main_style_black_white" parent="@style/Theme.blackWhite">-->
-<!--        <item name="android:backgroundTint">@color/black</item>-->
-<!--        <item name="android:itemBackground">@color/white</item>-->
-<!--        <item name="android:selectableItemBackground">@color/white</item>-->
-<!--        <item name="android:actionBarItemBackground">@color/white</item>-->
-<!--    </style>-->
+    <!--    <style name="main_style_black_white" parent="@style/Theme.blackWhite">-->
+    <!--        <item name="android:backgroundTint">@color/black</item>-->
+    <!--        <item name="android:itemBackground">@color/white</item>-->
+    <!--        <item name="android:selectableItemBackground">@color/white</item>-->
+    <!--        <item name="android:actionBarItemBackground">@color/white</item>-->
+    <!--    </style>-->
 
-    <style name="main_style_light_purple" parent="@style/Theme.LightPurple">
+    <style name="MainStyle.LightPurple" parent="@style/Theme.LightPurple">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:itemBackground">@color/white</item>
     </style>
@@ -15,5 +15,37 @@
     <!-- action bar(toolbar) style -->
     <style name="MainActionbar.Button" parent="Widget.AppCompat.ActionButton.Overflow">
         <item name="android:tint">@color/black</item>
+    </style>
+
+    <!-- social login (google) -->
+    <style name="CustomButton">
+        <!--        <item name="android:layout_width">match_parent</item>-->
+        <!--        <item name="android:layout_height">70dp</item>-->
+    </style>
+
+    <style name="CustomButton.Login">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_regular</item>
+        <item name="android:layout_marginBottom">7dp</item>
+        <item name="iconSize">30dp</item>
+        <item name="iconTintMode">add</item>
+        <item name="iconTint">@android:color/transparent</item>
+        <item name="android:background">@drawable/login_btn_background</item>
+        <item name="backgroundTint">@color/light_grey2</item>
+    </style>
+
+    <!-- custom font - TextView -->
+    <style name="CustomFont.TextView" parent="@style/Widget.MaterialComponents.TextView">
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_light</item>
+        <item name="fontFamily">@font/ibm_plex_sans_kr_light</item>
+    </style>
+
+    <!-- custom font - Button -->
+    <style name="CustomFont.Button" parent="@style/Widget.MaterialComponents.Button">
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_light</item>
+        <item name="fontFamily">@font/ibm_plex_sans_kr_light</item>
     </style>
 </resources>
