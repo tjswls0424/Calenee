@@ -6,4 +6,9 @@
     <string name="memo">메모</string>
     <string name="todo_list">할 일</string>
 
+    <string name="login_short_comment">&quot;캘린이와 함께 계획을 세워보세요!&quot;</string>
+
+    <!-- login -->
+    <string name="google_login">구글 로그인</string>
+    <string name="calenee_login">캘린이 로그인</string>
 </resources>
