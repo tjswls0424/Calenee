@@ -11,4 +11,10 @@
     <!-- login -->
     <string name="google_login">구글 로그인</string>
     <string name="calenee_login">캘린이 로그인</string>
+    <string name="login_email_hint">이메일</string>
+    <string name="login_pw_hint">비밀번호</string>
+    <string name="find_pw">비밀번호를 잊어버리셨나요?</string>
+    <string name="login">로그인</string>
+
+
 </resources>

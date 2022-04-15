@@ -48,4 +48,15 @@
         <item name="android:fontFamily">@font/ibm_plex_sans_kr_light</item>
         <item name="fontFamily">@font/ibm_plex_sans_kr_light</item>
     </style>
+
+    <!-- Material edit text (login) -->
+    <style name="material_login_edit_text" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="counterMaxLength">1</item>
+        <item name="boxStrokeColor">@color/sub_color</item>
+        <item name="android:layout_marginBottom">20dp</item>
+        <item name="android:textColorHint">#595959</item>
+        <item name="hintTextColor">#595959</item>
+    </style>
 </resources>
