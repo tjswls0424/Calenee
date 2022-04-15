@@ -1,11 +1,30 @@
 package org.jin.calenee
 
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import org.jin.calenee.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        fun Activity.slideLeft() {
+            overridePendingTransition(R.anim.slide_left_enter, R.anim.slide_left_exit)
+        }
+
+        fun Activity.slideRight() {
+            overridePendingTransition(R.anim.slide_right_enter, R.anim.slide_right_exit)
+        }
+
+        fun Activity.slideUp() {
+            overridePendingTransition(R.anim.slide_up_enter, R.anim.slide_up_exit)
+        }
+
+        fun Activity.slideDown() {
+            overridePendingTransition(R.anim.slide_down_enter, R.anim.slide_down_exit)
+        }
+    }
 
     private lateinit var binding: ActivityMainBinding
 
