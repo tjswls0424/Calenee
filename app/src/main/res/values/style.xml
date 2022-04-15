@@ -39,14 +39,14 @@
 
     <!-- custom font - TextView -->
     <style name="CustomFont.TextView" parent="@style/Widget.MaterialComponents.TextView">
-        <item name="android:fontFamily">@font/ibm_plex_sans_kr_light</item>
-        <item name="fontFamily">@font/ibm_plex_sans_kr_light</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_regular</item>
+        <item name="fontFamily">@font/ibm_plex_sans_kr_regular</item>
     </style>
 
     <!-- custom font - Button -->
     <style name="CustomFont.Button" parent="@style/Widget.MaterialComponents.Button">
-        <item name="android:fontFamily">@font/ibm_plex_sans_kr_light</item>
-        <item name="fontFamily">@font/ibm_plex_sans_kr_light</item>
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_regular</item>
+        <item name="fontFamily">@font/ibm_plex_sans_kr_regular</item>
     </style>
 
     <!-- Material edit text (login) -->
