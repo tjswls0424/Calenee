@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/calenee_icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LightPurple">
+        <activity android:name=".login.SignUpActivity"></activity>
         <activity android:name=".login.CaleneeLoginActivity" />
         <activity
             android:name=".login.LoginActivity"

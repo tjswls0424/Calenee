@@ -57,6 +57,13 @@ class LoginActivity : AppCompatActivity() {
         binding.googleLoginBtn.setOnClickListener {
 
         }
+
+        binding.signUpBtn.setOnClickListener {
+            Intent(this, SignUpActivity::class.java).apply {
+                startActivity(this)
+                slideRight()
+            }
+        }
     }
 
     // 회원가입 완료 버튼 클릭시 호출
@@ -102,4 +109,6 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
     }
+
+    override fun onBackPressed() {}
 }
