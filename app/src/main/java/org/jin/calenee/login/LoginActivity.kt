@@ -48,7 +48,7 @@ class LoginActivity : AppCompatActivity() {
         binding.caleneeLoginBtn.setOnClickListener {
             Intent(this, CaleneeLoginActivity::class.java).apply {
                 startActivity(this)
-                slideLeft()
+                slideRight()
             }
             Log.d("btn_test", "calenee")
 

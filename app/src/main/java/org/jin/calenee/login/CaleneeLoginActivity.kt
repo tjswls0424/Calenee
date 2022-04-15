@@ -22,6 +22,6 @@ class CaleneeLoginActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        slideRight()
+        slideLeft()
     }
 }
