@@ -48,5 +48,8 @@
 
         <item name="android:textViewStyle">@style/CustomFont.TextView</item>
         <item name="android:buttonStyle">@style/CustomFont.Button</item>
+
+        <item name="android:windowIsTranslucent">true</item>
+<!--        <item name="android:windowAnimationStyle">@style/CustomAnimation</item>-->
     </style>
 </resources>

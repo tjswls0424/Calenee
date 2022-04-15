@@ -9,7 +9,9 @@
         android:roundIcon="@mipmap/calenee_icon_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LightPurple">
-        <activity android:name=".login.LoginActivity"
+        <activity android:name=".login.CaleneeLoginActivity" />
+        <activity
+            android:name=".login.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,11 +22,13 @@
         <activity
             android:name=".MainActivity"
             android:theme="@style/Theme.LightPurple">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
 
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
     </application>
 
