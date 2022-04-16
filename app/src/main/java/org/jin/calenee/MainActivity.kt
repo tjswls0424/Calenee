@@ -5,16 +5,16 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.google.android.material.snackbar.Snackbar
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.login.LoginActivity
-import org.jin.calenee.login.LoginViewModel
+import org.jin.calenee.login.LoginActivity.Companion.viewModel
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        internal val viewModel: LoginViewModel = LoginViewModel()
-
         fun Activity.slideLeft() {
             overridePendingTransition(R.anim.slide_left_enter, R.anim.slide_left_exit)
         }
@@ -56,18 +56,32 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 R.id.logoutMenu -> {
-                    viewModel.signOut()
-                    Snackbar.make(binding.root, "로그아웃 되었습니다.", Snackbar.LENGTH_SHORT).show()
-                    Log.d("menu_test", "logout")
+                    val googleSignInOptions: GoogleSignInOptions by lazy {
+                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(getString(R.string.default_web_client_id))
+                            .requestEmail()
+                            .build()
+                    }
 
-                    Intent(this, LoginActivity::class.java).apply {
-                        startActivity(this)
-                        slideLeft()
-                        finish()
+                    val googleSignInClient by lazy {
+                        GoogleSignIn.getClient(this, googleSignInOptions)
+                    }
+
+
+
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        viewModel.signOut()
+
+                        Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
+                        Log.d("menu_test", "logout")
+
+                        Intent(this, LoginActivity::class.java).apply {
+                            startActivity(this)
+                            slideLeft()
+                            finish()
+                        }
                     }
                 }
-
-                else -> {}
             }
 
             true

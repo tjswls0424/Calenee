@@ -20,11 +20,14 @@ import kotlinx.coroutines.Job
 import org.jin.calenee.MainActivity
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.MainActivity.Companion.viewModel
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityLoginActivtyBinding
 
 class LoginActivity : AppCompatActivity() {
+
+    companion object {
+        internal val viewModel: LoginViewModel = LoginViewModel()
+    }
 
     private lateinit var binding: ActivityLoginActivtyBinding
 
@@ -38,7 +41,7 @@ class LoginActivity : AppCompatActivity() {
             .build()
     }
 
-    private val googleSignIn by lazy {
+    private val googleSignInClient by lazy {
         GoogleSignIn.getClient(this, googleSignInOptions)
     }
 
@@ -98,7 +101,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.googleLoginBtn.setOnClickListener {
-            loginLauncher.launch(googleSignIn.signInIntent)
+            loginLauncher.launch(googleSignInClient.signInIntent)
         }
 
         binding.signUpBtn.setOnClickListener {
@@ -150,7 +153,7 @@ class LoginActivity : AppCompatActivity() {
 
         val credential = GoogleAuthProvider.getCredential(state.idToken, null)
         firebaseAuth.signInWithCredential(credential)
-            .addOnCompleteListener(this@LoginActivity) {task ->
+            .addOnCompleteListener(this@LoginActivity) { task ->
                 if (task.isSuccessful) {
                     viewModel.setUserInfo(firebaseAuth.currentUser)
                 } else {
@@ -180,13 +183,13 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // google auth login registered state
-    private fun handleRegisteredState(state: LoginState.Success.Registered) = with(binding) {
-        Snackbar.make(root, "user: ${state.userName}", Snackbar.LENGTH_SHORT).show()
+    private fun handleRegisteredState(state: LoginState.Success.Registered) {
+        Log.d("login_test", "user: ${state.userName}")
     }
 
     // state: error
-    private fun handleErrorState() = with(binding) {
-        Snackbar.make(root, "error state", Snackbar.LENGTH_SHORT).show()
+    private fun handleErrorState() {
+        Snackbar.make(binding.root, "error state", Snackbar.LENGTH_SHORT).show()
     }
 
     // 회원가입 완료 버튼 클릭시 호출
