@@ -67,8 +67,6 @@ class MainActivity : AppCompatActivity() {
                         GoogleSignIn.getClient(this, googleSignInOptions)
                     }
 
-
-
                     googleSignInClient.signOut().addOnCompleteListener {
                         viewModel.signOut()
 
@@ -103,4 +101,6 @@ class MainActivity : AppCompatActivity() {
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(binding.mainFrameLayout.id, fragment).commit()
     }
+
+    override fun onBackPressed() {}
 }
