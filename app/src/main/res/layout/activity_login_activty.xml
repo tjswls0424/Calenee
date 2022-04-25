@@ -86,8 +86,7 @@
             android:layout_height="wrap_content"
             android:text="@string/sign_up"
             android:textColor="@color/sub_color6"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:textSize="15sp"/>
     </LinearLayout>
 
     <View
