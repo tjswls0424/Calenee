@@ -8,10 +8,6 @@ import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.TranslatorOptions
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivitySignUpBinding
@@ -44,37 +40,53 @@ class SignUpActivity : AppCompatActivity() {
         editTextListener(inputPwCheckEt)
 
         signUpBtn.setOnClickListener {
-            checkEditTextCondition()
-//            createAccount(email, pw)
-            Log.d("text_test", "$name, $email, $pw , $pwCheck")
+            if (checkInputCondition()) {
+                createAccount(email, pw)
+                Log.d("text_test", "$name, $email, $pw , $pwCheck")
+            }
         }
     }
 
-    private fun checkEditTextCondition(): Boolean {
+    private fun checkInputCondition(): Boolean {
         with(binding) {
             return when {
                 name.isEmpty() -> {
-                    inputNameLayout.error = "이름을 입력해주세요"
+                    inputNameLayout.apply {
+                        error = "이름을 입력해주세요"
+                        requestFocus()
+                    }
                     false
                 }
 
                 email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                    inputEmailLayout.error = "이메일을 올바르게 입력해주세요"
+                    inputEmailLayout.apply{
+                        error = "이메일을 올바르게 입력해주세요"
+                        requestFocus()
+                    }
                     false
                 }
 
                 pw.isEmpty() || pw.length < 6 -> {
-                    inputPwLayout.error = "비밀번호를 6자리 이상 입력해주세요"
+                    inputPwLayout.apply {
+                        error = "비밀번호를 6자리 이상 입력해주세요"
+                        requestFocus()
+                    }
                     false
                 }
 
                 pwCheck.isEmpty()-> {
-                    inputPwCheckLayout.error = "비밀번호 확인을 위해 입력한 비밀번호를 다시 입력해주세요"
+                    inputPwCheckLayout.apply {
+                        error = "비밀번호 확인을 위해 입력한 비밀번호를 다시 입력해주세요"
+                        requestFocus()
+                    }
                     false
                 }
 
                 pw != pwCheck -> {
-                    inputPwCheckLayout.error = "비밀번호가 일치하지 않습니다"
+                    inputPwCheckLayout.apply {
+                        error = "비밀번호가 일치하지 않습니다"
+                        requestFocus()
+                    }
                     false
                 }
 
@@ -83,53 +95,20 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
+    // sign up
     private fun createAccount(email: String, pw: String) {
-        // sign up
-        // email만 따로 중복확인 할 수 있는지 확인
-        // 안되면 확인버튼 클릭시 email, pw가 동시에 db에서 확인되기 때문에 문제 발생 가능성 O
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("login_test", "sign in success, now login with this email")
                     Snackbar.make(binding.root, "회원가입을 완료했습니다.", Snackbar.LENGTH_SHORT).show()
-
+                    slideLeft()
                 } else if (!task.exception?.message.isNullOrEmpty()) {
                     Log.d("login_test", "exception1: sign up [${task.exception?.message}]")
 
                     val msg = task.exception?.localizedMessage ?: "회원가입에 실패했습니다. 잠시 후 재시도 해주세요"
 
-                    val options = TranslatorOptions.Builder()
-                        .setSourceLanguage(TranslateLanguage.ENGLISH)
-                        .setTargetLanguage(TranslateLanguage.KOREAN)
-                        .build()
-
-                    var conditions = DownloadConditions.Builder()
-                        .requireWifi()
-                        .build()
-
-                    val translator = Translation.getClient(options).apply {
-                        downloadModelIfNeeded(conditions).apply {
-                            addOnSuccessListener {
-                                Log.d("login_test", "translator model download successfully")
-
-                                translate(msg)
-                                    .addOnSuccessListener { translatedText ->
-                                        Log.d("login_test", "exception2: sign up [$translatedText]")
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        Log.d(
-                                            "login_test",
-                                            "exception3: sign up [${exception.message}]"
-                                        )
-                                    }
-                            }
-
-                            addOnFailureListener {
-                                Log.d("login_test", "translator model download fail")
-                            }
-                        }
-
-                    }
+                    // task msg 한국어 설정
 
                     Snackbar.make(
                         binding.root,
@@ -141,6 +120,7 @@ class SignUpActivity : AppCompatActivity() {
                     // signIn() 호출
                     // snackbar message or popup alert 실행
                     Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT).show()
+                    finish()
                 }
             }
     }
