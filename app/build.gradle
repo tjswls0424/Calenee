@@ -48,6 +48,7 @@ android {
 }
 
 dependencies {
+    def room_version = "2.4.2"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -65,4 +66,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
+
+    // room
+//    implementation "androidx.room:room-runtime:$room_version"
+//    kapt "androidx.room:room-compiler:$room_version"
+
+    // translation(firebase)
+    implementation 'com.google.mlkit:translate:17.0.0'
 }

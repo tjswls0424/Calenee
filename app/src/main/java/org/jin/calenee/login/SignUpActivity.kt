@@ -5,16 +5,24 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.Translator
+import com.google.mlkit.nl.translate.TranslatorOptions
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
+import org.jin.calenee.databinding.ActivityLoginActivtyBinding
 import org.jin.calenee.databinding.ActivitySignUpBinding
 
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
+    private lateinit var loginbinding: ActivityLoginActivtyBinding
     private var email: String = ""
     private var name: String = ""
     private var pw: String = ""
@@ -24,13 +32,17 @@ class SignUpActivity : AppCompatActivity() {
         FirebaseAuth.getInstance()
     }
 
+    private lateinit var englishKoreanTranslator: Translator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivitySignUpBinding.inflate(layoutInflater)
+        loginbinding = ActivityLoginActivtyBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         listener()
+        setTranslation()
     }
 
     private fun listener() = with(binding) {
@@ -99,29 +111,33 @@ class SignUpActivity : AppCompatActivity() {
     private fun createAccount(email: String, pw: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
             .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("login_test", "sign in success, now login with this email")
-                    Snackbar.make(binding.root, "회원가입을 완료했습니다.", Snackbar.LENGTH_SHORT).show()
-                    slideLeft()
-                } else if (!task.exception?.message.isNullOrEmpty()) {
-                    Log.d("login_test", "exception1: sign up [${task.exception?.message}]")
+//                var msg = task.exception?.message ?: "회원가입에 실패했습니다. 잠시 후 재시도 해주세요"
+                englishKoreanTranslator.translate(task.exception?.message.toString())
+                    .addOnSuccessListener { translatedText ->
+                        if (task.isSuccessful) {
+                            Log.d("login_test1", "sign in success, now login with this email")
+                            Toast.makeText(this, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
+                            finish()
+                        } else if (!task.exception?.message.isNullOrEmpty()) {
+                            Log.d("login_test2", "exception1: sign up [${task.exception?.message}]")
+                            Log.d("login_test3", translatedText)
 
-                    val msg = task.exception?.localizedMessage ?: "회원가입에 실패했습니다. 잠시 후 재시도 해주세요"
-
-                    // task msg 한국어 설정
-
-                    Snackbar.make(
-                        binding.root,
-                        msg,
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                } else {
-                    // account already exists
-                    // signIn() 호출
-                    // snackbar message or popup alert 실행
-                    Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT).show()
-                    finish()
-                }
+                            Snackbar.make(
+                                binding.root,
+                                translatedText,
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            // account already exists
+                            // signIn() 호출
+                            // snackbar message or popup alert 실행
+                            Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT).show()
+                            finish()
+                        }
+                    }
+                    .addOnFailureListener {
+                        Log.d("login_test1", "fail to translation: ${it.message}")
+                    }
             }
     }
 
@@ -154,6 +170,34 @@ class SignUpActivity : AppCompatActivity() {
         })
     }
 
+    private fun setTranslation() {
+        val options = TranslatorOptions.Builder()
+            .setSourceLanguage(TranslateLanguage.ENGLISH)
+            .setTargetLanguage(TranslateLanguage.KOREAN)
+            .build()
+
+        englishKoreanTranslator = Translation.getClient(options)
+
+        val conditions = DownloadConditions.Builder()
+            .requireWifi()
+            .build()
+
+        englishKoreanTranslator.downloadModelIfNeeded(conditions)
+            .addOnSuccessListener {
+                // ready to start translating
+                Log.d("trans_test", "success to download model")
+
+            }
+            .addOnFailureListener {
+                // Model couldn’t be downloaded or other internal error.
+                Log.d("trans_test", "fail to download model")
+            }
+    }
+
+    override fun finish() {
+        super.finish()
+        slideLeft()
+    }
     override fun onBackPressed() {
         super.onBackPressed()
         slideLeft()
