@@ -49,7 +49,12 @@ class CaleneeLoginActivity : AppCompatActivity() {
         }
 
         binding.resetPwBtn.setOnClickListener {
-            Snackbar.make(binding.root, "reset pw", Snackbar.LENGTH_SHORT).show()
+            // 다음 activity에서 이름, 이메일 입력 후 DB에 일치하는 정보 있는지 확인
+            // 일치하면 send email for reset PW
+            Intent(this, ResetPwActivity::class.java).also {
+                startActivity(it)
+                slideRight()
+            }
         }
     }
 
