@@ -64,12 +64,13 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:20.1.0'
     implementation platform('com.google.firebase:firebase-bom:29.3.0')
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.5.0")
 
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
 
     // room
-//    implementation "androidx.room:room-runtime:$room_version"
-//    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 
     // translation(firebase)
     implementation 'com.google.mlkit:translate:17.0.0'
