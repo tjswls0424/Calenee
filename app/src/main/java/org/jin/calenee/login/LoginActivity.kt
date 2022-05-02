@@ -73,7 +73,6 @@ class LoginActivity : AppCompatActivity() {
         Log.d("login_test", "token: $tokenId")
         // db에서 login status 체크
 //        loginLauncher.launch(googleSignIn.signInIntent)
-
         observeData()
         initViews()
     }
@@ -85,8 +84,9 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         fetchJob = viewModel.fetchData(tokenId)
-        initViews()
+
         observeData()
+        initViews()
         listener()
     }
 
@@ -143,7 +143,7 @@ class LoginActivity : AppCompatActivity() {
     private fun handleLoadingState() = with(binding) {
         progressBar.isVisible = true
         loadingScreen.isVisible = true
-        Log.d("login_test", "loadingt")
+        Log.d("login_test", "loading")
     }
 
     // google auth login 상태인 경우
@@ -158,6 +158,7 @@ class LoginActivity : AppCompatActivity() {
                     viewModel.setUserInfo(firebaseAuth.currentUser)
                 } else {
                     // fail to login
+                    Log.d("login_test", "login state: false")
                     viewModel.setUserInfo(null)
                 }
             }
@@ -189,56 +190,7 @@ class LoginActivity : AppCompatActivity() {
 
     // state: error
     private fun handleErrorState() {
-        Snackbar.make(binding.root, "error state", Snackbar.LENGTH_SHORT).show()
-    }
-
-    // 회원가입 완료 버튼 클릭시 호출
-    private fun createAccount(email: String, pw: String) {
-        // sign up
-        // email만 따로 중복확인 할 수 있는지 확인
-        // 안되면 확인버튼 클릭시 email, pw가 동시에 db에서 확인되기 때문에 문제 발생 가능성 O
-        firebaseAuth.createUserWithEmailAndPassword(email, pw)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("login_test", "sign in success, now login with this email")
-                    Snackbar.make(binding.root, "회원가입을 완료했습니다.", Snackbar.LENGTH_SHORT).show()
-
-                } else if (!task.exception?.message.isNullOrEmpty()) {
-                    // error or connection server fail
-                    Log.d("login_test", "exception - sign up")
-                    Snackbar.make(
-                        binding.root,
-                        "회원가입에 실패했습니다. 잠시 후 재시도 해주세요",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                } else {
-                    // account already exists
-                    // signIn() 호출
-                    // snackbar message or popup alert 실행
-                    Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT).show()
-                }
-            }
-    }
-
-    private fun signIn(email: String, pw: String) {
-        firebaseAuth.signInWithEmailAndPassword(email, pw)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Intent(this@LoginActivity, MainActivity::class.java).apply {
-                        startActivity(this)
-
-                        // + progress bar (loading)
-                        // + animation 살며시 or 천천히 나타나는거 찾아보기
-                        // + none을 duration을 늘리던가
-                        slideRight()
-                        finish()
-                    }
-                } else {
-                    // error
-                    Snackbar.make(binding.root, "이메일 또는 패스워드가 올바르지 않습니다.", Snackbar.LENGTH_SHORT)
-                        .show()
-                }
-            }
+        Log.d("login_test", "login error")
     }
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
