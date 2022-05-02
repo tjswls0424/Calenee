@@ -18,4 +18,6 @@
 
     <color name="light_grey">#535353</color>
     <color name="light_grey2">#DCDCDC</color>
+    <color name="loading_screen_color">#4D535353</color>
+    <color name="transparent">#00FFFFFF</color>
 </resources>

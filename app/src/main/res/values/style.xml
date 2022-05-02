@@ -56,7 +56,6 @@
         <item name="counterMaxLength">1</item>
         <item name="boxStrokeColor">@color/sub_color</item>
         <item name="boxBackgroundColor">#11BCBCBC</item>
-        <item name="android:layout_marginBottom">-10dp</item>
         <item name="android:textColorHint">#595959</item>
         <item name="hintTextColor">#595959</item>
         <item name="errorEnabled">true</item>
