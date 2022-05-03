@@ -8,7 +8,7 @@
     tools:context=".login.CaleneeLoginActivity">
 
     <ImageView
-        android:id="@+id/login_calenee_img"
+        android:id="@+id/calenee_img"
         android:layout_width="95dp"
         android:layout_height="95dp"
         android:layout_marginTop="80dp"
@@ -28,7 +28,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/login_calenee_img">
+        app:layout_constraintTop_toBottomOf="@id/calenee_img">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_email_layout"

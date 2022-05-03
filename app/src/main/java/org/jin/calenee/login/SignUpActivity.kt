@@ -150,19 +150,19 @@ class SignUpActivity : AppCompatActivity() {
             override fun afterTextChanged(text: Editable?) {
                 when (editText.id) {
                     R.id.input_name_et -> {
-                        name = "${text?.trim()}"
+                        name = "$text"
                         binding.inputNameLayout.error = null
                     }
                     R.id.input_email_et -> {
-                        email = "${text?.trim()}"
+                        email = "$text"
                         binding.inputEmailLayout.error = null
                     }
                     R.id.input_pw_et -> {
-                        pw = "${text?.trim()}"
+                        pw = "$text"
                         binding.inputPwLayout.error = null
                     }
                     R.id.input_pw_check_et -> {
-                        pwCheck = "${text?.trim()}"
+                        pwCheck = "$text"
                         binding.inputPwCheckLayout.error = null
                     }
                 }
