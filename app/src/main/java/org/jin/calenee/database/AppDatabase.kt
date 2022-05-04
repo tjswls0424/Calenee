@@ -1,6 +1,8 @@
 package org.jin.calenee.database
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import org.jin.calenee.database.dao.CalendarDao
 import org.jin.calenee.database.dao.UserDao
@@ -15,6 +17,20 @@ abstract class AppDatabase: RoomDatabase() {
     companion object {
         private var instance: AppDatabase? = null
 
+        @Synchronized
+        fun getInstance(context: Context): AppDatabase? {
+            if (instance == null) {
+                synchronized(AppDatabase::class) {
+                    instance = Room.databaseBuilder(
+                        context.applicationContext,
+                        AppDatabase::class.java,
+                        "user-database"
+                    ).build()
+                }
+            }
+
+            return instance
+        }
 
 
     }

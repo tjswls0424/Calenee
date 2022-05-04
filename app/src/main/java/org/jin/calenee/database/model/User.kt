@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class User (
-    @PrimaryKey val email: String,
     @ColumnInfo val name: String?,
+    @PrimaryKey val email: String,
+    @ColumnInfo val pw: String,
     @ColumnInfo(name = "login_state") var loginState: Boolean = false
 )

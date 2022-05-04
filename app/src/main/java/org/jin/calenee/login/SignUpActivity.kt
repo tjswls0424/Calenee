@@ -14,8 +14,13 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
+import org.jin.calenee.database.AppDatabase
+import org.jin.calenee.database.model.User
 import org.jin.calenee.databinding.ActivityLoginActivtyBinding
 import org.jin.calenee.databinding.ActivitySignUpBinding
 
@@ -23,16 +28,18 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
     private lateinit var loginbinding: ActivityLoginActivtyBinding
+    private lateinit var englishKoreanTranslator: Translator
+    private lateinit var db: AppDatabase
+
     private var email: String = ""
     private var name: String = ""
     private var pw: String = ""
+
     private var pwCheck: String = ""
 
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
-
-    private lateinit var englishKoreanTranslator: Translator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +47,8 @@ class SignUpActivity : AppCompatActivity() {
         binding = ActivitySignUpBinding.inflate(layoutInflater)
         loginbinding = ActivityLoginActivtyBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        db = AppDatabase.getInstance(applicationContext)!!
 
         listener()
         setTranslation()
@@ -70,8 +79,9 @@ class SignUpActivity : AppCompatActivity() {
                     false
                 }
 
-                email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                    inputEmailLayout.apply{
+                email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email)
+                    .matches() -> {
+                    inputEmailLayout.apply {
                         error = "이메일을 올바르게 입력해주세요"
                         requestFocus()
                     }
@@ -86,7 +96,7 @@ class SignUpActivity : AppCompatActivity() {
                     false
                 }
 
-                pwCheck.isEmpty()-> {
+                pwCheck.isEmpty() -> {
                     inputPwCheckLayout.apply {
                         error = "비밀번호 확인을 위해 입력한 비밀번호를 다시 입력해주세요"
                         requestFocus()
@@ -111,10 +121,15 @@ class SignUpActivity : AppCompatActivity() {
     private fun createAccount(email: String, pw: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
             .addOnCompleteListener { task ->
-//                var msg = task.exception?.message ?: "회원가입에 실패했습니다. 잠시 후 재시도 해주세요"
                 englishKoreanTranslator.translate(task.exception?.message.toString())
                     .addOnSuccessListener { translatedText ->
                         if (task.isSuccessful) {
+                            // add user info to db
+                            CoroutineScope(Dispatchers.IO).launch {
+                                db.userDao().insertUserInfo(User(name, email, pw))
+                                Log.d("login_test/db", db.userDao().getAll().toString())
+                            }
+
                             Log.d("login_test1", "sign in success, now login with this email")
                             Toast.makeText(this, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
                             finish()
@@ -129,9 +144,8 @@ class SignUpActivity : AppCompatActivity() {
                             ).show()
                         } else {
                             // account already exists
-                            // signIn() 호출
-                            // snackbar message or popup alert 실행
-                            Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT).show()
+                            Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT)
+                                .show()
                             finish()
                         }
                     }
@@ -198,6 +212,7 @@ class SignUpActivity : AppCompatActivity() {
         super.finish()
         slideLeft()
     }
+
     override fun onBackPressed() {
         super.onBackPressed()
         slideLeft()

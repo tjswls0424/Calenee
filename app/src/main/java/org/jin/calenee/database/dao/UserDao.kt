@@ -8,9 +8,9 @@ interface UserDao {
     @Query("SELECT * FROM user")
     fun getAll(): List<User>
 
-    // email, name으로 찾기
+    // email, name으로 search
     @Query("SELECT * FROM user WHERE email IN (:userEmail)")
-    fun loadUserInfo(userEmail: String): List<User>
+    fun loadUserInfo(userEmail: String): User
 
     @Insert
     fun insertUserInfo(userInfo: User)
