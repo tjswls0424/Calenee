@@ -6,10 +6,12 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import org.jin.calenee.App
 import org.jin.calenee.MainActivity
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
@@ -102,30 +104,46 @@ class CaleneeLoginActivity : AppCompatActivity() {
     }
 
     private fun signIn(email: String, pw: String) {
-        binding.loadingScreen.isVisible = true
-        binding.progressBar.isVisible = true
+        handleLoadingState(true)
 
         firebaseAuth.signInWithEmailAndPassword(email, pw)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    binding.loadingScreen.isVisible = false
-                    binding.progressBar.isVisible = false
+                    App.userPrefs.apply {
+                        setString("current_email", email)
+                        setString("current_name", this.getString("${email}_name", email))
+                        setString("login_status", "true")
+                    }
 
-                    Log.d("login_test", "sign in success")
+                    handleLoadingState(false)
+
+                    Log.d("login_test/normal", "sign in success")
                     Intent(this@CaleneeLoginActivity, MainActivity::class.java).also {
                         startActivity(it)
                         finish()
                     }
                 } else {
                     // error
-                    binding.loadingScreen.isVisible = false
-                    binding.progressBar.isVisible = false
+                    handleLoadingState(false)
 
-                    Log.d("login_test/err", task.exception?.message.toString())
+                    Log.d("login_test/normal-err", task.exception?.message.toString())
                     Snackbar.make(binding.root, "이메일 또는 패스워드가 올바르지 않습니다.", Snackbar.LENGTH_SHORT)
                         .show()
                 }
             }
+    }
+
+    // while loading
+    private fun handleLoadingState(flag: Boolean) = with(binding) {
+        if (flag) {
+            progressBar.isVisible = true
+            loadingScreen.isVisible = true
+            Log.d("login_test", "loading")
+        } else {
+            progressBar.isGone = true
+            loadingScreen.isGone = true
+            Log.d("login_test", "loading stop")
+        }
     }
 
     override fun finish() {

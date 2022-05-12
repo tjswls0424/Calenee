@@ -16,9 +16,9 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
+import org.jin.calenee.App
 import org.jin.calenee.MainActivity
-import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityLoginActivtyBinding
@@ -70,11 +70,18 @@ class LoginActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        Log.d("login_test", "token: $tokenId")
-        // db에서 login status 체크
-//        loginLauncher.launch(googleSignIn.signInIntent)
-        observeData()
-        initViews()
+        handleLoadingState(true) // execute loading animation
+
+        App.userPrefs.apply {
+            val loginStatus = getString("login_status", "false").toBoolean()
+            if (loginStatus) {
+                handleLoadingState(false)
+                Intent(this@LoginActivity, MainActivity::class.java).also {
+                    startActivity(it)
+                    finish()
+                }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,9 +123,16 @@ class LoginActivity : AppCompatActivity() {
         tokenId?.let {
             // 로그인 된 상태
             Log.d("login_test", "login status: true")
+
+            val currentUser = firebaseAuth.currentUser
+            App.userPrefs.apply {
+                setString("current_email", currentUser?.email.toString())
+                setString("current_name", currentUser?.displayName.toString())
+                setString("login_status", "true")
+            }
+
             Intent(this@LoginActivity, MainActivity::class.java).apply {
                 startActivity(this)
-                slideRight()
                 finish()
             }
         } ?: kotlin.run {
@@ -129,27 +143,32 @@ class LoginActivity : AppCompatActivity() {
     private fun observeData() = viewModel.loginStateLiveData.observe(this) {
         when (it) {
             is LoginState.UnInitialized -> initViews()
-            is LoginState.Loading -> handleLoadingState()
+            is LoginState.Loading -> handleLoadingState(true)
             is LoginState.Login -> handleLoginState(it)
             is LoginState.Success -> {
                 handleSuccessState(it)
                 initViews()
             }
-            is LoginState.Error -> handleLoadingState()
+            is LoginState.Error -> handleLoadingState(false)
         }
     }
 
     // while loading
-    private fun handleLoadingState() = with(binding) {
-        progressBar.isVisible = true
-        loadingScreen.isVisible = true
-        Log.d("login_test", "loading")
+    private fun handleLoadingState(flag: Boolean) = with(binding) {
+        if (flag) {
+            progressBar.isVisible = true
+            loadingScreen.isVisible = true
+            Log.d("login_test", "loading")
+        } else {
+            progressBar.isGone = true
+            loadingScreen.isGone = true
+            Log.d("login_test", "loading stop")
+        }
     }
 
     // google auth login 상태인 경우
     private fun handleLoginState(state: LoginState.Login) = with(binding) {
-        progressBar.isVisible = true
-        loadingScreen.isVisible = true
+        handleLoadingState(true)
 
         val credential = GoogleAuthProvider.getCredential(state.idToken, null)
         firebaseAuth.signInWithCredential(credential)
@@ -166,8 +185,7 @@ class LoginActivity : AppCompatActivity() {
 
     // google auth login state: success
     private fun handleSuccessState(state: LoginState.Success) = with(binding) {
-        progressBar.isGone = true
-        loadingScreen.isGone = true
+        handleLoadingState(false)
 
         when (state) {
             is LoginState.Success.Registered -> {
@@ -199,9 +217,15 @@ class LoginActivity : AppCompatActivity() {
 
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                val currentUser = firebaseAuth.currentUser
+                App.userPrefs.apply {
+                    setString("current_email", currentUser?.email.toString())
+                    setString("current_name", currentUser?.displayName.toString())
+                    setString("login_status", "true")
+                }
+
                 Intent(this@LoginActivity, MainActivity::class.java).apply {
                     startActivity(this)
-                    slideLeft()
                     finish()
                 }
             } else {
@@ -227,6 +251,11 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun finish() {
+        super.finish()
+        slideRight()
     }
 
     override fun onBackPressed() {}

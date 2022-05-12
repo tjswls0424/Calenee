@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
+import org.jin.calenee.database.AppDatabase
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
@@ -34,13 +36,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private val firebaseAuth by lazy {
+        FirebaseAuth.getInstance()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
-
 
         supportFragmentManager.beginTransaction()
             .add(binding.mainFrameLayout.id, CalendarFragment()).commit()
@@ -69,15 +74,21 @@ class MainActivity : AppCompatActivity() {
 
                     googleSignInClient.signOut().addOnCompleteListener {
                         viewModel.signOut()
+                    }
 
-                        Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
-                        Log.d("menu_test", "logout")
+                    // set SP
+                    App.userPrefs.apply {
+                        setString("current_email", "")
+                        setString("current_name", "")
+                        setString("login_status", "false")
+                    }
 
-                        Intent(this, LoginActivity::class.java).apply {
-                            startActivity(this)
-                            slideLeft()
-                            finish()
-                        }
+                    Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
+
+                    Intent(this, LoginActivity::class.java).apply {
+                        startActivity(this)
+                        slideLeft()
+                        finish()
                     }
                 }
             }
@@ -87,7 +98,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.mainBottomNavigationView.setOnItemSelectedListener { item ->
             replaceFragment(
-                when(item.itemId) {
+                when (item.itemId) {
                     R.id.calendar -> CalendarFragment()
                     R.id.memo -> MemoFragment()
                     else -> TodoFragment()
@@ -99,7 +110,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction().replace(binding.mainFrameLayout.id, fragment).commit()
+        supportFragmentManager.beginTransaction().replace(binding.mainFrameLayout.id, fragment)
+            .commit()
     }
 
     override fun onBackPressed() {}
