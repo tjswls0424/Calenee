@@ -35,7 +35,7 @@ internal class LoginViewModel : ViewModel() {
         firebaseUser?.let { user ->
             setState(
                 LoginState.Success.Registered(
-                    user.displayName ?: "익명",
+                    user.displayName ?: "Guest",
                     user.photoUrl!!
                 )
             )
