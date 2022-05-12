@@ -14,13 +14,9 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import org.jin.calenee.App
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
-import org.jin.calenee.database.AppDatabase
-import org.jin.calenee.database.model.User
 import org.jin.calenee.databinding.ActivityLoginActivtyBinding
 import org.jin.calenee.databinding.ActivitySignUpBinding
 
@@ -29,7 +25,6 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignUpBinding
     private lateinit var loginbinding: ActivityLoginActivtyBinding
     private lateinit var englishKoreanTranslator: Translator
-    private lateinit var db: AppDatabase
 
     private var email: String = ""
     private var name: String = ""
@@ -47,8 +42,6 @@ class SignUpActivity : AppCompatActivity() {
         binding = ActivitySignUpBinding.inflate(layoutInflater)
         loginbinding = ActivityLoginActivtyBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        db = AppDatabase.getInstance(applicationContext)!!
 
         listener()
         setTranslation()
@@ -125,9 +118,9 @@ class SignUpActivity : AppCompatActivity() {
                     .addOnSuccessListener { translatedText ->
                         if (task.isSuccessful) {
                             // add user info to db
-                            CoroutineScope(Dispatchers.IO).launch {
-                                db.userDao().insertUserInfo(User(name, email, pw))
-                                Log.d("login_test/db", db.userDao().getAll().toString())
+                            App.userPrefs.apply {
+                                setString("${email}_name", name)
+                                setString("${email}_pw", pw)
                             }
 
                             Log.d("login_test1", "sign in success, now login with this email")
