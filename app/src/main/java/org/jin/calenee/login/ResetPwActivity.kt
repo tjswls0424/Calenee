@@ -1,14 +1,17 @@
 package org.jin.calenee.login
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.view.animation.TranslateAnimation
+import android.widget.Toast
 import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
-import org.jin.calenee.MainActivity.Companion.slideDown
+import org.jin.calenee.App
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityResetPwBinding
@@ -44,25 +47,32 @@ class ResetPwActivity : AppCompatActivity() {
 
                 // name, email - DB에서 비교
                 // if checkUserInfoExists() -> true
-                binding.inputNameLayout.isEnabled = false
-                binding.inputEmailLayout.isEnabled = false
+                val userName = App.userPrefs.getString("${email}_name")
+                if (userName == name) {
+                    binding.inputNameLayout.isEnabled = false
+                    binding.inputEmailLayout.isEnabled = false
 
-                TranslateAnimation(0f, 0f, binding.linearlayout2.width.toFloat(), 0f).apply {
-                    duration = 600
-                    fillAfter = true
+                    if (binding.linearlayout2.visibility == View.INVISIBLE) {
+                        TranslateAnimation(0f, 0f, binding.linearlayout2.width.toFloat(), 0f).apply {
+                            duration = 600
+                            fillAfter = true
 
-                    binding.linearlayout2.animation = this
-                    binding.linearlayout2.isVisible = true
+                            binding.linearlayout2.animation = this
+                            binding.linearlayout2.isVisible = true
+                        }
+                    }
+
+                    if (checkInputConditionForPw()) {
+                        App.userPrefs.setString("${email}_pw", newPw)
+                        Toast.makeText(this, "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+                        Intent(this, LoginActivity::class.java).also {
+                            startActivity(it)
+                            finish()
+                        }
+                    }
+                } else {
+                    Snackbar.make(binding.root, "해당 정보와 일치하는 계정이 없습니다.", Snackbar.LENGTH_SHORT).show()
                 }
-            }
-
-            if (checkInputConditionForPw()) {
-                Snackbar.make(
-                    binding.root,
-                    "new pw: $newPw, new pw check: $newPwCheck",
-                    Snackbar.LENGTH_SHORT
-                )
-                    .show()
             }
         }
     }
@@ -147,6 +157,11 @@ class ResetPwActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun finish() {
+        super.finish()
+        slideLeft()
     }
 
     override fun onBackPressed() {
