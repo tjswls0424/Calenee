@@ -4,8 +4,10 @@
 
     <string name="home">홈</string>
     <string name="calendar">캘린더</string>
+    <string name="diary">다이어리</string>
+    <string name="chat">채팅</string>
     <string name="memo">메모</string>
-    <string name="todo_list">할 일</string>
+    <string name="menu">더보기</string>
 
     <string name="login_short_comment">&quot;연인과 함께 서로의 일상을 공유해보세요!&quot;</string>
 
@@ -25,7 +27,5 @@
     <string name="sign_up2">회원가입</string>
     <string name="login">로그인</string>
     <string name="confirm">확인</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

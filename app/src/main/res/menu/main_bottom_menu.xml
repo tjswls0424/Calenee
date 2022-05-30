@@ -7,20 +7,28 @@
         android:enabled="true"
         android:icon="@drawable/ic_baseline_favorite_24"
         android:title="@string/home" />
+
+    <item
+        android:id="@+id/diary"
+        android:enabled="true"
+        android:icon="@drawable/diary2"
+        android:title="@string/diary" />
+
+    <item
+        android:id="@+id/chat"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_chat_24"
+        android:title="" />
+
     <item
         android:id="@+id/calendar"
         android:enabled="true"
         android:icon="@drawable/ic_calendar"
         android:title="@string/calendar" />
-    <item
-        android:id="@+id/memo"
-        android:enabled="true"
-        android:icon="@drawable/ic_outline_note"
-        android:title="@string/memo" />
 
     <item
-        android:id="@+id/todo_list"
+        android:id="@+id/menu"
         android:enabled="true"
-        android:icon="@drawable/ic_outline_check_box_24"
-        android:title="@string/todo_list" />
+        android:icon="@drawable/ic_baseline_menu_24"
+        android:title="@string/menu" />
 </menu>
