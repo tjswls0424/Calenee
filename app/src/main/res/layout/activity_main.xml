@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:fabAlignmentMode="end"
-        app:fabCradleMargin="10dp"
+        app:fabCradleMargin="0dp"
         app:fabCradleRoundedCornerRadius="10dp"
         app:fabCradleVerticalOffset="0dp">
 
@@ -55,14 +55,15 @@
             app:labelVisibilityMode="labeled"
             app:itemRippleColor="@android:color/transparent"
             app:menu="@menu/main_bottom_menu" />
-    </com.google.android.material.bottomappbar.BottomAppBar>
 
+    </com.google.android.material.bottomappbar.BottomAppBar>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_memo_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
+        android:src="@drawable/ic_baseline_chat_24"
         app:backgroundTint="@color/sub_color3"
         app:layout_anchor="@id/bottom_app_bar"
         app:tint="@color/white" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
