@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportFragmentManager.beginTransaction()
-            .add(binding.mainFrameLayout.id, CalendarFragment()).commit()
+            .add(binding.mainFrameLayout.id, HomeFragment()).commit()
 
         listener()
     }
@@ -56,10 +56,6 @@ class MainActivity : AppCompatActivity() {
     private fun listener() {
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
-                R.id.calendarMenu -> {
-                    Log.d("menu_test", "add calendar menu")
-                }
-
                 R.id.logoutMenu -> {
                     val googleSignInOptions: GoogleSignInOptions by lazy {
                         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -99,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         binding.mainBottomNavigationView.setOnItemSelectedListener { item ->
             replaceFragment(
                 when (item.itemId) {
+                    R.id.main_home -> HomeFragment()
                     R.id.calendar -> CalendarFragment()
                     R.id.memo -> MemoFragment()
                     else -> TodoFragment()

@@ -2,6 +2,7 @@
     <string name="app_name_eng">Calenee</string>
     <string name="app_name_kor">캘린이</string>
 
+    <string name="home">홈</string>
     <string name="calendar">캘린더</string>
     <string name="memo">메모</string>
     <string name="todo_list">할 일</string>
@@ -24,5 +25,7 @@
     <string name="sign_up2">회원가입</string>
     <string name="login">로그인</string>
     <string name="confirm">확인</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
