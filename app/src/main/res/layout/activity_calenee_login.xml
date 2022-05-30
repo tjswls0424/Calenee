@@ -9,13 +9,14 @@
 
     <ImageView
         android:id="@+id/calenee_img"
-        android:layout_width="95dp"
-        android:layout_height="95dp"
-        android:layout_marginTop="80dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:layout_constraintVertical_bias="0.15"
         android:contentDescription="@string/app_name_kor"
-        android:src="@drawable/calenee_thin"
+        android:src="@drawable/calenee_heart"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
@@ -32,7 +33,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_email_layout"
-            style="@style/material_login_edit_text"
+            style="@style/MaterialLoginEditText"
             app:errorEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -46,7 +47,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_pw_layout"
-            style="@style/material_login_edit_text"
+            style="@style/MaterialLoginEditText"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
