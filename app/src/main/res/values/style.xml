@@ -50,7 +50,7 @@
     </style>
 
     <!-- Material edit text (login) -->
-    <style name="material_login_edit_text" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+    <style name="MaterialLoginEditText" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="counterMaxLength">1</item>
