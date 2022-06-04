@@ -15,9 +15,8 @@
         android:title="@string/diary" />
 
     <item
-        android:id="@+id/chat"
-        android:enabled="true"
-        android:icon="@drawable/ic_baseline_chat_24"
+        android:id="@+id/placeholder"
+        android:enabled="false"
         android:title="" />
 
     <item
