@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.*
 import org.jin.calenee.App
+import org.jin.calenee.ConnectionActivity
 import org.jin.calenee.MainActivity
 import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.R
@@ -76,10 +77,17 @@ class LoginActivity : AppCompatActivity() {
             val loginStatus = getString("login_status", "false").toBoolean()
             if (loginStatus) {
                 handleLoadingState(false)
-                Intent(this@LoginActivity, MainActivity::class.java).also {
-                    startActivity(it)
-                    finish()
+
+                val intent: Intent
+                if (App.userPrefs.getString("couple_connection_flag").isEmpty()
+                    || App.userPrefs.getString("couple_connection_flag") == "false"
+                ) {
+                    intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
+                } else {
+                    intent = Intent(this@LoginActivity, MainActivity::class.java)
                 }
+                startActivity(intent)
+                finish()
             }
         }
     }
@@ -131,10 +139,17 @@ class LoginActivity : AppCompatActivity() {
                 setString("login_status", "true")
             }
 
-            Intent(this@LoginActivity, MainActivity::class.java).apply {
-                startActivity(this)
-                finish()
+
+            val intent: Intent
+            if (App.userPrefs.getString("couple_connection_flag").isEmpty()
+                || App.userPrefs.getString("couple_connection_flag") == "false"
+            ) {
+                intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
+            } else {
+                intent = Intent(this@LoginActivity, MainActivity::class.java)
             }
+            startActivity(intent)
+            finish()
         } ?: kotlin.run {
             Log.d("login_test", "login status: false")
         }
@@ -224,10 +239,16 @@ class LoginActivity : AppCompatActivity() {
                     setString("login_status", "true")
                 }
 
-                Intent(this@LoginActivity, MainActivity::class.java).apply {
-                    startActivity(this)
-                    finish()
+                val intent: Intent
+                if (App.userPrefs.getString("couple_connection_flag").isEmpty()
+                    || App.userPrefs.getString("couple_connection_flag") == "false"
+                ) {
+                    intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
+                } else {
+                    intent = Intent(this@LoginActivity, MainActivity::class.java)
                 }
+                startActivity(intent)
+                finish()
             } else {
                 Snackbar.make(binding.root, "구글 로그인에 실패했습니다.", Snackbar.LENGTH_SHORT).show()
             }

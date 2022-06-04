@@ -12,6 +12,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import org.jin.calenee.App
+import org.jin.calenee.ConnectionActivity
 import org.jin.calenee.MainActivity
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
@@ -117,11 +118,16 @@ class CaleneeLoginActivity : AppCompatActivity() {
 
                     handleLoadingState(false)
 
-                    Log.d("login_test/normal", "sign in success")
-                    Intent(this@CaleneeLoginActivity, MainActivity::class.java).also {
-                        startActivity(it)
-                        finish()
+                    val intent: Intent
+                    if (App.userPrefs.getString("couple_connection_flag").isEmpty()
+                        || App.userPrefs.getString("couple_connection_flag") == "false"
+                    ) {
+                        intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
+                    } else {
+                        intent = Intent(this@CaleneeLoginActivity, MainActivity::class.java)
                     }
+                    startActivity(intent)
+                    finish()
                 } else {
                     // error
                     handleLoadingState(false)
