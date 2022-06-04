@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.jin.calenee">
 
     <application
@@ -9,7 +10,9 @@
         android:label="@string/app_name_kor"
         android:roundIcon="@mipmap/calenee_icon_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.LightPurple">
+        android:theme="@style/Theme.LightPurple"
+        tools:replace="android:label">
+        <activity android:name=".ConnectionActivity"></activity>
         <activity
             android:name=".login.ResetPwActivity"
             android:windowSoftInputMode="adjustResize" />
