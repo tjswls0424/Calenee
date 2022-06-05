@@ -71,15 +71,36 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/invite_code_timer"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textColor="@color/sub_color6"
+            android:layout_marginStart="7dp"
+            android:orientation="horizontal"
             app:layout_constraintStart_toEndOf="@id/invite_code_title"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="00:00:00" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/timer_min"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/sub_color6"
+                tools:text="00" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:text=":"
+                android:textColor="@color/sub_color6" />
+
+            <TextView
+                android:id="@+id/timer_sec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/sub_color6"
+                tools:text="00" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/invite_code_tv"

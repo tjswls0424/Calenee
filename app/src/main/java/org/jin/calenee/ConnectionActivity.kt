@@ -1,37 +1,81 @@
 package org.jin.calenee
 
-import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.accessibility.AccessibilityEvent
-import android.widget.EditText
 import android.widget.Toast
+import androidx.lifecycle.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.databinding.ActivityConnectionBinding
 import org.jin.calenee.login.LoginActivity
 
 class ConnectionActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityConnectionBinding
-    private var inviteCode = ""
+    private val binding by lazy {
+        ActivityConnectionBinding.inflate(layoutInflater)
+    }
+
+    private val inviteCodeViewModel by lazy {
+        ViewModelProvider(this).get(InviteCodeViewModel::class.java)
+    }
+
+    private var partnerInviteCode = ""
+
+    // 분 수정 (1 -> 10)
+    private val mCountDown: CountDownTimer = object : CountDownTimer(1000 * 60 * 10, 1000 * 60) {
+        override fun onTick(millisUntilFinished: Long) {
+            //update the UI with the new count
+            "0${(millisUntilFinished.toFloat() / 60000.0f).toInt()}".also {
+                binding.timerMin.text = it
+            }
+            sCountDown.start()
+        }
+
+        override fun onFinish() {
+            //countdown finish
+            inviteCodeViewModel.updateExpirationFlag(true)
+        }
+    }
+
+    val sCountDown: CountDownTimer = object : CountDownTimer(1000 * 60, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            //update the UI with the new count
+            if ((millisUntilFinished.toFloat() / 1000.0f) / 10.0f >= 1.0f) {
+                "${(millisUntilFinished.toFloat() / 1000.0f).toInt()}".also {
+                    binding.timerSec.text = it
+                }
+            } else {
+                "0${(millisUntilFinished.toFloat() / 1000.0f).toInt()}".also {
+                    binding.timerSec.text = it
+                }
+            }
+        }
+
+        override fun onFinish() {
+            //countdown finish
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityConnectionBinding.inflate(layoutInflater)
+        setMyInviteCode()
 
         setContentView(binding.root)
 
         listener()
-
+        observeData()
     }
 
     private fun listener() {
@@ -67,6 +111,10 @@ class ConnectionActivity : AppCompatActivity() {
             }
         }
 
+        binding.refreshInviteCodeBtn.setOnClickListener {
+            setMyInviteCode()
+        }
+
         var previousLength = 0
         var backspace: Boolean
         binding.inputCodeEt.apply {
@@ -90,9 +138,9 @@ class ConnectionActivity : AppCompatActivity() {
                         text?.append(" ")
                     }
 
-                    inviteCode = "$text"
+                    partnerInviteCode = "$text"
 
-                    Log.d("text_test/inviteCode", inviteCode)
+                    Log.d("text_test/inviteCode", partnerInviteCode)
                 }
             })
 
@@ -101,10 +149,10 @@ class ConnectionActivity : AppCompatActivity() {
                     keyEvent.keyCode == KeyEvent.KEYCODE_DEL
                 ) {
                     if (binding.inputCodeEt.text.length == 5) {
-                        binding.inputCodeEt.setText(inviteCode.dropLast(1))
+                        binding.inputCodeEt.setText(partnerInviteCode.dropLast(1))
                         binding.inputCodeEt.setSelection(binding.inputCodeEt.text.length)
 
-                        Log.d("text_test/del1", "delete1 code length: ${inviteCode.length}")
+                        Log.d("text_test/del1", "delete1 code length: ${partnerInviteCode.length}")
                     }
                 }
 
@@ -125,10 +173,56 @@ class ConnectionActivity : AppCompatActivity() {
 
     }
 
+    private fun observeData() {
+        inviteCodeViewModel.myInviteCode.observe(this) {
+            binding.inviteCodeTv.text = it
+        }
 
-    private fun setRandNum() {
+        inviteCodeViewModel.expirationFlag.observe(this) {
+            if (it) Snackbar.make(
+                binding.root,
+                "내 초대코드가 만료되었습니다. 하단의 재발급 버튼을 눌러 초대코드를 재발급 해주세요.",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+    }
 
+    private fun setMyInviteCode() {
+        inviteCodeViewModel.updateExpirationFlag(false)
+        var tmpMyInviteCode = ""
+
+        for (i in 0..7) {
+            if (tmpMyInviteCode.length == 4) tmpMyInviteCode += " "
+            tmpMyInviteCode += (0..9).random()
+        }
+
+        inviteCodeViewModel.updateMyInviteCode(tmpMyInviteCode)
+        mCountDown.start()
     }
 
     override fun onBackPressed() {}
+
+}
+
+class InviteCodeViewModel : ViewModel() {
+    private val _myInviteCode = MutableLiveData<String>()
+    val myInviteCode: LiveData<String> get() = _myInviteCode
+
+    private val _expirationFlag = MutableLiveData<Boolean>()
+    val expirationFlag: LiveData<Boolean> get() = _expirationFlag
+
+    init {
+        this._myInviteCode.value = ""
+        this._expirationFlag.value = false
+    }
+
+    fun updateMyInviteCode(inviteCode: String) = viewModelScope.launch {
+        _myInviteCode.value = inviteCode
+        _myInviteCode.postValue(inviteCode)
+    }
+
+    fun updateExpirationFlag(flag: Boolean) = viewModelScope.launch {
+        _expirationFlag.value = flag
+        _expirationFlag.postValue(flag)
+    }
 }
