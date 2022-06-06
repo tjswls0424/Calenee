@@ -43,6 +43,12 @@
         <item name="fontFamily">@font/ibm_plex_sans_kr_regular</item>
     </style>
 
+    <!-- custom font - TextView -->
+    <style name="CustomFont.EditText" parent="@style/Widget.AppCompat.EditText">
+        <item name="android:fontFamily">@font/ibm_plex_sans_kr_regular</item>
+        <item name="fontFamily">@font/ibm_plex_sans_kr_regular</item>
+    </style>
+
     <!-- custom font - Button -->
     <style name="CustomFont.Button" parent="@style/Widget.MaterialComponents.Button">
         <item name="android:fontFamily">@font/ibm_plex_sans_kr_regular</item>
@@ -64,7 +70,7 @@
     <style name="Divider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginTop">7dp</item>
+        <item name="android:layout_marginTop">0dp</item>
         <item name="android:layout_marginBottom">7dp</item>
         <item name="android:background">@color/light_grey</item>
     </style>
