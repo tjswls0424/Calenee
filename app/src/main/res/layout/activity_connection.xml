@@ -147,6 +147,7 @@
             android:digits="0123456789 "
             android:gravity="bottom"
             android:hint="상대방 초대코드 8자리"
+            android:imeOptions="actionDone"
             android:inputType="number"
             android:maxLength="9"
             android:textColorHint="@color/light_grey3"
