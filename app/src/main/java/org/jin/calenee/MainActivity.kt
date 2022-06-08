@@ -4,13 +4,11 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
-import org.jin.calenee.database.AppDatabase
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
@@ -96,9 +94,9 @@ class MainActivity : AppCompatActivity() {
             replaceFragment(
                 when (item.itemId) {
                     R.id.main_home -> HomeFragment()
+                    R.id.diary -> DiaryFragment()
                     R.id.calendar -> CalendarFragment()
-                    R.id.memo -> MemoFragment()
-                    else -> TodoFragment()
+                    else -> MenuFragment()
                 }
             )
 
