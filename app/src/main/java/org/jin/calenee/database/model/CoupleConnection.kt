@@ -7,7 +7,5 @@ data class CoupleConnection(
     var ownerEmail: String = "",
     var partnerEmail: String = "",
     var codeExpirationFlag: Boolean = false,
-    var connectionFlag: Boolean = false,
-    @DocumentId
-    val id: String? = null
+    var connectionFlag: Boolean = false
 )
