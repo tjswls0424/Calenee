@@ -21,6 +21,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import org.jin.calenee.MainActivity.Companion.slideLeft
+import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.database.model.CoupleConnection
 import org.jin.calenee.databinding.ActivityConnectionBinding
 import org.jin.calenee.login.LoginActivity
@@ -65,7 +66,7 @@ class ConnectionActivity : AppCompatActivity() {
         )
     }
 
-    private var partnerInviteCode = ""
+    private var partnerInviteCodeInput = ""
 
     // 분 수정 (1 -> 10)
     private val mCountDown: CountDownTimer = object : CountDownTimer(1000 * 60 * 10, 1000 * 60) {
@@ -113,7 +114,7 @@ class ConnectionActivity : AppCompatActivity() {
         observeData()
 
         // initialize my connection data
-        WriteData().addData()
+        WriteData().addMyData()
     }
 
     private fun listener() {
@@ -140,7 +141,7 @@ class ConnectionActivity : AppCompatActivity() {
                 setString("login_status", "false")
             }
 
-            WriteData().deleteData()
+            WriteData().deleteMyData()
             Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
 
             Intent(this, LoginActivity::class.java).apply {
@@ -167,7 +168,8 @@ class ConnectionActivity : AppCompatActivity() {
                     start: Int,
                     before: Int,
                     count: Int
-                ) {}
+                ) {
+                }
 
                 override fun afterTextChanged(text: Editable?) {
                     backspace = previousLength > "$text".length
@@ -176,9 +178,9 @@ class ConnectionActivity : AppCompatActivity() {
                         text?.append(" ")
                     }
 
-                    partnerInviteCode = "$text"
+                    partnerInviteCodeInput = "$text"
 
-                    Log.d("text_test/inviteCode", partnerInviteCode)
+                    Log.d("text_test/inviteCode", partnerInviteCodeInput)
                 }
             })
 
@@ -187,10 +189,13 @@ class ConnectionActivity : AppCompatActivity() {
                     keyEvent.keyCode == KeyEvent.KEYCODE_DEL
                 ) {
                     if (binding.inputCodeEt.text.length == 5) {
-                        binding.inputCodeEt.setText(partnerInviteCode.dropLast(1))
+                        binding.inputCodeEt.setText(partnerInviteCodeInput.dropLast(1))
                         binding.inputCodeEt.setSelection(binding.inputCodeEt.text.length)
 
-                        Log.d("text_test/del1", "delete1 code length: ${partnerInviteCode.length}")
+                        Log.d(
+                            "text_test/del1",
+                            "delete1 code length: ${partnerInviteCodeInput.length}"
+                        )
                     }
                 }
 
@@ -209,26 +214,32 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         binding.connectBtn.setOnClickListener {
-            if (partnerInviteCode.isEmpty()) {
+            if (partnerInviteCodeInput.isEmpty()) {
                 Snackbar.make(binding.root, "상대방의 초대코드를 입력해주세요.", Snackbar.LENGTH_SHORT).show()
-            } else if (partnerInviteCode.length < 9) {
+            } else if (partnerInviteCodeInput.length < 9) {
                 Snackbar.make(binding.root, "초대코드를 올바르게 입력해주세요.", Snackbar.LENGTH_SHORT).show()
-            } else if (inviteCodeViewModel.myInviteCode.value == partnerInviteCode) {
+            } else if (inviteCodeViewModel.myInviteCode.value == partnerInviteCodeInput) {
                 Snackbar.make(binding.root, "자신의 초대코드는 입력할 수 없습니다.", Snackbar.LENGTH_SHORT).show()
             } else {
                 // 유효한 코드인지 DB 검색
-                WriteData().isValidInviteCode(partnerInviteCode)
+                WriteData().isValidInviteCode(partnerInviteCodeInput)
             }
         }
     }
 
     private fun observeData() {
         inviteCodeViewModel.myInviteCode.observe(this) {
-            WriteData().updateInviteCode(it)
+            WriteData().updateMyInviteCode(it)
             binding.inviteCodeTv.text = it
         }
 
-        binding.shareCodeBtn.setOnClickListener {}
+        inviteCodeViewModel.partnerEmail.observe(this) {
+            Log.d("db_test/partner-email", "partner email: $it")
+            // it(owner)의 row로 가서 partnerEmail에 내 email 업데이트
+            if (it.isNotEmpty()) {
+                WriteData().updatePartnerEmail(it)
+            }
+        }
 
         inviteCodeViewModel.expirationFlag.observe(this) {
             WriteData().updateExpirationFlag(true)
@@ -239,6 +250,44 @@ class ConnectionActivity : AppCompatActivity() {
                 Snackbar.LENGTH_SHORT
             ).show()
         }
+
+        fireStore.collection("connection").document(firebaseAuth.currentUser?.email.toString())
+            .addSnapshotListener { snapshot, error ->
+                if (snapshot != null && snapshot.exists()) {
+                    snapshot.data?.forEach { (key, value) ->
+                        Log.d("db_test/snapshot-1", "key: $key, value: $value")
+                        if (key == "partnerEmail" && value.toString().isNotEmpty()) {
+                            val dialog = androidx.appcompat.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth).apply {
+                                setTitle("커플 연결 요청")
+                                setMessage("상대방($value)이 연결을 요청 했습니다.")
+                                setCancelable(false)
+                                setPositiveButton("수락") { _, _ ->
+                                    Snackbar.make(binding.root, "수락", Snackbar.LENGTH_SHORT).show()
+
+                                    // todo: connection flag = true로 update (본인, 상대)
+                                    // todo: 연결 요청 거절 후 refresh code시 dialog 뜸 -> 코드 수정 필요
+                                    // 다음 화면으로 이동
+
+                                    Intent(this@ConnectionActivity, ConnectionInputActivity::class.java).also {
+                                        Toast.makeText(context, "본인: ${firebaseAuth.currentUser?.email}, 상대: $value", Toast.LENGTH_SHORT).show()
+                                        startActivity(it)
+                                        slideRight()
+                                        finish()
+                                    }
+                                }
+                                setNegativeButton("거절") { _, _ ->
+                                    Snackbar.make(binding.root, "거절", Snackbar.LENGTH_SHORT).show()
+                                    // partner email 초기화
+                                    inviteCodeViewModel.setPartnerEmail("")
+                                }
+                            }.show()
+
+                        }
+                    }
+
+                    Log.d("db_test/snapshot-2", "${snapshot.data}")
+                }
+            }
     }
 
     private fun setMyInviteCode() {
@@ -257,15 +306,17 @@ class ConnectionActivity : AppCompatActivity() {
     override fun onBackPressed() {}
 
     inner class WriteData {
-        fun addData() {
+        fun addMyData() {
             fireStore.collection("connection")
                 .document(firebaseAuth.currentUser?.email.toString())
                 .set(connectionData)
         }
 
-        fun updateInviteCode(newInviteCode: String) {
+        // refresh my invite code
+        fun updateMyInviteCode(newInviteCode: String) {
             val tmpMap = mapOf(
                 "ownerInviteCode" to newInviteCode,
+                "partnerEmail" to "",
                 "codeExpirationFlag" to false,
                 "addedDate" to FieldValue.serverTimestamp()
             )
@@ -302,11 +353,16 @@ class ConnectionActivity : AppCompatActivity() {
 
 //                            val tmpPartnerEmail = doc["ownerEmail"].toString()
 
-                            Log.d("db_test/get", "owner: ${doc["ownerEmail"]}, code: ${doc["ownerInviteCode"]}")
+                            inviteCodeViewModel.setPartnerEmail(doc["ownerEmail"].toString())
+
+                            Log.d(
+                                "db_test/get",
+                                "owner: ${doc["ownerEmail"]}, code: ${doc["ownerInviteCode"]}"
+                            )
 
                             break
 
-                            // time stamp (invite code expiration 때 사용)
+                            // time stamp (invite code expiration 때 사용, 현재 시간과 비교하여 일정 시간이 지났을 경우 해당 row 삭제)
 //                                val tmp: Timestamp = doc["addedDate"] as Timestamp
 //                                val cal = Calendar.getInstance().apply {
 //                                    time = tmp.toDate()
@@ -315,9 +371,14 @@ class ConnectionActivity : AppCompatActivity() {
                     }
 
                     if (validFlag) {
-                        Snackbar.make(binding.root, "상대방에게 연결을 요청했습니다.\n상대방이 요청에 응할 때까지 기다려주세요.", Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(
+                            binding.root,
+                            "상대방에게 연결을 요청했습니다.\n상대방이 요청에 응할 때까지 기다려주세요.",
+                            Snackbar.LENGTH_LONG
+                        ).show()
                     } else {
-                        Snackbar.make(binding.root, "유효하지 않은 초대코드 입니다.", Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "유효하지 않은 초대코드 입니다.", Snackbar.LENGTH_SHORT)
+                            .show()
                     }
                 }
                 .addOnFailureListener { e ->
@@ -325,7 +386,15 @@ class ConnectionActivity : AppCompatActivity() {
                 }
         }
 
-        fun deleteData() {
+        // 상대의 유효한 invite code를 입력 후 연결 요청한 경우, 상대 document의 partnerEmail에 내 email 저장
+        fun updatePartnerEmail(partnerEmail: String) {
+            fireStore.collection("connection")
+                .document(partnerEmail)
+                .update("partnerEmail", firebaseAuth.currentUser?.email.toString())
+        }
+
+
+        fun deleteMyData() {
             fireStore.collection("connection")
                 .document(firebaseAuth.currentUser?.email.toString())
                 .delete()
@@ -338,17 +407,26 @@ class InviteCodeViewModel : ViewModel() {
     private val _myInviteCode = MutableLiveData<String>()
     val myInviteCode: LiveData<String> get() = _myInviteCode
 
+    private val _partnerEmail = MutableLiveData<String>()
+    val partnerEmail: LiveData<String> get() = _partnerEmail
+
     private val _expirationFlag = MutableLiveData<Boolean>()
     val expirationFlag: LiveData<Boolean> get() = _expirationFlag
 
     init {
         this._myInviteCode.value = ""
+        this._partnerEmail.value = ""
         this._expirationFlag.value = false
     }
 
     fun updateMyInviteCode(inviteCode: String) = viewModelScope.launch {
         _myInviteCode.value = inviteCode
         _myInviteCode.postValue(inviteCode)
+    }
+
+    fun setPartnerEmail(email: String) = viewModelScope.launch {
+        _partnerEmail.value = email
+        _partnerEmail.postValue(email)
     }
 
     fun updateExpirationFlag(flag: Boolean) = viewModelScope.launch {
