@@ -233,11 +233,11 @@ class ConnectionActivity : AppCompatActivity() {
             binding.inviteCodeTv.text = it
         }
 
-        inviteCodeViewModel.partnerEmail.observe(this) {
+        inviteCodeViewModel.ownerEmail.observe(this) {
             Log.d("db_test/partner-email", "partner email: $it")
             // it(owner)의 row로 가서 partnerEmail에 내 email 업데이트
             if (it.isNotEmpty()) {
-                WriteData().updatePartnerEmail(it)
+                WriteData().updatePartnerEmail(it, firebaseAuth.currentUser?.email.toString())
             }
         }
 
@@ -252,42 +252,17 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         fireStore.collection("connection").document(firebaseAuth.currentUser?.email.toString())
-            .addSnapshotListener { snapshot, error ->
+            .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+
                 if (snapshot != null && snapshot.exists()) {
-                    snapshot.data?.forEach { (key, value) ->
-                        Log.d("db_test/snapshot-1", "key: $key, value: $value")
-                        if (key == "partnerEmail" && value.toString().isNotEmpty()) {
-                            val dialog = androidx.appcompat.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth).apply {
-                                setTitle("커플 연결 요청")
-                                setMessage("상대방($value)이 연결을 요청 했습니다.")
-                                setCancelable(false)
-                                setPositiveButton("수락") { _, _ ->
-                                    Snackbar.make(binding.root, "수락", Snackbar.LENGTH_SHORT).show()
-
-                                    // todo: connection flag = true로 update (본인, 상대)
-                                    // todo: 연결 요청 거절 후 refresh code시 dialog 뜸 -> 코드 수정 필요
-                                    // 다음 화면으로 이동
-
-                                    Intent(this@ConnectionActivity, ConnectionInputActivity::class.java).also {
-                                        Toast.makeText(context, "본인: ${firebaseAuth.currentUser?.email}, 상대: $value", Toast.LENGTH_SHORT).show()
-                                        startActivity(it)
-                                        slideRight()
-                                        finish()
-                                    }
-                                }
-                                setNegativeButton("거절") { _, _ ->
-                                    Snackbar.make(binding.root, "거절", Snackbar.LENGTH_SHORT).show()
-                                    // partner email 초기화
-                                    inviteCodeViewModel.setPartnerEmail("")
-                                }
-                            }.show()
-
-                        }
+                    if (snapshot.data?.get("partnerEmail") != "") {
+                        Log.d("db_test/snapshot-1", "partner email: ${snapshot.data?.get("partnerEmail")}")
+                        showRequestConnectionDialog()
                     }
-
-                    Log.d("db_test/snapshot-2", "${snapshot.data}")
                 }
             }
+
     }
 
     private fun setMyInviteCode() {
@@ -301,6 +276,30 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         inviteCodeViewModel.updateMyInviteCode(tmpMyInviteCode)
+    }
+
+    private fun showRequestConnectionDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth).apply {
+            setTitle("커플 연결 요청")
+            setMessage("상대방이 연결을 요청 했습니다.")
+            setCancelable(false)
+            setPositiveButton("수락") { _, _ ->
+                Snackbar.make(binding.root, "수락", Snackbar.LENGTH_SHORT).show()
+
+                // todo: connection flag = true로 update (본인, 상대)
+                Intent(this@ConnectionActivity, ConnectionInputActivity::class.java).also {
+                    WriteData().updateConnectionFlag(true)
+                    startActivity(it)
+                    slideRight()
+                    finish()
+                }
+            }
+            setNegativeButton("거절") { _, _ ->
+                Snackbar.make(binding.root, "거절", Snackbar.LENGTH_SHORT).show()
+                // owner의 partner email 초기화
+                WriteData().updatePartnerEmail(firebaseAuth.currentUser?.email.toString(), "")
+            }
+        }.show()
     }
 
     override fun onBackPressed() {}
@@ -353,7 +352,7 @@ class ConnectionActivity : AppCompatActivity() {
 
 //                            val tmpPartnerEmail = doc["ownerEmail"].toString()
 
-                            inviteCodeViewModel.setPartnerEmail(doc["ownerEmail"].toString())
+                            inviteCodeViewModel.setOwnerEmail(doc["ownerEmail"].toString())
 
                             Log.d(
                                 "db_test/get",
@@ -387,12 +386,18 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         // 상대의 유효한 invite code를 입력 후 연결 요청한 경우, 상대 document의 partnerEmail에 내 email 저장
-        fun updatePartnerEmail(partnerEmail: String) {
+        fun updatePartnerEmail(ownerEmail: String, partnerEmail: String) {
             fireStore.collection("connection")
-                .document(partnerEmail)
-                .update("partnerEmail", firebaseAuth.currentUser?.email.toString())
+                .document(ownerEmail)
+                .update("partnerEmail", partnerEmail)
         }
 
+        // dialog accept btn cliecked
+        fun updateConnectionFlag(flag: Boolean) {
+            fireStore.collection("connection")
+                .document(firebaseAuth.currentUser?.email.toString())
+                .update("connectionFlag", flag)
+        }
 
         fun deleteMyData() {
             fireStore.collection("connection")
@@ -407,15 +412,15 @@ class InviteCodeViewModel : ViewModel() {
     private val _myInviteCode = MutableLiveData<String>()
     val myInviteCode: LiveData<String> get() = _myInviteCode
 
-    private val _partnerEmail = MutableLiveData<String>()
-    val partnerEmail: LiveData<String> get() = _partnerEmail
+    private val _ownerEmail = MutableLiveData<String>()
+    val ownerEmail: LiveData<String> get() = _ownerEmail
 
     private val _expirationFlag = MutableLiveData<Boolean>()
     val expirationFlag: LiveData<Boolean> get() = _expirationFlag
 
     init {
         this._myInviteCode.value = ""
-        this._partnerEmail.value = ""
+        this._ownerEmail.value = ""
         this._expirationFlag.value = false
     }
 
@@ -424,9 +429,9 @@ class InviteCodeViewModel : ViewModel() {
         _myInviteCode.postValue(inviteCode)
     }
 
-    fun setPartnerEmail(email: String) = viewModelScope.launch {
-        _partnerEmail.value = email
-        _partnerEmail.postValue(email)
+    fun setOwnerEmail(email: String) = viewModelScope.launch {
+        _ownerEmail.value = email
+        _ownerEmail.postValue(email)
     }
 
     fun updateExpirationFlag(flag: Boolean) = viewModelScope.launch {
