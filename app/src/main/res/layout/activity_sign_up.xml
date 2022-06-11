@@ -39,7 +39,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/input_name_layout"
-                style="@style/MaterialLoginEditText">
+                style="@style/MaterialLoginEditTextLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_name_et"
@@ -52,7 +52,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/input_email_layout"
-                style="@style/MaterialLoginEditText">
+                style="@style/MaterialLoginEditTextLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_email_et"
@@ -65,7 +65,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/input_pw_layout"
-                style="@style/MaterialLoginEditText"
+                style="@style/MaterialLoginEditTextLayout"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -80,7 +80,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/input_pw_check_layout"
-                style="@style/MaterialLoginEditText"
+                style="@style/MaterialLoginEditTextLayout"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
