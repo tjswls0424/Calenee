@@ -1,6 +1,4 @@
-package org.jin.calenee.database.model
-
-import com.google.firebase.firestore.DocumentId
+package org.jin.calenee.database.firestore
 
 data class CoupleConnection(
     var ownerInviteCode: String = "",
