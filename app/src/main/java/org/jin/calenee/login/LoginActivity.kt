@@ -81,32 +81,25 @@ class LoginActivity : AppCompatActivity() {
             if (loginStatus) {
                 handleLoadingState(false)
 
-                // todo: Firestore에서 data 가져오는거로 수정 필요 (not SP)
-//                firestore.collection("couple").document(myEmail).get()
-//                    .addOnSuccessListener { doc ->
-//                        Log.d("db_test/login-doc", doc.toString())
-//                            if (doc.data?.get("coupleConnectionFlag") == true) {
-//                                intent = if (doc.data?.get("coupleInputFlag") == true) {
-//                                    Intent(this@LoginActivity, MainActivity::class.java)
-//                                } else {
-//                                    Intent(this@LoginActivity, ConnectionInputActivity::class.java)
-//                                }
-//                            }
-//                    }
-
                 var intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
-                val myEmail = firebaseAuth.currentUser?.email.toString()
+                firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        Log.d("db_test/login-doc", doc.data.toString())
+                            if (doc.data?.get("coupleConnectionFlag") == true) {
+                                intent = if (doc.data?.get("coupleInputFlag") == true) {
+                                    Intent(this@LoginActivity, MainActivity::class.java)
+                                } else {
+                                    Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+                                }
+                            }
 
-                if (App.userPrefs.getString(myEmail+"_couple_connection_flag") == "true") {
-                    intent = if (App.userPrefs.getString(myEmail+"_couple_input_flag") == "true") {
-                        Intent(this@LoginActivity, MainActivity::class.java)
-                    } else {
-                        Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+                        startActivity(intent)
+                        finish()
                     }
-                }
-
-                startActivity(intent)
-                finish()
+                    .addOnFailureListener {
+                        Log.d("db_test/login-err", "${it.printStackTrace()}")
+                    }
             }
         }
     }
@@ -158,17 +151,25 @@ class LoginActivity : AppCompatActivity() {
                 setString("login_status", "true")
             }
 
+            var intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
+            firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+                .get()
+                .addOnSuccessListener { doc ->
+                    Log.d("db_test/login-doc", doc.data.toString())
+                    if (doc.data?.get("coupleConnectionFlag") == true) {
+                        intent = if (doc.data?.get("coupleInputFlag") == true) {
+                            Intent(this@LoginActivity, MainActivity::class.java)
+                        } else {
+                            Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+                        }
+                    }
 
-            val intent: Intent
-            if (App.userPrefs.getString("couple_connection_flag").isEmpty()
-                || App.userPrefs.getString("couple_connection_flag") == "false"
-            ) {
-                intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
-            } else {
-                intent = Intent(this@LoginActivity, MainActivity::class.java)
-            }
-            startActivity(intent)
-            finish()
+                    startActivity(intent)
+                    finish()
+                }
+                .addOnFailureListener {
+                    Log.d("db_test/login-err", "${it.printStackTrace()}")
+                }
         } ?: kotlin.run {
             Log.d("login_test", "login status: false")
         }

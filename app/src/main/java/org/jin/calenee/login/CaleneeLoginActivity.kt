@@ -122,18 +122,24 @@ class CaleneeLoginActivity : AppCompatActivity() {
                     handleLoadingState(false)
 
                     var intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
-                    val myEmail = firebaseAuth.currentUser?.email.toString()
+                    firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+                        .get()
+                        .addOnSuccessListener { doc ->
+                            Log.d("db_test/login-doc", doc.data.toString())
+                            if (doc.data?.get("coupleConnectionFlag") == true) {
+                                intent = if (doc.data?.get("coupleInputFlag") == true) {
+                                    Intent(this@CaleneeLoginActivity, MainActivity::class.java)
+                                } else {
+                                    Intent(this@CaleneeLoginActivity, ConnectionInputActivity::class.java)
+                                }
+                            }
 
-                    if (App.userPrefs.getString(myEmail+"_couple_connection_flag") == "true") {
-                        intent = if (App.userPrefs.getString(myEmail+"_couple_input_flag") == "true") {
-                            Intent(this@CaleneeLoginActivity, MainActivity::class.java)
-                        } else {
-                            Intent(this@CaleneeLoginActivity, ConnectionInputActivity::class.java)
+                            startActivity(intent)
+                            finish()
                         }
-                    }
-
-                    startActivity(intent)
-                    finish()
+                        .addOnFailureListener {
+                            Log.d("db_test/login-err", "${it.printStackTrace()}")
+                        }
                 } else {
                     // error
                     handleLoadingState(false)
