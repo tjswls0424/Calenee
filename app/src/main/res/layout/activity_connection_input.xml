@@ -4,15 +4,112 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="5dp"
     tools:context=".ConnectionInputActivity">
 
+    <ImageView
+        android:id="@+id/calenee_img"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/calenee_heart"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15" />
+
     <TextView
+        android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Couple connected"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="15dp"
+        android:text="프로필 작성"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/calenee_img" />
+
+    <TextView
+        android:id="@+id/subtitle_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/profile_description1"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
+
+    <LinearLayout
+        android:id="@+id/input_profile_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="50dp"
+        android:paddingEnd="50dp"
+        app:layout_constraintBottom_toTopOf="@+id/description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/subtitle_text"
+        app:layout_constraintVertical_bias="0.15">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/input_nickname_layout"
+            style="@style/MaterialLoginEditTextLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_nickname_et"
+                style="@style/TextInputEditText.FilledBox"
+                android:hint="@string/nickname"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/input_birthday_layout"
+            style="@style/MaterialLoginEditTextLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_birthday_et"
+                style="@style/TextInputEditText.FilledBox"
+                android:digits="0123456789"
+                android:hint="@string/birthday"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/input_first_met_date_layout"
+            style="@style/MaterialLoginEditTextLayout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_first_met_date_et"
+                style="@style/TextInputEditText.FilledBox"
+                android:hint="@string/first_met_date"
+                android:digits="0123456789"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/start_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/ibm_plex_sans_kr_regular"
+            android:text="@string/start"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:text="@string/profile_description2"
+        android:textColor="@color/light_grey3"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintVertical_bias="0.95" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -28,4 +28,12 @@
     <string name="login">로그인</string>
     <string name="confirm">확인</string>
 
+    <string name="nickname">닉네임</string>
+    <string name="birthday">생일 (8자리)</string>
+    <string name="first_met_date">처음 만난 날짜 (선택)</string>
+    <string name="start">시작하기</string>
+    <string name="profile_description1">상대방에게 보여질 프로필을 작성해주세요</string>
+    <string name="profile_description2">기입하신 모든 정보들은 서비스 최적화를 위해서만 사용됩니다.</string>
+
+
 </resources>
