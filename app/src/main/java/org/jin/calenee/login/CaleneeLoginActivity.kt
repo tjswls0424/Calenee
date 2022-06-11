@@ -11,12 +11,11 @@ import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
-import org.jin.calenee.App
-import org.jin.calenee.ConnectionActivity
-import org.jin.calenee.MainActivity
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import org.jin.calenee.*
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityCaleneeLoginBinding
 
 class CaleneeLoginActivity : AppCompatActivity() {
@@ -28,6 +27,10 @@ class CaleneeLoginActivity : AppCompatActivity() {
 
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
+    }
+
+    private val firestore by lazy {
+        Firebase.firestore
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,14 +121,17 @@ class CaleneeLoginActivity : AppCompatActivity() {
 
                     handleLoadingState(false)
 
-                    val intent: Intent
-                    if (App.userPrefs.getString("couple_connection_flag").isEmpty()
-                        || App.userPrefs.getString("couple_connection_flag") == "false"
-                    ) {
-                        intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
-                    } else {
-                        intent = Intent(this@CaleneeLoginActivity, MainActivity::class.java)
+                    var intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
+                    val myEmail = firebaseAuth.currentUser?.email.toString()
+
+                    if (App.userPrefs.getString(myEmail+"_couple_connection_flag") == "true") {
+                        intent = if (App.userPrefs.getString(myEmail+"_couple_input_flag") == "true") {
+                            Intent(this@CaleneeLoginActivity, MainActivity::class.java)
+                        } else {
+                            Intent(this@CaleneeLoginActivity, ConnectionInputActivity::class.java)
+                        }
                     }
+
                     startActivity(intent)
                     finish()
                 } else {

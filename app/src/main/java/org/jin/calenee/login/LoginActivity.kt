@@ -16,12 +16,11 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
-import org.jin.calenee.App
-import org.jin.calenee.ConnectionActivity
-import org.jin.calenee.MainActivity
+import org.jin.calenee.*
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityLoginActivtyBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -48,6 +47,10 @@ class LoginActivity : AppCompatActivity() {
 
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
+    }
+
+    private val firestore by lazy {
+        Firebase.firestore
     }
 
     private val loginLauncher =
@@ -78,14 +81,30 @@ class LoginActivity : AppCompatActivity() {
             if (loginStatus) {
                 handleLoadingState(false)
 
-                val intent: Intent
-                if (App.userPrefs.getString("couple_connection_flag").isEmpty()
-                    || App.userPrefs.getString("couple_connection_flag") == "false"
-                ) {
-                    intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
-                } else {
-                    intent = Intent(this@LoginActivity, MainActivity::class.java)
+                // todo: Firestore에서 data 가져오는거로 수정 필요 (not SP)
+//                firestore.collection("couple").document(myEmail).get()
+//                    .addOnSuccessListener { doc ->
+//                        Log.d("db_test/login-doc", doc.toString())
+//                            if (doc.data?.get("coupleConnectionFlag") == true) {
+//                                intent = if (doc.data?.get("coupleInputFlag") == true) {
+//                                    Intent(this@LoginActivity, MainActivity::class.java)
+//                                } else {
+//                                    Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+//                                }
+//                            }
+//                    }
+
+                var intent = Intent(this@LoginActivity, ConnectionActivity::class.java)
+                val myEmail = firebaseAuth.currentUser?.email.toString()
+
+                if (App.userPrefs.getString(myEmail+"_couple_connection_flag") == "true") {
+                    intent = if (App.userPrefs.getString(myEmail+"_couple_input_flag") == "true") {
+                        Intent(this@LoginActivity, MainActivity::class.java)
+                    } else {
+                        Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+                    }
                 }
+
                 startActivity(intent)
                 finish()
             }
