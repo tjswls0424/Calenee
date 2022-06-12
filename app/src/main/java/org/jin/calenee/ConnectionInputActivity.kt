@@ -9,9 +9,23 @@ class ConnectionInputActivity : AppCompatActivity() {
         ActivityConnectionInputBinding.inflate(layoutInflater)
     }
 
+    private var gender: String = "female"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(binding.root)
+
+        listener()
+    }
+
+    private fun listener() {
+        binding.genderRadioGroup.setOnCheckedChangeListener { radioGroup, id ->
+            when (id) {
+                R.id.female_radio_btn -> gender = "female"
+                R.id.male_radio_btn -> gender = "male"
+            }
+        }
+
     }
 }

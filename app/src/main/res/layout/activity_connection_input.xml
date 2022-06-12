@@ -40,10 +40,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_text" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/input_profile_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:orientation="vertical"
         android:paddingStart="50dp"
         android:paddingEnd="50dp"
@@ -53,9 +54,60 @@
         app:layout_constraintTop_toBottomOf="@id/subtitle_text"
         app:layout_constraintVertical_bias="0.15">
 
+        <ImageView
+            android:id="@+id/profile_img"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="20dp"
+            android:background="@drawable/profile_image_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="10dp"
+            android:src="@drawable/calenee_face" />
+
+        <TextView
+            android:id="@+id/change_profile_text"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/profile_img"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:text="사진 변경"
+            android:textColor="@color/light_grey" />
+
+        <RadioGroup
+            android:id="@+id/gender_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_toEndOf="@id/profile_img"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/female_radio_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:buttonTint="@color/sub_color6"
+                android:checked="true"
+                android:textSize="17sp"
+                android:text="여성" />
+
+            <RadioButton
+                android:id="@+id/male_radio_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:buttonTint="@color/sub_color6"
+                android:text="남성" />
+        </RadioGroup>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_nickname_layout"
-            style="@style/MaterialLoginEditTextLayout">
+            style="@style/MaterialLoginEditTextLayout"
+            android:layout_below="@id/change_profile_text">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_nickname_et"
@@ -66,7 +118,8 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_birthday_layout"
-            style="@style/MaterialLoginEditTextLayout">
+            style="@style/MaterialLoginEditTextLayout"
+            android:layout_below="@id/input_nickname_layout">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_birthday_et"
@@ -78,13 +131,14 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/input_first_met_date_layout"
-            style="@style/MaterialLoginEditTextLayout">
+            style="@style/MaterialLoginEditTextLayout"
+            android:layout_below="@id/input_birthday_layout">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_first_met_date_et"
                 style="@style/TextInputEditText.FilledBox"
-                android:hint="@string/first_met_date"
                 android:digits="0123456789"
+                android:hint="@string/first_met_date"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -92,10 +146,11 @@
             android:id="@+id/start_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/input_first_met_date_layout"
             android:fontFamily="@font/ibm_plex_sans_kr_regular"
             android:text="@string/start"
             android:textSize="17sp" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <TextView
         android:id="@+id/description"
@@ -110,6 +165,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.95" />
+        app:layout_constraintVertical_bias="0.99" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
