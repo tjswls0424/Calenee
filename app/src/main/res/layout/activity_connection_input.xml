@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15" />
+        app:layout_constraintVertical_bias="0.08" />
 
     <TextView
         android:id="@+id/title_text"
@@ -127,12 +127,11 @@
                 android:id="@+id/input_birthday_et"
                 style="@style/TextInputEditText.FilledBox"
                 android:cursorVisible="false"
-                android:digits="0123456789"
+                android:digits="0123456789-"
                 android:hint="@string/birthday"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal"
-                android:maxLength="10"
-                android:textScaleX="1.1" />
+                android:maxLength="10" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -144,12 +143,11 @@
                 android:id="@+id/input_first_met_date_et"
                 style="@style/TextInputEditText.FilledBox"
                 android:cursorVisible="false"
-                android:digits="0123456789"
+                android:digits="0123456789-"
                 android:hint="@string/first_met_date"
                 android:imeOptions="actionDone"
                 android:inputType="numberDecimal"
-                android:maxLength="10"
-                android:textScaleX="1.1" />
+                android:maxLength="10" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -166,8 +164,6 @@
         android:id="@+id/description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
         android:text="@string/profile_description2"
         android:textColor="@color/light_grey3"
         android:textSize="13sp"

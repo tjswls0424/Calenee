@@ -62,6 +62,7 @@ class ConnectionInputActivity : AppCompatActivity() {
             when (id) {
                 R.id.female_radio_btn -> profileViewModel.setGender("female")
                 R.id.male_radio_btn -> profileViewModel.setGender("male")
+                else -> profileViewModel.setGender("female")
             }
         }
 
@@ -79,27 +80,37 @@ class ConnectionInputActivity : AppCompatActivity() {
                 else -> this.length()
             }
 
-            if (keyEvent.action == KeyEvent.ACTION_DOWN) this.setSelection(length)
+            if (keyEvent.action == KeyEvent.ACTION_DOWN) { this.setSelection(length) }
 
             return@setOnKeyListener false
         }
     }
 
+    var previousLength = 0
+    var backspace: Boolean = false
     private fun editTextListener(editText: TextInputEditText) {
         editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun beforeTextChanged(text: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                previousLength = "$text".length
+            }
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun afterTextChanged(text: Editable?) {
+                backspace = previousLength > "$text".length
+
                 when (editText.id) {
                     R.id.input_nickname_et -> {
                         profileViewModel.setNickname("$text")
                     }
                     R.id.input_birthday_et -> {
+                        if (!backspace && "$text".length == 4) text?.append("-")
+                        else if (!backspace && "$text".length == 7) text?.append("-")
                         profileViewModel.setBirthday("$text")
                     }
                     R.id.input_first_met_date_et -> {
+                        if (!backspace && "$text".length == 4) text?.append("-")
+                        else if (!backspace && "$text".length == 7) text?.append("-")
                         profileViewModel.setFirstMetDate("$text")
                     }
                 }
