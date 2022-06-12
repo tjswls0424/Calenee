@@ -60,10 +60,10 @@
             android:layout_height="80dp"
             android:layout_alignParentTop="true"
             android:layout_marginStart="20dp"
+            android:scaleType="centerInside"
             android:background="@drawable/profile_image_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="10dp"
             android:src="@drawable/calenee_face" />
 
         <TextView

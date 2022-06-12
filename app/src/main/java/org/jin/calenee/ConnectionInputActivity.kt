@@ -1,23 +1,42 @@
 package org.jin.calenee
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.*
+import android.graphics.drawable.Drawable
+import android.media.ExifInterface
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.KeyEvent
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.*
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import org.jin.calenee.database.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
+import java.io.File
 
 class ConnectionInputActivity : AppCompatActivity() {
+    companion object {
+        lateinit var defaultProfileImage: Bitmap
+    }
+
+    private val GALLERY = 1
+
     private val binding by lazy {
         ActivityConnectionInputBinding.inflate(layoutInflater)
     }
 
     private val profileViewModel by lazy {
-        ViewModelProvider(this)[ProfileViewModel::class.java]
+        ViewModelProvider(this).get(ProfileViewModel::class.java)
     }
 
     private val user = User()
@@ -26,6 +45,8 @@ class ConnectionInputActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(binding.root)
+
+        defaultProfileImage = binding.profileImg.drawable.toBitmap()
 
         listener()
         observer()
@@ -47,6 +68,11 @@ class ConnectionInputActivity : AppCompatActivity() {
         profileViewModel.firstMetDate.observe(this) {
             user.firstMetDate = it
         }
+
+        profileViewModel.profileImage.observe(this) {
+            binding.profileImg.setImageBitmap(it)
+            binding.caleneeImg.setImageBitmap(it)
+        }
     }
 
     private fun listener() {
@@ -66,9 +92,16 @@ class ConnectionInputActivity : AppCompatActivity() {
             }
         }
 
-//        binding.startBtn.setOnClickListener {
-//            Log.d("input_test", user.toString())
-//        }
+        binding.profileImg.setOnClickListener {
+            getImageFromGallery()
+        }
+        binding.changeProfileText.setOnClickListener {
+            getImageFromGallery()
+        }
+
+        binding.startBtn.setOnClickListener {
+            Log.d("input_test", user.toString())
+        }
     }
 
     private fun TextInputEditText.disableSelection(keyword: String) {
@@ -80,7 +113,9 @@ class ConnectionInputActivity : AppCompatActivity() {
                 else -> this.length()
             }
 
-            if (keyEvent.action == KeyEvent.ACTION_DOWN) { this.setSelection(length) }
+            if (keyEvent.action == KeyEvent.ACTION_DOWN) {
+                this.setSelection(length)
+            }
 
             return@setOnKeyListener false
         }
@@ -117,6 +152,96 @@ class ConnectionInputActivity : AppCompatActivity() {
             }
         })
     }
+
+    private fun getImageFromGallery() {
+        Intent(Intent.ACTION_GET_CONTENT).apply {
+            setType("image/*")
+            startActivityForResult(this, GALLERY)
+        }
+    }
+
+    private fun getRotatedBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_NORMAL -> return bitmap
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
+                matrix.setRotate(180f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                matrix.setRotate(90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                matrix.setRotate(-90f)
+                matrix.postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+            else -> return bitmap
+        }
+
+        return try {
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap.recycle()
+            rotatedBitmap
+        } catch (e: OutOfMemoryError) {
+            e.printStackTrace()
+            bitmap
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                GALLERY -> {
+                    var imageData: Uri? = data?.data
+                    try {
+                        MediaStore.Images.Media.getBitmap(contentResolver, imageData).also {
+                            val file = File.createTempFile(
+                                "prefix",
+                                ".suffix",
+                                applicationContext.cacheDir
+                            )
+                            file.outputStream().use {
+                                contentResolver.openInputStream(imageData!!)?.copyTo(it)
+                            }
+
+                            val orientation = ExifInterface(file.absolutePath).getAttributeInt(
+                                ExifInterface.TAG_ORIENTATION,
+                                ExifInterface.ORIENTATION_UNDEFINED
+                            )
+                            val rotatedBitmap = getRotatedBitmap(it, orientation)
+
+                            Glide.with(applicationContext)
+                                .asBitmap()
+                                .load(rotatedBitmap)
+                                .circleCrop()
+                                .into(object : SimpleTarget<Bitmap>() {
+                                    override fun onResourceReady(
+                                        resource: Bitmap,
+                                        transition: Transition<in Bitmap>?
+                                    ) {
+                                        profileViewModel.setProfileImage(resource)
+                                    }
+
+                                    override fun onLoadCleared(placeholder: Drawable?) {
+                                    }
+                                })
+
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+    }
 }
 
 class ProfileViewModel : ViewModel() {
@@ -132,12 +257,15 @@ class ProfileViewModel : ViewModel() {
     private val _firstMetDate = MutableLiveData<String>()
     val firstMetDate: LiveData<String> get() = _firstMetDate
 
+    private val _profileImage = MutableLiveData<Bitmap>()
+    val profileImage: LiveData<Bitmap> get() = _profileImage
+
     init {
         this._gender.value = "female"
         this._nickname.value = ""
         this._birthday.value = ""
         this._firstMetDate.value = ""
-
+        this._profileImage.value = ConnectionInputActivity.defaultProfileImage
     }
 
     fun setGender(inputGender: String) = viewModelScope.launch {
@@ -156,4 +284,7 @@ class ProfileViewModel : ViewModel() {
         _firstMetDate.value = inputDate
     }
 
+    fun setProfileImage(bitmap: Bitmap) = viewModelScope.launch {
+        _profileImage.value = bitmap
+    }
 }
