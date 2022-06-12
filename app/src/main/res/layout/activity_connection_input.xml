@@ -92,16 +92,16 @@
                 android:layout_marginEnd="20dp"
                 android:buttonTint="@color/sub_color6"
                 android:checked="true"
-                android:textSize="17sp"
-                android:text="여성" />
+                android:text="여성"
+                android:textSize="17sp" />
 
             <RadioButton
                 android:id="@+id/male_radio_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="17sp"
                 android:buttonTint="@color/sub_color6"
-                android:text="남성" />
+                android:text="남성"
+                android:textSize="17sp" />
         </RadioGroup>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -112,7 +112,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_nickname_et"
                 style="@style/TextInputEditText.FilledBox"
+                android:cursorVisible="false"
                 android:hint="@string/nickname"
+                android:imeOptions="actionNext"
                 android:inputType="textPersonName" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -124,9 +126,13 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_birthday_et"
                 style="@style/TextInputEditText.FilledBox"
+                android:cursorVisible="false"
                 android:digits="0123456789"
                 android:hint="@string/birthday"
-                android:inputType="numberDecimal" />
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
+                android:maxLength="10"
+                android:textScaleX="1.1" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -137,9 +143,13 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_first_met_date_et"
                 style="@style/TextInputEditText.FilledBox"
+                android:cursorVisible="false"
                 android:digits="0123456789"
                 android:hint="@string/first_met_date"
-                android:inputType="numberDecimal" />
+                android:imeOptions="actionDone"
+                android:inputType="numberDecimal"
+                android:maxLength="10"
+                android:textScaleX="1.1" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton

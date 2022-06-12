@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import androidx.lifecycle.*
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
@@ -53,6 +54,10 @@ class ConnectionInputActivity : AppCompatActivity() {
         editTextListener(binding.inputBirthdayEt)
         editTextListener(binding.inputFirstMetDateEt)
 
+        binding.inputNicknameEt.disableSelection("nickname")
+        binding.inputBirthdayEt.disableSelection("birthday")
+        binding.inputFirstMetDateEt.disableSelection("firstMetDate")
+
         binding.genderRadioGroup.setOnCheckedChangeListener { _, id ->
             when (id) {
                 R.id.female_radio_btn -> profileViewModel.setGender("female")
@@ -60,10 +65,24 @@ class ConnectionInputActivity : AppCompatActivity() {
             }
         }
 
-
 //        binding.startBtn.setOnClickListener {
 //            Log.d("input_test", user.toString())
 //        }
+    }
+
+    private fun TextInputEditText.disableSelection(keyword: String) {
+        this.setOnKeyListener { _, _, keyEvent ->
+            val length: Int = when (keyword) {
+                "nickname" -> profileViewModel.nickname.value!!.length
+                "birthday" -> profileViewModel.birthday.value!!.length
+                "firstMetDate" -> profileViewModel.firstMetDate.value!!.length
+                else -> this.length()
+            }
+
+            if (keyEvent.action == KeyEvent.ACTION_DOWN) this.setSelection(length)
+
+            return@setOnKeyListener false
+        }
     }
 
     private fun editTextListener(editText: TextInputEditText) {
