@@ -18,7 +18,9 @@ import androidx.lifecycle.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.android.synthetic.main.activity_connection_input.*
 import kotlinx.coroutines.launch
 import org.jin.calenee.database.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
@@ -70,8 +72,8 @@ class ConnectionInputActivity : AppCompatActivity() {
         }
 
         profileViewModel.profileImage.observe(this) {
+            user.profileImage = it
             binding.profileImg.setImageBitmap(it)
-            binding.caleneeImg.setImageBitmap(it)
         }
     }
 
@@ -100,7 +102,11 @@ class ConnectionInputActivity : AppCompatActivity() {
         }
 
         binding.startBtn.setOnClickListener {
-            Log.d("input_test", user.toString())
+            if (checkInputCondition()) {
+                Log.d("input_test", user.toString())
+            } else {
+                Snackbar.make(binding.root, "프로필에 들어갈 정보를 모두 입력해주세요", Snackbar.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -137,20 +143,53 @@ class ConnectionInputActivity : AppCompatActivity() {
                 when (editText.id) {
                     R.id.input_nickname_et -> {
                         profileViewModel.setNickname("$text")
+                        binding.inputNicknameLayout.error = null
                     }
                     R.id.input_birthday_et -> {
                         if (!backspace && "$text".length == 4) text?.append("-")
                         else if (!backspace && "$text".length == 7) text?.append("-")
                         profileViewModel.setBirthday("$text")
+                        binding.inputBirthdayLayout.error = null
                     }
                     R.id.input_first_met_date_et -> {
                         if (!backspace && "$text".length == 4) text?.append("-")
                         else if (!backspace && "$text".length == 7) text?.append("-")
                         profileViewModel.setFirstMetDate("$text")
+                        binding.inputFirstMetDateLayout.error = null
                     }
                 }
             }
         })
+    }
+
+    private fun checkInputCondition(): Boolean {
+        with(binding) {
+            return when {
+                profileViewModel.nickname.value?.length?.compareTo(2) == -1 -> {
+                    inputNicknameLayout.apply {
+                        error = "닉네임을 2글자 이상 입력해주세요"
+                        requestFocus()
+                    }
+                    false
+                }
+                profileViewModel.birthday.value?.length?.compareTo(10) == -1 -> {
+                    inputBirthdayLayout.apply {
+                        error = "생년월일 8자리를 입력해주세요"
+                        requestFocus()
+                    }
+                    false
+                }
+                profileViewModel.firstMetDate.value?.length?.compareTo(10) == -1 -> {
+                    inputFirstMetDateLayout.apply {
+                        error = "처음 만난 날짜 8자리를 입력해주세요"
+                        requestFocus()
+                    }
+                    false
+                }
+
+                else -> true
+            }
+        }
     }
 
     private fun getImageFromGallery() {
