@@ -64,6 +64,7 @@
         android:src="@drawable/ic_baseline_chat_24"
         app:backgroundTint="@color/sub_color3"
         app:layout_anchor="@id/bottom_app_bar"
-        app:tint="@color/white" />
+        app:tint="@color/white"
+        android:contentDescription="@string/chat" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
