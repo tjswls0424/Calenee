@@ -87,7 +87,7 @@ class LoginActivity : AppCompatActivity() {
                     .addOnSuccessListener { doc ->
                         Log.d("db_test/login-doc", doc.data.toString())
                             if (doc.data?.get("coupleConnectionFlag") == true) {
-                                intent = if (doc.data?.get("coupleInputFlag") == true) {
+                                intent = if (doc.data?.get("profileInputFlag") == true) {
                                     Intent(this@LoginActivity, MainActivity::class.java)
                                 } else {
                                     Intent(this@LoginActivity, ConnectionInputActivity::class.java)
@@ -157,7 +157,7 @@ class LoginActivity : AppCompatActivity() {
                 .addOnSuccessListener { doc ->
                     Log.d("db_test/login-doc", doc.data.toString())
                     if (doc.data?.get("coupleConnectionFlag") == true) {
-                        intent = if (doc.data?.get("coupleInputFlag") == true) {
+                        intent = if (doc.data?.get("profileInputFlag") == true) {
                             Intent(this@LoginActivity, MainActivity::class.java)
                         } else {
                             Intent(this@LoginActivity, ConnectionInputActivity::class.java)

@@ -327,7 +327,7 @@ class ConnectionActivity : AppCompatActivity() {
 
                     hashMapOf(
                         "coupleConnectionFlag" to true,
-                        "coupleInputFlag" to false
+                        "profileInputFlag" to false
                     ).also {
                         firestore.collection("user")
                             .document(myEmail)
@@ -430,7 +430,7 @@ class ConnectionActivity : AppCompatActivity() {
 
                                         hashMapOf(
                                             "coupleConnectionFlag" to true,
-                                            "coupleInputFlag" to false
+                                            "profileInputFlag" to false
                                         ).also {
                                             firestore.collection("user")
                                                 .document(firebaseAuth.currentUser?.email.toString())
