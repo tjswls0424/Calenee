@@ -20,11 +20,18 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_connection_input.*
 import kotlinx.coroutines.launch
+import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.database.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.*
 
 class ConnectionInputActivity : AppCompatActivity() {
     companion object {
@@ -39,6 +46,14 @@ class ConnectionInputActivity : AppCompatActivity() {
 
     private val profileViewModel by lazy {
         ViewModelProvider(this).get(ProfileViewModel::class.java)
+    }
+
+    private val firebaseAuth by lazy {
+        FirebaseAuth.getInstance()
+    }
+
+    private val firestore by lazy {
+        Firebase.firestore
     }
 
     private val user = User()
@@ -103,7 +118,19 @@ class ConnectionInputActivity : AppCompatActivity() {
 
         binding.startBtn.setOnClickListener {
             if (checkInputCondition()) {
-                Log.d("input_test", user.toString())
+                if (uploadProfileImage() && uploadProfileInfo()) {
+                    Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
+                        startActivity(it)
+                        slideRight()
+                        finish()
+                    }
+                } else {
+                    Snackbar.make(
+                        binding.root,
+                        "프로필 저장에 실패했습니다. 잠시후 다시 시도해주세요.",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
             } else {
                 Snackbar.make(binding.root, "프로필에 들어갈 정보를 모두 입력해주세요", Snackbar.LENGTH_SHORT).show()
             }
@@ -190,6 +217,46 @@ class ConnectionInputActivity : AppCompatActivity() {
                 else -> true
             }
         }
+    }
+
+    private fun uploadProfileImage(): Boolean {
+        var resultFlag = false
+        val baos = ByteArrayOutputStream().also {
+            profileViewModel.profileImage.value?.compress(Bitmap.CompressFormat.JPEG, 100, it)
+        }
+//        val data = baos.toByteArray()
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imageRef = storageRef.child("profile/" + "test1.jpg")
+
+        val uploadTask = imageRef.putBytes(baos.toByteArray())
+            .addOnSuccessListener { taskSnapshot ->
+                Log.d("img_test", "meta data: ${taskSnapshot.metadata}")
+                resultFlag = true
+            }
+            .addOnFailureListener {
+                Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
+                Log.d("img_test", "fail to upload bitmap2: ${it.message}")
+            }
+
+        return resultFlag
+    }
+
+    private fun uploadProfileInfo(): Boolean {
+        var resultFlag = false
+
+        firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+            .update(
+                "gender", profileViewModel.gender.value,
+                "nickname", profileViewModel.nickname.value,
+                "birthday", profileViewModel.birthday.value,
+                "firstMetDate", profileViewModel.firstMetDate.value,
+                "profileInputFlag", true
+            )
+            .addOnSuccessListener {
+                resultFlag = true
+            }
+
+        return resultFlag
     }
 
     private fun getImageFromGallery() {
