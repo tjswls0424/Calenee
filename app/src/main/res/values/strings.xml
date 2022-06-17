@@ -36,7 +36,7 @@
     <string name="my_invite_code">내 초대코드</string>
     <string name="partner_invite_code">상대방 초대코드 8자리</string>
     <string name="colon">:</string>
-    <string name="share">공유</string>
+    <string name="copy">복사</string>
     <string name="connect">연결하기</string>
     <string name="refresh_invite_code">초대코드 재발급</string>
 

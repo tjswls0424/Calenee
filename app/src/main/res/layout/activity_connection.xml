@@ -102,11 +102,11 @@
             tools:text="0000 0000" />
 
         <Button
-            android:id="@+id/share_code_btn"
+            android:id="@+id/copy_code_btn"
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="@string/share"
+            android:text="@string/copy"
             android:textSize="17sp"
             app:layout_constraintBottom_toBottomOf="@id/divider1"
             app:layout_constraintEnd_toEndOf="parent" />

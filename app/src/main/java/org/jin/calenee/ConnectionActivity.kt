@@ -1,6 +1,9 @@
 package org.jin.calenee
 
 import android.app.Dialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -158,6 +161,15 @@ class ConnectionActivity : AppCompatActivity() {
 
         binding.refreshInviteCodeBtn.setOnClickListener {
             setMyInviteCode()
+        }
+
+        binding.copyCodeBtn.setOnClickListener {
+            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            ClipData.newPlainText("text", inviteCodeViewModel.myInviteCode.value).also {
+                clipboardManager.setPrimaryClip(it)
+            }
+
+            Snackbar.make(binding.root, "코드가 복사되었습니다.", Snackbar.LENGTH_SHORT).show()
         }
 
         var previousLength = 0
