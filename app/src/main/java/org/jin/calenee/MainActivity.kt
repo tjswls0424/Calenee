@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import org.jin.calenee.chat.ChattingActivity
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
@@ -101,6 +102,14 @@ class MainActivity : AppCompatActivity() {
             )
 
             true
+        }
+
+        binding.chatBtn.setOnClickListener {
+            Intent(this@MainActivity, ChattingActivity::class.java).also {
+                startActivity(it)
+                slideUp()
+                finish()
+            }
         }
     }
 

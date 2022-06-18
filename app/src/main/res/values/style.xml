@@ -83,4 +83,14 @@
         <item name="android:background">@color/light_grey</item>
     </style>
 
+    <!-- BottomSheetDialog -->
+    <style name="BottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.1</item>
+<!--        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>-->
+<!--        <item name="android:background">@color/transparent</item>-->
+<!--        <item name="android:elevation">0dp</item>-->
+<!--        <item name="android:backgroundDimAmount">0</item>-->
+    </style>
 </resources>
