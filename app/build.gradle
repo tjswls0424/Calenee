@@ -86,5 +86,8 @@ dependencies {
 //    implementation 'com.github.amarjain07:StickyScrollView:1.0.2'
 
     // firebase - realtime database
-//    implementation 'com.google.firebase:firebase-database:20.0.5'
+    implementation 'com.google.firebase:firebase-database:20.0.5'
+
+    // bottom sheet
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 }
