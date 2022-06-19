@@ -10,7 +10,7 @@
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"/>
+        android:layout_marginBottom="?attr/actionBarSize" />
 
     <LinearLayout
         android:id="@+id/bottom_layout"
@@ -19,11 +19,15 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/coordinator_layout">
 
-        <Button
-            android:id="@+id/plus_btn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="@drawable/ic_add" />
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottie_add_close_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            app:lottie_autoPlay="false"
+            app:lottie_loop="false"
+            app:lottie_rawRes="@raw/add_close"
+            app:lottie_speed="2.5" />
     </LinearLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

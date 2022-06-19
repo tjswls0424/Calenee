@@ -24,11 +24,16 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun listener() {
-        binding.plusBtn.setOnClickListener {
+        binding.lottieAddCloseBtn.setOnClickListener {
             if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+                setLottieInitialState()
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                 binding.coordinatorLayout.visibility = View.GONE
             } else {
+                binding.lottieAddCloseBtn.apply {
+                    progress = 0.0f
+                    playAnimation()
+                }
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 binding.coordinatorLayout.visibility = View.VISIBLE
             }
@@ -36,14 +41,23 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.view.setOnClickListener {
             if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+                setLottieInitialState()
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                 binding.coordinatorLayout.visibility = View.GONE
             }
         }
     }
 
+    private fun setLottieInitialState() {
+        binding.lottieAddCloseBtn.apply {
+            progress = 0.0f
+            cancelAnimation()
+        }
+    }
+
     override fun onBackPressed() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+            setLottieInitialState()
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             binding.coordinatorLayout.visibility = View.GONE
         } else {

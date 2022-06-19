@@ -90,4 +90,7 @@ dependencies {
 
     // bottom sheet
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
+
+    // lottie
+    implementation 'com.airbnb.android:lottie:3.4.0'
 }
