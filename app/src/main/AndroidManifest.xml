@@ -14,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LightPurple"
         tools:replace="android:label">
-        <activity android:name=".chat.ChattingActivity"></activity>
+        <activity android:name=".chat.ChattingActivity"
+            android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".ConnectionInputActivity" />
         <activity android:name=".ConnectionActivity" />
         <activity

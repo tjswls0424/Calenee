@@ -12,10 +12,11 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="?attr/actionBarSize" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_layout"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        android:background="@color/chatting_message"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/coordinator_layout">
 
@@ -23,12 +24,43 @@
             android:id="@+id/lottie_add_close_btn"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/message_et"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:lottie_autoPlay="false"
             app:lottie_loop="false"
             app:lottie_rawRes="@raw/add_close"
             app:lottie_speed="2.5" />
-    </LinearLayout>
+
+        <EditText
+            android:id="@+id/message_et"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
+            android:backgroundTint="@color/chatting_message"
+            android:hint="메세지를 입력해주세요"
+            android:inputType="textMultiLine"
+            android:maxEms="5"
+            android:maxLength="1000"
+            android:maxLines="5"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/send_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/ic_round_send_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/message_et"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/coordinator_layout"
@@ -42,6 +74,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
+            android:background="@color/chatting_message"
             android:orientation="horizontal"
             app:behavior_hideable="true"
             app:behavior_peekHeight="0dp"
