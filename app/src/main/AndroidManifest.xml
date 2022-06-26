@@ -15,6 +15,7 @@
         android:theme="@style/Theme.LightPurple"
         tools:replace="android:label">
         <activity android:name=".chat.ChattingActivity"
+            android:configChanges="keyboardHidden|orientation"
             android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".ConnectionInputActivity" />
         <activity android:name=".ConnectionActivity" />
