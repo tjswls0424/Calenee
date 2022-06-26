@@ -26,8 +26,6 @@ class ChattingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-        getSoftInputHeight()
         listener()
         setContentView(binding.root)
     }
@@ -43,6 +41,8 @@ class ChattingActivity : AppCompatActivity() {
             val screenHeight = binding.root.rootView.height
             val keyBoardHeight = screenHeight - rect.bottom
             if (keyBoardHeight > screenHeight * 0.15) {
+                isKeyboardShown = true
+
                 if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
                     // bottom sheet OFF -> soft keyboard appear
                     setLottieInitialState()
@@ -53,6 +53,7 @@ class ChattingActivity : AppCompatActivity() {
                 }
                 Log.d("k_test", "is showing")
             } else {
+                isKeyboardShown = false
                 Log.d("k_test", "is closed")
             }
 
@@ -67,12 +68,12 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.lottieAddCloseBtn.setOnClickListener {
             if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                // bottom sheet OFF -> soft keyboard appear
-                setLottieInitialState()
+                    // bottom sheet OFF -> soft keyboard appear
+                    setLottieInitialState()
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                 binding.coordinatorLayout.visibility = View.GONE
 
-                inputMethodManager.showSoftInput(binding.root, 0)
+                inputMethodManager.showSoftInput(binding.messageEt, 0)
             } else {
                 binding.lottieAddCloseBtn.apply {
                     progress = 0.0f
@@ -93,14 +94,6 @@ class ChattingActivity : AppCompatActivity() {
                 binding.coordinatorLayout.visibility = View.GONE
             }
         }
-    }
-
-    private fun getSoftInputHeight() {
-
-
-
-
-
     }
 
     private fun setLottieInitialState() {
