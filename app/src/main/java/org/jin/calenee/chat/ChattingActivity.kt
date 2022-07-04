@@ -5,11 +5,15 @@ import android.app.Activity
 import android.graphics.Rect
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.jin.calenee.databinding.ActivityChattingBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -21,13 +25,32 @@ class ChattingActivity : AppCompatActivity() {
         BottomSheetBehavior.from(binding.bottomSheetView)
     }
 
+    private lateinit var chatAdapter: ChatAdapter
+
     private var isKeyboardShown: Boolean = false
+    private var chatDataList: MutableList<ChatData> = mutableListOf()
+    private var message: String = ""
+
+//    override fun onStart() {
+//        super.onStart()
+//
+//        // lottie button click does not work at once
+//        binding.lottieAddCloseBtn.performClick()
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         listener()
         setContentView(binding.root)
+    }
+
+    private fun initRecycler() {
+        chatAdapter = ChatAdapter().apply {
+            binding.chatRecyclerView.adapter = this
+            data = chatDataList
+            notifyDataSetChanged()
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -94,6 +117,26 @@ class ChattingActivity : AppCompatActivity() {
                 binding.coordinatorLayout.visibility = View.GONE
             }
         }
+
+        binding.sendBtn.setOnClickListener {
+            if (message.isNotEmpty()) {
+                chatDataList.add(ChatData(message = message, time = getCurrentTimeStamp(), viewType = 1))
+                initRecycler()
+
+                binding.messageEt.setText("")
+            }
+
+        }
+
+        binding.messageEt.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(text: Editable?) {
+                message = "$text"
+            }
+        })
     }
 
     private fun setLottieInitialState() {
@@ -101,6 +144,10 @@ class ChattingActivity : AppCompatActivity() {
             progress = 0.0f
             cancelAnimation()
         }
+    }
+
+    private fun getCurrentTimeStamp(): String {
+        return SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
     }
 
     override fun onBackPressed() {

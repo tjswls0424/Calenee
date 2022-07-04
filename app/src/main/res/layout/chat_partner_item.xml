@@ -4,30 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp">
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="5dp">
 
     <TextView
-        android:id="@+id/my_time_text"
-        android:layout_width="wrap_content"Myself
+        android:id="@+id/partner_nickname_text"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:textColor="@color/light_grey3"
-        android:textSize="15sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/my_msg_text"
-        tools:text="21:45" />
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@id/partner_msg_text"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="test_nickname" />
 
     <TextView
-        android:id="@+id/my_msg_text"
+        android:id="@+id/partner_msg_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/chat_item_background"
         android:backgroundTint="@color/light_grey2"
-        android:maxWidth="270dp"
-        android:padding="15dp"
-        android:textSize="16sp"
+        android:includeFontPadding="false"
+        android:maxWidth="260dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="7dp"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="Partner Test Message Partner Test Message Partner Test Message" />
 
+    <TextView
+        android:id="@+id/partner_time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:textColor="@color/light_grey3"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/partner_msg_text"
+        tools:text="21:45" />
 </androidx.constraintlayout.widget.ConstraintLayout>

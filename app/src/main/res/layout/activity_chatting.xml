@@ -11,17 +11,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="?attr/actionBarSize"
+        android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:fillViewport="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chat_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white" />
-
+            android:background="@color/white"
+            android:scrollbars="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
     </ScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -87,9 +89,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:background="@color/chatting_message"
+            android:minHeight="300dp"
             android:orientation="horizontal"
             app:behavior_hideable="true"
-            android:minHeight="300dp"
             app:behavior_peekHeight="300dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
@@ -116,7 +118,6 @@
                 android:layout_marginHorizontal="20dp"
                 android:layout_weight="1"
                 android:text="3" />
-
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
