@@ -10,6 +10,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.jin.calenee.databinding.ActivityChattingBinding
 import java.text.SimpleDateFormat
@@ -55,7 +56,8 @@ class ChattingActivity : AppCompatActivity() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun listener() {
-        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMethodManager =
+            getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         var viewHeight = -1
 
         binding.root.viewTreeObserver.addOnGlobalLayoutListener {
@@ -82,8 +84,9 @@ class ChattingActivity : AppCompatActivity() {
 
             val currentViewHeight = binding.root.height
             if (currentViewHeight > viewHeight) {
-                binding.bottomSheetView.minimumHeight = currentViewHeight/2 - binding.messageEt.height
-                bottomSheetBehavior.peekHeight = currentViewHeight/2 - binding.messageEt.height
+                binding.bottomSheetView.minimumHeight =
+                    currentViewHeight / 2 - binding.messageEt.height
+                bottomSheetBehavior.peekHeight = currentViewHeight / 2 - binding.messageEt.height
 
                 viewHeight = currentViewHeight
             }
@@ -91,8 +94,8 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.lottieAddCloseBtn.setOnClickListener {
             if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                    // bottom sheet OFF -> soft keyboard appear
-                    setLottieInitialState()
+                // bottom sheet OFF -> soft keyboard appear
+                setLottieInitialState()
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                 binding.coordinatorLayout.visibility = View.GONE
 
@@ -110,25 +113,26 @@ class ChattingActivity : AppCompatActivity() {
 
         }
 
-        binding.view.setOnClickListener {
-            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                setLottieInitialState()
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-                binding.coordinatorLayout.visibility = View.GONE
-            }
-        }
-
         binding.sendBtn.setOnClickListener {
             if (message.isNotEmpty()) {
-                chatDataList.add(ChatData(message = message, time = getCurrentTimeStamp(), viewType = 1))
+                chatDataList.add(
+                    ChatData(
+                        message = message,
+                        time = getCurrentTimeStamp(),
+                        viewType = 1
+                    )
+                )
                 initRecycler()
-
                 binding.messageEt.setText("")
-            }
 
+                LinearLayoutManager(applicationContext).apply {
+                    stackFromEnd = true
+                    binding.chatRecyclerView.layoutManager = this
+                }
+            }
         }
 
-        binding.messageEt.addTextChangedListener(object: TextWatcher {
+        binding.messageEt.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
