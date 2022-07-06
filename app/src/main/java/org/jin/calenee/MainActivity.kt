@@ -108,7 +108,6 @@ class MainActivity : AppCompatActivity() {
             Intent(this@MainActivity, ChattingActivity::class.java).also {
                 startActivity(it)
                 slideUp()
-                finish()
             }
         }
     }

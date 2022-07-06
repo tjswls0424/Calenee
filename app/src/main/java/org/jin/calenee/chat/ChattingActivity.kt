@@ -12,9 +12,17 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import org.jin.calenee.databinding.ActivityChattingBinding
+import java.lang.RuntimeException
 import java.text.SimpleDateFormat
 import java.util.*
+
+const val DATE_TIME = 0
+const val TIME = 1
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -24,6 +32,13 @@ class ChattingActivity : AppCompatActivity() {
 
     private val bottomSheetBehavior by lazy {
         BottomSheetBehavior.from(binding.bottomSheetView)
+    }
+
+    private val currentUserEmail by lazy {
+        FirebaseAuth.getInstance().currentUser?.email.toString()
+    }
+    private val firestore by lazy {
+        Firebase.firestore
     }
 
     private lateinit var chatAdapter: ChatAdapter
@@ -115,13 +130,16 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.sendBtn.setOnClickListener {
             if (message.isNotEmpty()) {
-                chatDataList.add(
-                    ChatData(
-                        message = message,
-                        time = getCurrentTimeStamp(),
-                        viewType = 1
-                    )
-                )
+                ChatData(
+                    nickname = getNickname(),
+                    message = message,
+                    time = getCurrentTimeStamp(TIME),
+                    viewType = 1
+                ).also {
+                    chatDataList.add(it)
+                    saveChatData(it)
+                }
+
                 initRecycler()
                 binding.messageEt.setText("")
 
@@ -143,6 +161,33 @@ class ChattingActivity : AppCompatActivity() {
         })
     }
 
+    private fun getNickname(): String {
+        var nickname = ""
+        firestore.collection("user").document(currentUserEmail)
+            .get()
+            .addOnSuccessListener { doc ->
+                Log.d("db_test/login-doc", doc.data.toString())
+                nickname = doc.data?.get("nickname").toString()
+            }
+            .addOnFailureListener {
+                Log.d("db_test/login-err", "${it.printStackTrace()}")
+            }
+
+        return nickname
+    }
+
+    private fun saveChatData(data: ChatData) {
+        val path = getCurrentTimeStamp(DATE_TIME)
+        val myRef = FirebaseDatabase.getInstance().getReference(path)
+        myRef.apply {
+            child("senderNickname").setValue(data.nickname)
+            child("senderEmail").setValue(currentUserEmail)
+            child("message").setValue(data.message)
+            child("createdAt").setValue(data.time)
+            child("read").setValue(false)
+        }
+    }
+
     private fun setLottieInitialState() {
         binding.lottieAddCloseBtn.apply {
             progress = 0.0f
@@ -150,8 +195,12 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeStamp(): String {
-        return SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
+    private fun getCurrentTimeStamp(type: Int): String {
+        return when (type) {
+            DATE_TIME -> SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).format(System.currentTimeMillis())
+            TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
+            else -> throw RuntimeException("get time error")
+        }
     }
 
     override fun onBackPressed() {
