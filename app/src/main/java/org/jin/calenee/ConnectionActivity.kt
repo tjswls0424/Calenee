@@ -327,6 +327,16 @@ class ConnectionActivity : AppCompatActivity() {
 
                         val docId = couple.user1Email + "_" + couple.user2Email
                         firestore.collection("couple").document(docId).set(coupleDataMap)
+
+                        hashMapOf(
+                            "partnerEmail" to couple.user2Email,
+                            "coupleConnectionFlag" to true,
+                            "profileInputFlag" to false
+                        ).also {
+                            firestore.collection("user")
+                                .document(myEmail)
+                                .set(it)
+                        }
                     }
 
                     if (connectionDialog!!.isShowing) connectionDialog!!.dismiss()
@@ -336,15 +346,6 @@ class ConnectionActivity : AppCompatActivity() {
                         "true"
                     )
                     App.userPrefs.setString("${myEmail}_couple_input_flag", "false")
-
-                    hashMapOf(
-                        "coupleConnectionFlag" to true,
-                        "profileInputFlag" to false
-                    ).also {
-                        firestore.collection("user")
-                            .document(myEmail)
-                            .set(it)
-                    }
 
                     startActivity(it)
                     slideRight()
@@ -430,17 +431,23 @@ class ConnectionActivity : AppCompatActivity() {
                                     if (snapshot["connectionFlag"] == true
                                         && snapshot["user2Email"] == firebaseAuth.currentUser?.email.toString()
                                     ) {
-                                        Toast.makeText(applicationContext,
+                                        Toast.makeText(
+                                            applicationContext,
                                             "커플이 연결되었습니다.",
-                                            Toast.LENGTH_SHORT).show()
+                                            Toast.LENGTH_SHORT
+                                        ).show()
 
                                         App.userPrefs.setString(
                                             "${myEmail}_couple_connection_flag",
                                             "true"
                                         )
-                                        App.userPrefs.setString("${myEmail}_couple_input_flag", "false")
+                                        App.userPrefs.setString(
+                                            "${myEmail}_couple_input_flag",
+                                            "false"
+                                        )
 
                                         hashMapOf(
+                                            "partnerEmail" to ownerEmail,
                                             "coupleConnectionFlag" to true,
                                             "profileInputFlag" to false
                                         ).also {
