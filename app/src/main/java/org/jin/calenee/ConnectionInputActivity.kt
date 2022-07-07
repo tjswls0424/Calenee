@@ -226,7 +226,7 @@ class ConnectionInputActivity : AppCompatActivity() {
         }
 //        val data = baos.toByteArray()
         val storageRef = FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("profile/" + "test1.jpg")
+        val imageRef = storageRef.child("profile/" + firebaseAuth.currentUser?.email.toString() + ".jpg")
 
         val uploadTask = imageRef.putBytes(baos.toByteArray())
             .addOnSuccessListener { taskSnapshot ->
@@ -254,6 +254,9 @@ class ConnectionInputActivity : AppCompatActivity() {
             )
             .addOnSuccessListener {
                 resultFlag = true
+            }
+            .addOnFailureListener {
+                Log.d("fb_test", it.printStackTrace().toString())
             }
 
         return resultFlag
