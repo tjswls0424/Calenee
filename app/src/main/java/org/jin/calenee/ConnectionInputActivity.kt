@@ -13,6 +13,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.*
 import com.bumptech.glide.Glide
@@ -21,17 +22,19 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_connection_input.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.database.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
+import kotlin.properties.Delegates
 
 class ConnectionInputActivity : AppCompatActivity() {
     companion object {
@@ -93,6 +96,8 @@ class ConnectionInputActivity : AppCompatActivity() {
     }
 
     private fun listener() {
+        profileInputListener()
+
         editTextListener(binding.inputNicknameEt)
         editTextListener(binding.inputBirthdayEt)
         editTextListener(binding.inputFirstMetDateEt)
@@ -118,19 +123,11 @@ class ConnectionInputActivity : AppCompatActivity() {
 
         binding.startBtn.setOnClickListener {
             if (checkInputCondition()) {
-                if (uploadProfileImage() && uploadProfileInfo()) {
-                    Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
-                        startActivity(it)
-                        slideRight()
-                        finish()
-                    }
-                } else {
-                    Snackbar.make(
-                        binding.root,
-                        "프로필 저장에 실패했습니다. 잠시후 다시 시도해주세요.",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                }
+                binding.loadingScreen.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.VISIBLE
+
+                uploadProfileInfo()
+                uploadProfileImage()
             } else {
                 Snackbar.make(binding.root, "프로필에 들어갈 정보를 모두 입력해주세요", Snackbar.LENGTH_SHORT).show()
             }
@@ -219,31 +216,48 @@ class ConnectionInputActivity : AppCompatActivity() {
         }
     }
 
-    private fun uploadProfileImage(): Boolean {
-        var resultFlag = false
+    private fun profileInputListener() {
+        firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+            .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+
+                if (snapshot != null && snapshot.exists()) {
+                    if (snapshot.data?.get("profileInputFlag") as Boolean && snapshot.data?.get("profileImageFlag") as Boolean) {
+                        binding.loadingScreen.visibility = View.GONE
+                        binding.progressBar.visibility = View.GONE
+
+                        Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
+                            startActivity(it)
+                            slideRight()
+                            finish()
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun uploadProfileImage() {
         val baos = ByteArrayOutputStream().also {
-            profileViewModel.profileImage.value?.compress(Bitmap.CompressFormat.JPEG, 100, it)
+            profileViewModel.profileImage.value?.compress(Bitmap.CompressFormat.JPEG, 80, it)
         }
 //        val data = baos.toByteArray()
         val storageRef = FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("profile/" + firebaseAuth.currentUser?.email.toString() + ".jpg")
+        val imageRef =
+            storageRef.child("profile/" + firebaseAuth.currentUser?.email.toString() + ".jpg")
 
         val uploadTask = imageRef.putBytes(baos.toByteArray())
             .addOnSuccessListener { taskSnapshot ->
-                Log.d("img_test", "meta data: ${taskSnapshot.metadata}")
-                resultFlag = true
+                firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+                    .update("profileImageFlag", true)
+                Log.d("img_test", "success - meta data: ${taskSnapshot.metadata}")
             }
             .addOnFailureListener {
                 Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
                 Log.d("img_test", "fail to upload bitmap2: ${it.message}")
             }
-
-        return resultFlag
     }
 
-    private fun uploadProfileInfo(): Boolean {
-        var resultFlag = false
-
+    private fun uploadProfileInfo() {
         firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
             .update(
                 "gender", profileViewModel.gender.value,
@@ -253,13 +267,11 @@ class ConnectionInputActivity : AppCompatActivity() {
                 "profileInputFlag", true
             )
             .addOnSuccessListener {
-                resultFlag = true
+                Log.d("fb_test", "upload profile info success")
             }
             .addOnFailureListener {
                 Log.d("fb_test", it.printStackTrace().toString())
             }
-
-        return resultFlag
     }
 
     private fun getImageFromGallery() {
@@ -309,7 +321,7 @@ class ConnectionInputActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 GALLERY -> {
-                    var imageData: Uri? = data?.data
+                    val imageData: Uri? = data?.data
                     try {
                         MediaStore.Images.Media.getBitmap(contentResolver, imageData).also {
                             val file = File.createTempFile(
