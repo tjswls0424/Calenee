@@ -131,8 +131,9 @@ class ConnectionInputActivity : AppCompatActivity() {
                 binding.loadingScreen.visibility = View.VISIBLE
                 binding.progressBar.visibility = View.VISIBLE
 
-                uploadProfileInfo()
-                uploadProfileImage()
+                updateFirstMetDate()
+                updateProfileInfo()
+                updateProfileImage()
             } else {
                 Snackbar.make(binding.root, "프로필에 들어갈 정보를 모두 입력해주세요", Snackbar.LENGTH_SHORT).show()
             }
@@ -241,7 +242,7 @@ class ConnectionInputActivity : AppCompatActivity() {
             }
     }
 
-    private fun uploadProfileImage() {
+    private fun updateProfileImage() {
         val baos = ByteArrayOutputStream().also {
             profileViewModel.profileImage.value?.compress(Bitmap.CompressFormat.JPEG, 80, it)
         }
@@ -250,20 +251,23 @@ class ConnectionInputActivity : AppCompatActivity() {
         val imageRef =
             storageRef.child("profile/" + myEmail + ".jpg")
 
-        val uploadTask = imageRef.putBytes(baos.toByteArray())
-            .addOnSuccessListener { taskSnapshot ->
-                firestore.collection("user").document(myEmail)
-                    .update("profileImageFlag", true)
-                Log.d("img_test", "success - meta data: ${taskSnapshot.metadata}")
-            }
-            .addOnFailureListener {
-                Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
-                Log.d("img_test", "fail to upload bitmap2: ${it.message}")
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            val uploadTask = imageRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener { taskSnapshot ->
+                    firestore.collection("user").document(myEmail)
+                        .update("profileImageFlag", true)
+                    Log.d("img_test", "success - meta data: ${taskSnapshot.metadata}")
+                }
+                .addOnFailureListener {
+                    Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
+                    Log.d("img_test", "fail to upload bitmap2: ${it.message}")
+                }
+        }
     }
 
-    private fun uploadProfileInfo() {
+    private fun updateProfileInfo() {
         CoroutineScope(Dispatchers.IO).launch {
+            // update user profile information
             firestore.collection("user").document(myEmail)
                 .update(
                     "gender", profileViewModel.gender.value,
@@ -272,31 +276,24 @@ class ConnectionInputActivity : AppCompatActivity() {
                     "profileInputFlag", true
                 )
                 .addOnSuccessListener {
-                    Log.d("fb_test", "upload profile info success")
+                    Log.d("fb_test", "update profile info success")
                 }
                 .addOnFailureListener {
                     Log.d("fb_test", it.printStackTrace().toString())
                 }
-
-            updateFirstMetdate()
         }
     }
 
-    private fun updateFirstMetdate() {
-        firestore.collection("couple").get().addOnSuccessListener {
-            it.documents.forEachIndexed { index, documentSnapshot ->
-                if (myEmail == documentSnapshot.getString("user1Email")
-                    || myEmail == documentSnapshot.getString("user2Email")
-                ) {
-                    if (documentSnapshot.getBoolean("connectionFlag") == true) {
-                        firestore.collection("couple").document(documentSnapshot.id)
-                            .update("firstMetDate", profileViewModel.firstMetDate.value)
-
-                        return@forEachIndexed
-                    }
+    private fun updateFirstMetDate() {
+        CoroutineScope(Dispatchers.IO).launch {
+            firestore.collection("user").document(myEmail).get()
+                .addOnSuccessListener {
+                    firestore.collection("couple").document(it["coupleDocID"].toString())
+                        .update("firstMetDate", profileViewModel.firstMetDate.value.toString())
                 }
-
-            }
+                .addOnFailureListener {
+                    Log.d("fb_test/err", "updateFirstMetDate() - fail to get couple doc ID")
+                }
         }
     }
 
