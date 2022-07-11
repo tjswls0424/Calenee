@@ -332,7 +332,8 @@ class ConnectionActivity : AppCompatActivity() {
                             "partnerEmail" to couple.user2Email,
                             "coupleConnectionFlag" to true,
                             "profileInputFlag" to false,
-                            "profileImageFlag" to false
+                            "profileImageFlag" to false,
+                            "coupleDocID" to docId
                         ).also {
                             firestore.collection("user")
                                 .document(myEmail)
@@ -342,11 +343,10 @@ class ConnectionActivity : AppCompatActivity() {
 
                     if (connectionDialog!!.isShowing) connectionDialog!!.dismiss()
 
-                    App.userPrefs.setString(
-                        "${myEmail}_couple_connection_flag",
-                        "true"
-                    )
-                    App.userPrefs.setString("${myEmail}_couple_input_flag", "false")
+                    App.userPrefs.apply {
+                        setString("${myEmail}_couple_connection_flag", "true")
+                        setString("${myEmail}_couple_input_flag", "false")
+                    }
 
                     startActivity(it)
                     slideRight()
@@ -422,15 +422,16 @@ class ConnectionActivity : AppCompatActivity() {
                         // partner's point of view
                         val ownerEmail = inviteCodeViewModel.ownerEmail.value.toString()
                         val myEmail = firebaseAuth.currentUser?.email.toString()
-                        Log.d("snap_test/docID-1", "${ownerEmail}_${myEmail}")
+                        val docId = "${ownerEmail}_${myEmail}"
+                        Log.d("snap_test/docID-1", docId)
 
-                        firestore.collection("couple").document("${ownerEmail}_${myEmail}")
+                        firestore.collection("couple").document(docId)
                             .addSnapshotListener { snapshot, error ->
                                 if (error != null) return@addSnapshotListener
 
                                 if (snapshot != null && snapshot.exists()) {
                                     if (snapshot["connectionFlag"] == true
-                                        && snapshot["user2Email"] == firebaseAuth.currentUser?.email.toString()
+                                        && snapshot["user2Email"] == myEmail
                                     ) {
                                         Toast.makeText(
                                             applicationContext,
@@ -438,23 +439,20 @@ class ConnectionActivity : AppCompatActivity() {
                                             Toast.LENGTH_SHORT
                                         ).show()
 
-                                        App.userPrefs.setString(
-                                            "${myEmail}_couple_connection_flag",
-                                            "true"
-                                        )
-                                        App.userPrefs.setString(
-                                            "${myEmail}_couple_input_flag",
-                                            "false"
-                                        )
+                                        App.userPrefs.apply {
+                                            setString("${myEmail}_couple_connection_flag", "true")
+                                            setString("${myEmail}_couple_input_flag", "false")
+                                        }
 
                                         hashMapOf(
                                             "partnerEmail" to ownerEmail,
                                             "coupleConnectionFlag" to true,
                                             "profileInputFlag" to false,
                                             "profileImageFlag" to false,
+                                            "coupleDocID" to docId
                                         ).also {
                                             firestore.collection("user")
-                                                .document(firebaseAuth.currentUser?.email.toString())
+                                                .document(myEmail)
                                                 .set(it)
                                         }
 
