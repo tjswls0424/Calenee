@@ -72,9 +72,9 @@
                     android:id="@+id/input_pw_et"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
                     android:fontFamily="@font/ibm_plex_sans_kr_light"
                     android:hint="@string/password"
-                    android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -87,9 +87,9 @@
                     android:id="@+id/input_pw_check_et"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
                     android:fontFamily="@font/ibm_plex_sans_kr_light"
                     android:hint="@string/password_check"
-                    android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
