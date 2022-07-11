@@ -34,7 +34,6 @@ import org.jin.calenee.databinding.ActivityConnectionInputBinding
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
-import kotlin.properties.Delegates
 
 class ConnectionInputActivity : AppCompatActivity() {
     companion object {
@@ -58,6 +57,12 @@ class ConnectionInputActivity : AppCompatActivity() {
     private val firestore by lazy {
         Firebase.firestore
     }
+
+    private val myEmail by lazy {
+        firebaseAuth.currentUser?.email.toString()
+    }
+
+    private lateinit var partnerEmail: String
 
     private val user = User()
 
@@ -217,7 +222,7 @@ class ConnectionInputActivity : AppCompatActivity() {
     }
 
     private fun profileInputListener() {
-        firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+        firestore.collection("user").document(myEmail)
             .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (error != null) return@addSnapshotListener
 
@@ -243,11 +248,11 @@ class ConnectionInputActivity : AppCompatActivity() {
 //        val data = baos.toByteArray()
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef =
-            storageRef.child("profile/" + firebaseAuth.currentUser?.email.toString() + ".jpg")
+            storageRef.child("profile/" + myEmail + ".jpg")
 
         val uploadTask = imageRef.putBytes(baos.toByteArray())
             .addOnSuccessListener { taskSnapshot ->
-                firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
+                firestore.collection("user").document(myEmail)
                     .update("profileImageFlag", true)
                 Log.d("img_test", "success - meta data: ${taskSnapshot.metadata}")
             }
@@ -258,20 +263,41 @@ class ConnectionInputActivity : AppCompatActivity() {
     }
 
     private fun uploadProfileInfo() {
-        firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
-            .update(
-                "gender", profileViewModel.gender.value,
-                "nickname", profileViewModel.nickname.value,
-                "birthday", profileViewModel.birthday.value,
-                "firstMetDate", profileViewModel.firstMetDate.value,
-                "profileInputFlag", true
-            )
-            .addOnSuccessListener {
-                Log.d("fb_test", "upload profile info success")
+        CoroutineScope(Dispatchers.IO).launch {
+            firestore.collection("user").document(myEmail)
+                .update(
+                    "gender", profileViewModel.gender.value,
+                    "nickname", profileViewModel.nickname.value,
+                    "birthday", profileViewModel.birthday.value,
+                    "profileInputFlag", true
+                )
+                .addOnSuccessListener {
+                    Log.d("fb_test", "upload profile info success")
+                }
+                .addOnFailureListener {
+                    Log.d("fb_test", it.printStackTrace().toString())
+                }
+
+            updateFirstMetdate()
+        }
+    }
+
+    private fun updateFirstMetdate() {
+        firestore.collection("couple").get().addOnSuccessListener {
+            it.documents.forEachIndexed { index, documentSnapshot ->
+                if (myEmail == documentSnapshot.getString("user1Email")
+                    || myEmail == documentSnapshot.getString("user2Email")
+                ) {
+                    if (documentSnapshot.getBoolean("connectionFlag") == true) {
+                        firestore.collection("couple").document(documentSnapshot.id)
+                            .update("firstMetDate", profileViewModel.firstMetDate.value)
+
+                        return@forEachIndexed
+                    }
+                }
+
             }
-            .addOnFailureListener {
-                Log.d("fb_test", it.printStackTrace().toString())
-            }
+        }
     }
 
     private fun getImageFromGallery() {
