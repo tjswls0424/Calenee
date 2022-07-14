@@ -311,6 +311,9 @@ class ConnectionActivity : AppCompatActivity() {
                 Intent(this@ConnectionActivity, ConnectionInputActivity::class.java).also {
                     WriteData().updateConnectionFlag(true)
 
+                    // for chat DB (path)
+                    val coupleChatID = getRandomString(20)
+
                     // add couple data
                     Couple(
                         myEmail,
@@ -322,7 +325,8 @@ class ConnectionActivity : AppCompatActivity() {
                             "user1Email" to couple.user1Email,
                             "user2Email" to couple.user2Email,
                             "firstMetDate" to couple.firstMetDate,
-                            "connectionFlag" to couple.connectionFlag
+                            "connectionFlag" to couple.connectionFlag,
+                            "coupleChatID" to coupleChatID
                         )
 
                         val docId = couple.user1Email + "_" + couple.user2Email
@@ -333,7 +337,7 @@ class ConnectionActivity : AppCompatActivity() {
                             "coupleConnectionFlag" to true,
                             "profileInputFlag" to false,
                             "profileImageFlag" to false,
-                            "coupleDocID" to docId
+                            "coupleChatID" to coupleChatID
                         ).also {
                             firestore.collection("user")
                                 .document(myEmail)
@@ -346,6 +350,7 @@ class ConnectionActivity : AppCompatActivity() {
                     App.userPrefs.apply {
                         setString("${myEmail}_couple_connection_flag", "true")
                         setString("${myEmail}_couple_input_flag", "false")
+                        setString("couple_chat_id", coupleChatID)
                     }
 
                     startActivity(it)
@@ -359,6 +364,13 @@ class ConnectionActivity : AppCompatActivity() {
                 WriteData().updatePartnerEmail(myEmail, "")
             }
         }.show()
+    }
+
+    private fun getRandomString(length: Int): String {
+        val charset = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        return (1..length)
+            .map { charset.random() }
+            .joinToString("")
     }
 
     override fun onBackPressed() {}
@@ -439,9 +451,12 @@ class ConnectionActivity : AppCompatActivity() {
                                             Toast.LENGTH_SHORT
                                         ).show()
 
+                                        val coupleChatID = snapshot["coupleChatID"].toString()
+
                                         App.userPrefs.apply {
                                             setString("${myEmail}_couple_connection_flag", "true")
                                             setString("${myEmail}_couple_input_flag", "false")
+                                            setString("couple_chat_id", coupleChatID)
                                         }
 
                                         hashMapOf(
@@ -449,7 +464,7 @@ class ConnectionActivity : AppCompatActivity() {
                                             "coupleConnectionFlag" to true,
                                             "profileInputFlag" to false,
                                             "profileImageFlag" to false,
-                                            "coupleDocID" to docId
+                                            "coupleChatID" to coupleChatID
                                         ).also {
                                             firestore.collection("user")
                                                 .document(myEmail)
