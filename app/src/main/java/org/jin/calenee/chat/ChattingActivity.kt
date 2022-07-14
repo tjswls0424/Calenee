@@ -13,9 +13,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,9 +43,11 @@ class ChattingActivity : AppCompatActivity() {
     private val firestore by lazy {
         Firebase.firestore
     }
+    private val chatDB by lazy {
+        FirebaseDatabase.getInstance().getReference("chat")
+    }
 
     private lateinit var chatAdapter: ChatAdapter
-
     private var isKeyboardShown: Boolean = false
     private var chatDataList: MutableList<ChatData> = mutableListOf()
     private var message: String = ""
@@ -60,6 +66,7 @@ class ChattingActivity : AppCompatActivity() {
         setContentView(binding.root)
         listener()
         getNickname()
+        getSavedChatData()
     }
 
     private fun initRecycler() {
@@ -126,7 +133,6 @@ class ChattingActivity : AppCompatActivity() {
 
                 inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
             }
-
         }
 
         binding.sendBtn.setOnClickListener {
@@ -155,6 +161,18 @@ class ChattingActivity : AppCompatActivity() {
                 message = "$text"
             }
         })
+
+        // get realtime chat data
+        chatDB.child(App.userPrefs.getString("couple_chat_id"))
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d("fb_test/chat", snapshot.value.toString())
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.d("fb_test/chat-err", "addVlueEventListener: fail to read value")
+                }
+            })
     }
 
     // 첫 실행시 (함수 종료 될 때까지) success listener에 값이 들어오기까지 몇 초 delay가 있기 때문에 미리 호출
@@ -172,16 +190,35 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun saveChatData(data: ChatData) {
-        val path = getCurrentTimeStamp(DATE_TIME)
-        val myRef = FirebaseDatabase.getInstance().getReference(path)
-        myRef.apply {
-            child("senderEmail").setValue(currentUserEmail)
-            child("senderNickname").setValue(data.nickname)
-            child("message").setValue(data.message)
-            child("createdAt").setValue(data.time)
-            child("read").setValue(false)
-        }
+        chatDB.child(App.userPrefs.getString("couple_chat_id"))
+            .child(getCurrentTimeStamp(DATE_TIME)).apply {
+                child("senderEmail").setValue(currentUserEmail)
+                child("senderNickname").setValue(data.nickname)
+                child("message").setValue(data.message)
+                child("createdAt").setValue(data.time)
+                child("read").setValue(false)
+            }
     }
+
+    private fun getSavedChatData() {
+        chatDB.child(App.userPrefs.getString("couple_chat_id"))
+            .get().addOnSuccessListener {
+                it.children.forEachIndexed { index, dataSnapshot ->
+                    // senderNickname, senderEmail, message, createdAt
+                    val a= dataSnapshot.child("message")
+
+                    val dataset = dataSnapshot.getValue(SavedChatData::class.java)
+
+                    Log.d("chat_test", "$index: ${dataSnapshot.value}")
+                    Log.d("chat_test", "$index - $dataset")
+                    Log.d("chat_test", "$index - ${dataset?.message}")
+                }
+            }
+            .addOnFailureListener {
+                Log.d("db_test", "fail to read from realtime database")
+            }
+    }
+
 
     private fun setLottieInitialState() {
         binding.lottieAddCloseBtn.apply {
