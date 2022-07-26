@@ -46,8 +46,11 @@ class ChattingActivity : AppCompatActivity() {
     private val chatDB by lazy {
         FirebaseDatabase.getInstance().getReference("chat")
     }
+    private val chatAdapter by lazy {
+        ChatAdapter()
+    }
 
-    private lateinit var chatAdapter: ChatAdapter
+    //    private lateinit var chatAdapter: ChatAdapter
     private var isKeyboardShown: Boolean = false
     private var chatDataList: MutableList<ChatData> = mutableListOf()
     private var message: String = ""
@@ -70,10 +73,16 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun initRecycler() {
-        chatAdapter = ChatAdapter().apply {
+        Log.d("fb_test/chat-init", "init recycler view")
+        LinearLayoutManager(applicationContext).apply {
+            stackFromEnd = true
+            binding.chatRecyclerView.layoutManager = this
+        }
+
+        chatAdapter.apply {
             binding.chatRecyclerView.adapter = this
             data = chatDataList
-            notifyDataSetChanged()
+//            notifyDataSetChanged()
         }
     }
 
@@ -142,13 +151,8 @@ class ChattingActivity : AppCompatActivity() {
                     saveChatData(it)
                 }
 
-                initRecycler()
                 binding.messageEt.setText("")
-
-                LinearLayoutManager(applicationContext).apply {
-                    stackFromEnd = true
-                    binding.chatRecyclerView.layoutManager = this
-                }
+                initRecycler()
             }
         }
 
@@ -166,14 +170,54 @@ class ChattingActivity : AppCompatActivity() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    Log.d("fb_test/chat", snapshot.value.toString())
+                    if (snapshot.exists()) {
+                        Log.d("fb_test/chat", snapshot.value.toString())
+
+                        snapshot.getValue(SavedChatData::class.java).also { data ->
+                            if (
+                                !data?.message.isNullOrBlank() &&
+                                !data?.createdAt.isNullOrBlank() &&
+                                !data?.senderEmail.isNullOrBlank() &&
+                                !data?.senderNickname.isNullOrBlank()
+                            ) {
+                                val viewType =
+                                    if (data?.senderEmail == currentUserEmail) 1 else 0
+                                chatDataList.add(
+                                    ChatData(
+                                        data?.senderNickname,
+                                        data?.message,
+                                        data?.createdAt,
+                                        viewType
+                                    )
+                                )
+                            }
+                        }
+
+                        chatAdapter.apply {
+                            binding.chatRecyclerView.adapter = this
+                            data = chatDataList
+//                            notifyDataSetChanged()
+//                            notifyItemChanged(this.itemCount+1)
+                            Log.d("fb_test/chat-count", this.itemCount.toString())
+                        }
+//                        initRecycler()
+//                        binding.chatRecyclerView.adapter?.notifyDataSetChanged()
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     Log.d("fb_test/chat-err", "addVlueEventListener: fail to read value")
                 }
             })
+
     }
+
+//    inline fun <T : Any> ifNotEmpty(vararg elements: T?, closure: (List<T>) -> Unit) {
+//        if (elements.all { it != null }) {
+//            Log.d("fb_test/chat-check", "check")
+//            closure(elements.filterNotNull())
+//        }
+//    }
 
     // 첫 실행시 (함수 종료 될 때까지) success listener에 값이 들어오기까지 몇 초 delay가 있기 때문에 미리 호출
     private fun getNickname() {
@@ -196,7 +240,7 @@ class ChattingActivity : AppCompatActivity() {
                 child("senderNickname").setValue(data.nickname)
                 child("message").setValue(data.message)
                 child("createdAt").setValue(data.time)
-                child("read").setValue(false)
+//                child("read").setValue(false)
             }
     }
 
@@ -204,15 +248,20 @@ class ChattingActivity : AppCompatActivity() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
                 it.children.forEachIndexed { index, dataSnapshot ->
-                    // senderNickname, senderEmail, message, createdAt
-                    val a= dataSnapshot.child("message")
-
-                    val dataset = dataSnapshot.getValue(SavedChatData::class.java)
-
-                    Log.d("chat_test", "$index: ${dataSnapshot.value}")
-                    Log.d("chat_test", "$index - $dataset")
-                    Log.d("chat_test", "$index - ${dataset?.message}")
+                    dataSnapshot.getValue(SavedChatData::class.java).also { data ->
+                        val viewType = if (data?.senderEmail == currentUserEmail) 1 else 0
+                        chatDataList.add(
+                            ChatData(
+                                data?.senderNickname,
+                                data?.message,
+                                data?.createdAt,
+                                viewType
+                            )
+                        )
+                    }
                 }
+
+                initRecycler()
             }
             .addOnFailureListener {
                 Log.d("db_test", "fail to read from realtime database")

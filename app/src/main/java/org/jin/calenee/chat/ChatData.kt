@@ -1,9 +1,9 @@
 package org.jin.calenee.chat
 
 data class ChatData(
-    var nickname: String = "",
-    var message: String = "",
-    var time: String = "",
+    var nickname: String? = "",
+    var message: String? = "",
+    var time: String? = "",
     var viewType: Int
 ) {
     companion object {
