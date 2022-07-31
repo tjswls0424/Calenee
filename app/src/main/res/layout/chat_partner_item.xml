@@ -12,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="12sp"
+        android:includeFontPadding="false"
         app:layout_constraintBottom_toTopOf="@id/partner_msg_text"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="test_nickname" />
