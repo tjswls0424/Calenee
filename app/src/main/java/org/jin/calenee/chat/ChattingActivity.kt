@@ -13,10 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.jin.calenee.App
@@ -82,7 +79,6 @@ class ChattingActivity : AppCompatActivity() {
         chatAdapter.apply {
             binding.chatRecyclerView.adapter = this
             data = chatDataList
-//            notifyDataSetChanged()
         }
     }
 
@@ -168,56 +164,50 @@ class ChattingActivity : AppCompatActivity() {
 
         // get realtime chat data
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) {
-                        Log.d("fb_test/chat", snapshot.value.toString())
+            .addChildEventListener(object: ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    Log.d("fb_test_chat/add", snapshot.value.toString())
+                }
 
-                        snapshot.getValue(SavedChatData::class.java).also { data ->
-                            if (
-                                !data?.message.isNullOrBlank() &&
-                                !data?.createdAt.isNullOrBlank() &&
-                                !data?.senderEmail.isNullOrBlank() &&
-                                !data?.senderNickname.isNullOrBlank()
-                            ) {
-                                val viewType =
-                                    if (data?.senderEmail == currentUserEmail) 1 else 0
-                                chatDataList.add(
-                                    ChatData(
-                                        data?.senderNickname,
-                                        data?.message,
-                                        data?.createdAt,
-                                        viewType
-                                    )
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    snapshot.getValue(SavedChatData::class.java).also { data ->
+                        if (
+                            !data?.message.isNullOrBlank() &&
+                            !data?.createdAt.isNullOrBlank() &&
+                            !data?.senderEmail.isNullOrBlank() &&
+                            !data?.senderNickname.isNullOrBlank()
+                        ) {
+                            val viewType =
+                                if (data?.senderEmail == currentUserEmail) 1 else 0
+                            chatDataList.add(
+                                ChatData(
+                                    data?.senderNickname,
+                                    data?.message,
+                                    data?.createdAt,
+                                    viewType
                                 )
-                            }
-                        }
+                            )
 
-                        chatAdapter.apply {
-                            binding.chatRecyclerView.adapter = this
-                            data = chatDataList
-//                            notifyDataSetChanged()
-//                            notifyItemChanged(this.itemCount+1)
-                            Log.d("fb_test/chat-count", this.itemCount.toString())
+                            initRecycler()
                         }
-//                        initRecycler()
-//                        binding.chatRecyclerView.adapter?.notifyDataSetChanged()
                     }
+
+                    Log.d("fb_test_chat/changed", snapshot.value.toString())
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    Log.d("fb_test_chat/removed", snapshot.value.toString())
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                    Log.d("fb_test_chat/moved", snapshot.value.toString())
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("fb_test/chat-err", "addVlueEventListener: fail to read value")
+                    Log.d("fb_test_chat/cancelled", error.message)
                 }
             })
-
     }
-
-//    inline fun <T : Any> ifNotEmpty(vararg elements: T?, closure: (List<T>) -> Unit) {
-//        if (elements.all { it != null }) {
-//            Log.d("fb_test/chat-check", "check")
-//            closure(elements.filterNotNull())
-//        }
-//    }
 
     // 첫 실행시 (함수 종료 될 때까지) success listener에 값이 들어오기까지 몇 초 delay가 있기 때문에 미리 호출
     private fun getNickname() {
@@ -244,6 +234,7 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
+    // first loading chat screen
     private fun getSavedChatData() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
