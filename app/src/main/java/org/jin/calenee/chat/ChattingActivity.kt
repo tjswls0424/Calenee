@@ -179,16 +179,20 @@ class ChattingActivity : AppCompatActivity() {
                         ) {
                             val viewType =
                                 if (data?.senderEmail == currentUserEmail) 1 else 0
-                            chatDataList.add(
-                                ChatData(
-                                    data?.senderNickname,
-                                    data?.message,
-                                    data?.createdAt,
-                                    viewType
-                                )
-                            )
 
-                            initRecycler()
+                            // Prevent messages from being shown twice if I send message
+                           if (viewType != 1) {
+                               chatDataList.add(
+                                   ChatData(
+                                       data?.senderNickname,
+                                       data?.message,
+                                       data?.createdAt,
+                                       viewType
+                                   )
+                               )
+
+                               initRecycler()
+                           }
                         }
                     }
 
