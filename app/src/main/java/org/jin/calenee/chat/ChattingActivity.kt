@@ -23,6 +23,7 @@ import java.util.*
 
 const val DATE_TIME = 0
 const val TIME = 1
+const val DATE = 2
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -239,11 +240,31 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     // first loading chat screen
+    var tmpTimeKey = 0L
     private fun getSavedChatData() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
                 it.children.forEachIndexed { index, dataSnapshot ->
                     dataSnapshot.getValue(SavedChatData::class.java).also { data ->
+                        val tmpDate = Calendar.getInstance().apply {
+                            timeInMillis = tmpTimeKey
+                            add(Calendar.DAY_OF_MONTH, 1)
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+                        Log.d("fb_test/date2", getCurrentTimeStamp(DATE, tmpDate))
+
+                        // for date text
+                        when {
+                            // tmpTimeKey랑 비교하는 절이 항상 true임
+                            index == 0 || tmpDate < (dataSnapshot.key?.toLong() ?: 0L) -> {
+                                tmpTimeKey = dataSnapshot.key?.toLong() ?: 0
+                                chatDataList.add(ChatData(time = getCurrentTimeStamp(DATE, tmpTimeKey), viewType = 2))
+                            }
+                        }
+
                         val viewType = if (data?.senderEmail == currentUserEmail) 1 else 0
                         chatDataList.add(
                             ChatData(
@@ -271,10 +292,11 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeStamp(type: Int): String {
+    private fun getCurrentTimeStamp(type: Int, timeMillis: Long = 0): String {
         return when (type) {
             DATE_TIME -> System.currentTimeMillis().toString()
             TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
+            DATE -> SimpleDateFormat("yyyy년 MM월 dd일 (E)", Locale.KOREAN).format(timeMillis)
             else -> throw RuntimeException("get time error")
         }
     }
