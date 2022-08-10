@@ -2,17 +2,17 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".chat.ChattingActivity">
 
     <ScrollView
-        android:id="@+id/view"
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="?attr/actionBarSize"
         android:fillViewport="true"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -22,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
+            android:paddingVertical="10dp"
             android:scrollbars="vertical"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
     </ScrollView>
@@ -32,7 +33,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/chatting_message"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/coordinator_layout">
+        app:layout_constraintTop_toBottomOf="@id/scroll_view">
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottie_add_close_btn"
@@ -76,48 +77,36 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/coordinator_layout"
+    <LinearLayout
+        android:id="@+id/bottom_sheet_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/chatting_message"
+        android:minHeight="300dp"
+        android:orientation="horizontal"
+        android:paddingVertical="30dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/bottom_layout">
 
-        <LinearLayout
-            android:id="@+id/bottom_sheet_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@color/chatting_message"
-            android:minHeight="300dp"
-            android:orientation="horizontal"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="300dp"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        <Button
+            android:id="@+id/btn1"
+            android:layout_width="60dp"
+            android:layout_height="70dp"
+            android:layout_marginHorizontal="20dp"
+            android:text="1" />
 
-            <Button
-                android:id="@+id/btn1"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_weight="1"
-                android:text="1" />
+        <Button
+            android:id="@+id/btn2"
+            android:layout_width="60dp"
+            android:layout_height="70dp"
+            android:layout_marginHorizontal="20dp"
+            android:text="2" />
 
-            <Button
-                android:id="@+id/btn2"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_weight="1"
-                android:text="2" />
-
-            <Button
-                android:id="@+id/btn3"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_weight="1"
-                android:text="3" />
-        </LinearLayout>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <Button
+            android:id="@+id/btn3"
+            android:layout_width="60dp"
+            android:layout_height="70dp"
+            android:layout_marginHorizontal="20dp"
+            android:text="3" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,10 +6,18 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.AttributeSet
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.MarginLayoutParamsCompat
+import androidx.core.view.marginBottom
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
@@ -31,9 +39,9 @@ class ChattingActivity : AppCompatActivity() {
         ActivityChattingBinding.inflate(layoutInflater)
     }
 
-    private val bottomSheetBehavior by lazy {
-        BottomSheetBehavior.from(binding.bottomSheetView)
-    }
+//    private val bottomSheetBehavior by lazy {
+//        BottomSheetBehavior.from(binding.bottomSheetView)
+//    }
 
     private val currentUserEmail by lazy {
         FirebaseAuth.getInstance().currentUser?.email.toString()
@@ -97,14 +105,22 @@ class ChattingActivity : AppCompatActivity() {
             if (keyBoardHeight > screenHeight * 0.15) {
                 isKeyboardShown = true
 
-                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                    // bottom sheet OFF -> soft keyboard appear
-                    setLottieInitialState()
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-                    binding.coordinatorLayout.visibility = View.GONE
+//                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+//                    // bottom sheet OFF -> soft keyboard appear
+//                    setLottieInitialState()
+//                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+//                    binding.coordinatorLayout.visibility = View.GONE
+//
+//                    inputMethodManager.showSoftInput(binding.root, 0)
+//                }
 
+                // bbi
+                if (binding.bottomSheetView.visibility == View.VISIBLE) {
+                    setLottieInitialState()
+                    binding.bottomSheetView.visibility = View.GONE
                     inputMethodManager.showSoftInput(binding.root, 0)
                 }
+
                 Log.d("k_test", "is showing")
             } else {
                 isKeyboardShown = false
@@ -113,32 +129,60 @@ class ChattingActivity : AppCompatActivity() {
 
             val currentViewHeight = binding.root.height
             if (currentViewHeight > viewHeight) {
-                binding.bottomSheetView.minimumHeight =
-                    currentViewHeight / 2 - binding.messageEt.height
-                bottomSheetBehavior.peekHeight = currentViewHeight / 2 - binding.messageEt.height
+                val dm = applicationContext.resources.displayMetrics.heightPixels
+                window.attributes.height = (dm * 0.7).toInt()
 
-                viewHeight = currentViewHeight
+
+//                binding.bottomSheetView.minimumHeight =
+//                    currentViewHeight / 2 - binding.messageEt.height
+//                bottomSheetBehavior.peekHeight = currentViewHeight / 2 - binding.messageEt.height
+//
+//                viewHeight = currentViewHeight
             }
         }
 
         binding.lottieAddCloseBtn.setOnClickListener {
-            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                // bottom sheet OFF -> soft keyboard appear
-                setLottieInitialState()
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-                binding.coordinatorLayout.visibility = View.GONE
+            // bbi
+            val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
+            if (binding.bottomSheetView.visibility == View.GONE) {
 
-                inputMethodManager.showSoftInput(binding.messageEt, 0)
-            } else {
+                param.setMargins(0, 0, 0, binding.bottomSheetView.minimumHeight)
+                binding.scrollView.layoutParams = param
+
+                binding.bottomSheetView.visibility = View.VISIBLE
+
                 binding.lottieAddCloseBtn.apply {
                     progress = 0.0f
                     playAnimation()
                 }
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                binding.coordinatorLayout.visibility = View.VISIBLE
 
                 inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+
+//                setLottieInitialState()
+            } else {
+                // if visible
+                setLottieInitialState()
+                param.setMargins(0, 0, 0, binding.bottomLayout.height)
+                binding.scrollView.layoutParams = param
+                binding.bottomSheetView.visibility = View.GONE
             }
+
+//            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+//                // bottom sheet OFF -> soft keyboard appear
+//                setLottieInitialState()
+//                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+//                binding.coordinatorLayout.visibility = View.GONE
+//
+//            } else {
+//                binding.lottieAddCloseBtn.apply {
+//                    progress = 0.0f
+//                    playAnimation()
+//                }
+//                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                binding.coordinatorLayout.visibility = View.VISIBLE
+//
+////                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+//            }
         }
 
         binding.sendBtn.setOnClickListener {
@@ -165,7 +209,7 @@ class ChattingActivity : AppCompatActivity() {
 
         // get realtime chat data
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
-            .addChildEventListener(object: ChildEventListener {
+            .addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     Log.d("fb_test_chat/add", snapshot.value.toString())
                 }
@@ -182,18 +226,18 @@ class ChattingActivity : AppCompatActivity() {
                                 if (data?.senderEmail == currentUserEmail) 1 else 0
 
                             // Prevent messages from being shown twice if I send message
-                           if (viewType != 1) {
-                               chatDataList.add(
-                                   ChatData(
-                                       data?.senderNickname,
-                                       data?.message,
-                                       data?.createdAt,
-                                       viewType
-                                   )
-                               )
+                            if (viewType != 1) {
+                                chatDataList.add(
+                                    ChatData(
+                                        data?.senderNickname,
+                                        data?.message,
+                                        data?.createdAt,
+                                        viewType
+                                    )
+                                )
 
-                               initRecycler()
-                           }
+                                initRecycler()
+                            }
                         }
                     }
 
@@ -261,7 +305,14 @@ class ChattingActivity : AppCompatActivity() {
                             // tmpTimeKey랑 비교하는 절이 항상 true임
                             index == 0 || tmpDate < (dataSnapshot.key?.toLong() ?: 0L) -> {
                                 tmpTimeKey = dataSnapshot.key?.toLong() ?: 0
-                                chatDataList.add(ChatData(time = getCurrentTimeStamp(DATE, tmpTimeKey), viewType = 2))
+                                chatDataList.add(
+                                    ChatData(
+                                        time = getCurrentTimeStamp(
+                                            DATE,
+                                            tmpTimeKey
+                                        ), viewType = 2
+                                    )
+                                )
                             }
                         }
 
@@ -302,10 +353,14 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
+        // bbi
+        if (binding.bottomSheetView.visibility == View.VISIBLE) {
+            val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
+            param.setMargins(0, 0, 0, binding.bottomLayout.height)
+            binding.scrollView.layoutParams = param
+
             setLottieInitialState()
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-            binding.coordinatorLayout.visibility = View.GONE
+            binding.bottomSheetView.visibility = View.GONE
         } else {
             super.onBackPressed()
         }
