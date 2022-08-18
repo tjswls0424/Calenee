@@ -6,20 +6,12 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.AttributeSet
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.LinearLayout
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.MarginLayoutParamsCompat
-import androidx.core.view.marginBottom
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
@@ -98,12 +90,26 @@ class ChattingActivity : AppCompatActivity() {
         var viewHeight = -1
 
         binding.root.viewTreeObserver.addOnGlobalLayoutListener {
+            val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
             val rect = Rect()
             binding.root.getWindowVisibleDisplayFrame(rect)
             val screenHeight = binding.root.rootView.height
             val keyBoardHeight = screenHeight - rect.bottom
             if (keyBoardHeight > screenHeight * 0.15) {
                 isKeyboardShown = true
+
+                if (binding.bottomSheetView.visibility == View.VISIBLE) {
+                    Log.d("k_test2", "visible 2")
+
+                    setLottieInitialState()
+                    param.setMargins(0, 0, 0, binding.bottomLayout.height)
+                    binding.scrollView.layoutParams = param
+                    binding.bottomSheetView.visibility = View.GONE
+
+                    inputMethodManager.showSoftInput(binding.root, 0)
+                } else {
+                    Log.d("k_test2", "gone 2")
+                }
 
 //                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
 //                    // bottom sheet OFF -> soft keyboard appear
@@ -115,11 +121,11 @@ class ChattingActivity : AppCompatActivity() {
 //                }
 
                 // bbi
-                if (binding.bottomSheetView.visibility == View.VISIBLE) {
-                    setLottieInitialState()
-                    binding.bottomSheetView.visibility = View.GONE
-                    inputMethodManager.showSoftInput(binding.root, 0)
-                }
+//                if (binding.bottomSheetView.visibility == View.VISIBLE) {
+//                    setLottieInitialState()
+//                    binding.bottomSheetView.visibility = View.GONE
+//                    inputMethodManager.showSoftInput(binding.root, 0)
+//                }
 
                 Log.d("k_test", "is showing")
             } else {
@@ -127,40 +133,47 @@ class ChattingActivity : AppCompatActivity() {
                 Log.d("k_test", "is closed")
             }
 
-            val currentViewHeight = binding.root.height
-            if (currentViewHeight > viewHeight) {
-                val dm = applicationContext.resources.displayMetrics.heightPixels
-                window.attributes.height = (dm * 0.7).toInt()
-
-
-//                binding.bottomSheetView.minimumHeight =
-//                    currentViewHeight / 2 - binding.messageEt.height
-//                bottomSheetBehavior.peekHeight = currentViewHeight / 2 - binding.messageEt.height
+//            val currentViewHeight = binding.root.height
+//            if (currentViewHeight > viewHeight) {
+//                val dm = applicationContext.resources.displayMetrics.heightPixels
+//                window.attributes.height = (dm * 0.7).toInt()
+//
+//
+//                binding.bottomSheetView.minimumHeight = currentViewHeight / 2 - binding.messageEt.height
 //
 //                viewHeight = currentViewHeight
-            }
+//            }
         }
 
         binding.lottieAddCloseBtn.setOnClickListener {
-            // bbi
             val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
-            if (binding.bottomSheetView.visibility == View.GONE) {
+            if (isKeyboardShown) {
+                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+//                onBackPressed()
 
-                param.setMargins(0, 0, 0, binding.bottomSheetView.minimumHeight)
-                binding.scrollView.layoutParams = param
+                binding.bottomSheetView.invalidate()
+                binding.bottomSheetView.visibility = View.VISIBLE
+            }
+
+            if (binding.bottomSheetView.visibility == View.GONE) {
+                // gone -> visible
+
+                Log.d("k_test", "visible")
+                param.apply {
+                    setMargins(0, 0, 0, binding.bottomSheetView.minimumHeight)
+                    binding.scrollView.layoutParams = this
+                }
 
                 binding.bottomSheetView.visibility = View.VISIBLE
-
                 binding.lottieAddCloseBtn.apply {
                     progress = 0.0f
                     playAnimation()
                 }
 
-                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
-
-//                setLottieInitialState()
             } else {
-                // if visible
+                // visible -> gone
+                Log.d("k_test", "gone")
+
                 setLottieInitialState()
                 param.setMargins(0, 0, 0, binding.bottomLayout.height)
                 binding.scrollView.layoutParams = param
@@ -181,7 +194,7 @@ class ChattingActivity : AppCompatActivity() {
 //                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 //                binding.coordinatorLayout.visibility = View.VISIBLE
 //
-////                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+//                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
 //            }
         }
 
