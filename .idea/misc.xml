@@ -3,7 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_chatting.xml" value="0.15081521739130435" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_chatting.xml" value="0.22" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_login.xml" value="0.184375" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_login_activty.xml" value="0.2557291666666667" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/chat_date_item.xml" value="0.5" />
         <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/chat_mine_item.xml" value="0.19972826086956522" />
         <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/chat_partner_item.xml" value="0.19972826086956522" />
       </map>
