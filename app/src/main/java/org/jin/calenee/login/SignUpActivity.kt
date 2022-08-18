@@ -17,13 +17,13 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import org.jin.calenee.App
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
-import org.jin.calenee.databinding.ActivityLoginActivtyBinding
+import org.jin.calenee.databinding.ActivityLoginBinding
 import org.jin.calenee.databinding.ActivitySignUpBinding
 
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
-    private lateinit var loginbinding: ActivityLoginActivtyBinding
+    private lateinit var loginbinding: ActivityLoginBinding
     private lateinit var englishKoreanTranslator: Translator
 
     private var email: String = ""
@@ -40,7 +40,7 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivitySignUpBinding.inflate(layoutInflater)
-        loginbinding = ActivityLoginActivtyBinding.inflate(layoutInflater)
+        loginbinding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         listener()
