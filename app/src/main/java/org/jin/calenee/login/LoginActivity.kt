@@ -21,7 +21,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
 import org.jin.calenee.*
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.databinding.ActivityLoginActivtyBinding
+import org.jin.calenee.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
@@ -29,14 +29,14 @@ class LoginActivity : AppCompatActivity() {
         internal val viewModel: LoginViewModel = LoginViewModel()
     }
 
-    private lateinit var binding: ActivityLoginActivtyBinding
+    private lateinit var binding: ActivityLoginBinding
 
     private lateinit var fetchJob: Job
     private var tokenId: String? = null
 
     private val googleSignInOptions: GoogleSignInOptions by lazy {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
+//            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
     }
@@ -107,7 +107,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityLoginActivtyBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         fetchJob = viewModel.fetchData(tokenId)
