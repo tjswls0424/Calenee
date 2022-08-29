@@ -30,11 +30,6 @@ class ChattingActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityChattingBinding.inflate(layoutInflater)
     }
-
-//    private val bottomSheetBehavior by lazy {
-//        BottomSheetBehavior.from(binding.bottomSheetView)
-//    }
-
     private val currentUserEmail by lazy {
         FirebaseAuth.getInstance().currentUser?.email.toString()
     }
@@ -48,18 +43,10 @@ class ChattingActivity : AppCompatActivity() {
         ChatAdapter()
     }
 
-    //    private lateinit var chatAdapter: ChatAdapter
     private var isKeyboardShown: Boolean = false
     private var chatDataList: MutableList<ChatData> = mutableListOf()
     private var message: String = ""
     private var nickname: String = ""
-
-//    override fun onStart() {
-//        super.onStart()
-//
-//        // lottie button click does not work at once
-//        binding.lottieAddCloseBtn.performClick()
-//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +74,7 @@ class ChattingActivity : AppCompatActivity() {
     private fun listener() {
         val inputMethodManager =
             getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        var viewHeight = -1
+//        var viewHeight = -1
 
         binding.root.viewTreeObserver.addOnGlobalLayoutListener {
             val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
@@ -99,38 +86,15 @@ class ChattingActivity : AppCompatActivity() {
                 isKeyboardShown = true
 
                 if (binding.bottomSheetView.visibility == View.VISIBLE) {
-                    Log.d("k_test2", "visible 2")
-
                     setLottieInitialState()
                     param.setMargins(0, 0, 0, binding.bottomLayout.height)
                     binding.scrollView.layoutParams = param
                     binding.bottomSheetView.visibility = View.GONE
 
                     inputMethodManager.showSoftInput(binding.root, 0)
-                } else {
-                    Log.d("k_test2", "gone 2")
                 }
-
-//                if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-//                    // bottom sheet OFF -> soft keyboard appear
-//                    setLottieInitialState()
-//                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-//                    binding.coordinatorLayout.visibility = View.GONE
-//
-//                    inputMethodManager.showSoftInput(binding.root, 0)
-//                }
-
-                // bbi
-//                if (binding.bottomSheetView.visibility == View.VISIBLE) {
-//                    setLottieInitialState()
-//                    binding.bottomSheetView.visibility = View.GONE
-//                    inputMethodManager.showSoftInput(binding.root, 0)
-//                }
-
-                Log.d("k_test", "is showing")
             } else {
                 isKeyboardShown = false
-                Log.d("k_test", "is closed")
             }
 
 //            val currentViewHeight = binding.root.height
@@ -179,30 +143,15 @@ class ChattingActivity : AppCompatActivity() {
                 binding.scrollView.layoutParams = param
                 binding.bottomSheetView.visibility = View.GONE
             }
-
-//            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-//                // bottom sheet OFF -> soft keyboard appear
-//                setLottieInitialState()
-//                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-//                binding.coordinatorLayout.visibility = View.GONE
-//
-//            } else {
-//                binding.lottieAddCloseBtn.apply {
-//                    progress = 0.0f
-//                    playAnimation()
-//                }
-//                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-//                binding.coordinatorLayout.visibility = View.VISIBLE
-//
-//                inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
-//            }
         }
 
         binding.sendBtn.setOnClickListener {
             if (message.isNotEmpty()) {
+                val currentTimeInMillis = Calendar.getInstance(Locale.KOREA).timeInMillis
+
                 ChatData(nickname, message, getCurrentTimeStamp(TIME), 1).also {
-                    chatDataList.add(it)
-                    saveChatData(it)
+//                    chatDataList.add(it)
+                    saveChatData(it, currentTimeInMillis)
                 }
 
                 binding.messageEt.setText("")
@@ -229,17 +178,64 @@ class ChattingActivity : AppCompatActivity() {
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     snapshot.getValue(SavedChatData::class.java).also { data ->
-                        if (
-                            !data?.message.isNullOrBlank() &&
+                        /*
+                        !data?.message.isNullOrBlank() &&
                             !data?.createdAt.isNullOrBlank() &&
                             !data?.senderEmail.isNullOrBlank() &&
                             !data?.senderNickname.isNullOrBlank()
-                        ) {
+                         */
+                        if (snapshot.childrenCount.toInt() == 4) {
+                            Log.d("msg_test2", chatDataList.size.toString() + "/  -1")
+                            val currentTimeInMillis = Calendar.getInstance(Locale.KOREA).timeInMillis
+                            val tmpDate = Calendar.getInstance().apply {
+                                App.userPrefs.getString("chat_last_msg_time").apply {
+                                    timeInMillis = if (this.isBlank()) {
+                                        currentTimeInMillis
+                                    } else {
+                                        this.toLong()
+                                    }
+                                }
+                                add(Calendar.DAY_OF_MONTH, 1)
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }.timeInMillis
+
+                            when {
+                                chatDataList.size == 0 -> {
+                                    App.userPrefs.setString("chat_last_msg_time", currentTimeInMillis.toString())
+                                    Log.d("msg_test2", "0")
+                                    chatDataList.add(
+                                        ChatData(
+                                            time = getCurrentTimeStamp(
+                                                DATE,
+                                                currentTimeInMillis
+                                            ), viewType = 2
+                                        )
+                                    )
+                                    initRecycler()
+                                }
+
+                                tmpDate <= currentTimeInMillis -> {
+                                    App.userPrefs.setString("chat_last_msg_time", currentTimeInMillis.toString())
+
+                                    Log.d("msg_test2", "1")
+                                    chatDataList.add(
+                                        ChatData(
+                                            time = getCurrentTimeStamp(
+                                                DATE,
+                                                currentTimeInMillis
+                                            ), viewType = 2
+                                        )
+                                    )
+                                    initRecycler()
+                                }
+                            }
+
                             val viewType =
                                 if (data?.senderEmail == currentUserEmail) 1 else 0
 
-                            // Prevent messages from being shown twice if I send message
-                            if (viewType != 1) {
                                 chatDataList.add(
                                     ChatData(
                                         data?.senderNickname,
@@ -250,7 +246,9 @@ class ChattingActivity : AppCompatActivity() {
                                 )
 
                                 initRecycler()
-                            }
+
+                            Log.d("msg_test2", snapshot.key.toString() + "  /2")
+                            App.userPrefs.setString("chat_last_msg_time", snapshot.key.toString())
                         }
                     }
 
@@ -285,9 +283,9 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveChatData(data: ChatData) {
+    private fun saveChatData(data: ChatData, timeInMillis: Long = 0L) {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
-            .child(getCurrentTimeStamp(DATE_TIME)).apply {
+            .child(timeInMillis.toString()).apply {
                 child("senderEmail").setValue(currentUserEmail)
                 child("senderNickname").setValue(data.nickname)
                 child("message").setValue(data.message)
@@ -297,12 +295,24 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     // first loading chat screen
-    var tmpTimeKey = 0L
+    private var tmpTimeKey = 0L
     private fun getSavedChatData() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
                 it.children.forEachIndexed { index, dataSnapshot ->
                     dataSnapshot.getValue(SavedChatData::class.java).also { data ->
+                        // if index == last : SP에 마지막 메세지 데이터 저장 및 갱신
+                        // SP에 저장된 마지막 메세지 데이터를 이용해 현재 메세지를 전송할 때 비교
+                        Log.d("msg_test", "index: $index")
+                        Log.d("msg_test", "last count: ${it.childrenCount}")
+                        if (index.toLong() == (it.childrenCount -1)) {
+                            Log.d("msg_test", "key: ${dataSnapshot.key}")
+                            App.userPrefs.setString("chat_last_msg_time", dataSnapshot.key.toString())
+                        } else if (index == 0){
+                            // first chat
+                            App.userPrefs.setString("chat_last_msg_time", getCurrentTimeStamp(DATE_TIME))
+                        }
+
                         val tmpDate = Calendar.getInstance().apply {
                             timeInMillis = tmpTimeKey
                             add(Calendar.DAY_OF_MONTH, 1)
@@ -316,7 +326,7 @@ class ChattingActivity : AppCompatActivity() {
                         // for date text
                         when {
                             // tmpTimeKey랑 비교하는 절이 항상 true임
-                            index == 0 || tmpDate < (dataSnapshot.key?.toLong() ?: 0L) -> {
+                            index == 0 || tmpDate <= (dataSnapshot.key?.toLong() ?: 0L) -> {
                                 tmpTimeKey = dataSnapshot.key?.toLong() ?: 0
                                 chatDataList.add(
                                     ChatData(
@@ -326,6 +336,8 @@ class ChattingActivity : AppCompatActivity() {
                                         ), viewType = 2
                                     )
                                 )
+
+                                App.userPrefs.setString("chat_last_msg_time", tmpTimeKey.toString())
                             }
                         }
 
@@ -356,11 +368,11 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeStamp(type: Int, timeMillis: Long = 0): String {
+    private fun getCurrentTimeStamp(type: Int, timeInMillis: Long = 0): String {
         return when (type) {
-            DATE_TIME -> System.currentTimeMillis().toString()
+            DATE_TIME -> Calendar.getInstance(Locale.KOREA).toString()
             TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
-            DATE -> SimpleDateFormat("yyyy년 MM월 dd일 (E)", Locale.KOREAN).format(timeMillis)
+            DATE -> SimpleDateFormat("yyyy년 MM월 dd일 (E)", Locale.KOREAN).format(timeInMillis)
             else -> throw RuntimeException("get time error")
         }
     }
