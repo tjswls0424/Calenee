@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -29,8 +30,9 @@ class SignUpActivity : AppCompatActivity() {
     private var email: String = ""
     private var name: String = ""
     private var pw: String = ""
-
     private var pwCheck: String = ""
+
+    private var translateFlag: Boolean = false
 
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
@@ -55,6 +57,7 @@ class SignUpActivity : AppCompatActivity() {
 
         signUpBtn.setOnClickListener {
             if (checkInputCondition()) {
+                binding.loadingScreenView.visibility = View.VISIBLE
                 createAccount(email, pw)
                 Log.d("text_test", "$name, $email, $pw , $pwCheck")
             }
@@ -114,37 +117,46 @@ class SignUpActivity : AppCompatActivity() {
     private fun createAccount(email: String, pw: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
             .addOnCompleteListener { task ->
-                englishKoreanTranslator.translate(task.exception?.message.toString())
-                    .addOnSuccessListener { translatedText ->
-                        if (task.isSuccessful) {
-                            // add user info to db
-                            App.userPrefs.apply {
-                                setString("${email}_name", name)
-                                setString("${email}_pw", pw)
+                if (translateFlag) {
+                    englishKoreanTranslator.translate(task.exception?.message.toString())
+                        .addOnSuccessListener { translatedText ->
+                            if (task.isSuccessful) {
+                                // add user info to db
+                                App.userPrefs.apply {
+                                    setString("${email}_name", name)
+                                    setString("${email}_pw", pw)
+                                }
+
+                                Log.d("login_test1", "sign in success, now login with this email")
+                                Toast.makeText(this, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
+                                finish()
+                            } else if (!task.exception?.message.isNullOrEmpty()) {
+                                Log.d("login_test2", "exception1: sign up [${task.exception?.message}]")
+                                Log.d("login_test3", translatedText)
+
+                                Snackbar.make(
+                                    binding.root,
+                                    translatedText,
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+
+                                binding.loadingScreenView.visibility = View.INVISIBLE
+                            } else {
+                                // account already exists
+                                Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT)
+                                    .show()
+                                finish()
                             }
-
-                            Log.d("login_test1", "sign in success, now login with this email")
-                            Toast.makeText(this, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
-                            finish()
-                        } else if (!task.exception?.message.isNullOrEmpty()) {
-                            Log.d("login_test2", "exception1: sign up [${task.exception?.message}]")
-                            Log.d("login_test3", translatedText)
-
-                            Snackbar.make(
-                                binding.root,
-                                translatedText,
-                                Snackbar.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            // account already exists
-                            Snackbar.make(binding.root, "이미 생성된 계정입니다.", Snackbar.LENGTH_SHORT)
-                                .show()
-                            finish()
                         }
-                    }
-                    .addOnFailureListener {
-                        Log.d("login_test1", "fail to translation: ${it.message}")
-                    }
+                        .addOnFailureListener {
+                            Log.d("login_test1", "fail to translation: ${it.message}")
+                            binding.loadingScreenView.visibility = View.INVISIBLE
+                        }
+                } else {
+                    setTranslation()
+                    binding.loadingScreenView.visibility = View.INVISIBLE
+                    Toast.makeText(this, "회원가입에 실패했습니다.\n인터넷이 연결되어 있는지 확인 후 재시도 해주세요.", Toast.LENGTH_SHORT).show()
+                }
             }
     }
 
@@ -192,11 +204,14 @@ class SignUpActivity : AppCompatActivity() {
         englishKoreanTranslator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
                 // ready to start translating
+                translateFlag = true
                 Log.d("trans_test", "success to download model")
 
             }
             .addOnFailureListener {
                 // Model couldn’t be downloaded or other internal error.
+                translateFlag = false
+                Toast.makeText(this, "인터넷이 연결되어 있는지 확인 후 앱을 재실행 해주세요.", Toast.LENGTH_SHORT).show()
                 Log.d("trans_test", "fail to download model")
             }
     }
