@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_chatting.xml" value="0.22" />
+        <entry key="..\:/Users/SEONJIN/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_sign_up.xml" value="0.36614583333333334" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/drawable/ic_album.xml" value="0.2035" />
+        <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_chatting.xml" value="0.33" />
         <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_login.xml" value="0.184375" />
         <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/activity_login_activty.xml" value="0.2557291666666667" />
         <entry key="..\:/Users/User/AndroidStudioProjects/Calenee/app/src/main/res/layout/chat_date_item.xml" value="0.5" />
@@ -12,7 +14,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
