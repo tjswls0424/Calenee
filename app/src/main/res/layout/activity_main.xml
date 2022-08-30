@@ -7,6 +7,7 @@
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -32,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="?attr/actionBarSize"/>
+        android:layout_marginBottom="?attr/actionBarSize" />
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_app_bar"
@@ -49,11 +50,11 @@
             style="@style/Theme.LightPurple"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             android:outlineProvider="none"
-            android:layout_marginEnd="16dp"
-            app:labelVisibilityMode="labeled"
             app:itemRippleColor="@android:color/transparent"
+            app:labelVisibilityMode="labeled"
             app:menu="@menu/main_bottom_menu" />
     </com.google.android.material.bottomappbar.BottomAppBar>
 
@@ -61,10 +62,16 @@
         android:id="@+id/chat_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/chat"
         android:src="@drawable/ic_baseline_chat_24"
         app:backgroundTint="@color/sub_color3"
         app:layout_anchor="@id/bottom_app_bar"
-        app:tint="@color/white"
-        android:contentDescription="@string/chat" />
+        app:tint="@color/white" />
 
+    <View
+        android:id="@+id/loading_screen_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/loading_screen_color"
+        android:visibility="invisible" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

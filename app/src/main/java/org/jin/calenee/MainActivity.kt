@@ -2,17 +2,24 @@ package org.jin.calenee
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import org.jin.calenee.chat.ChattingActivity
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
+import org.jin.calenee.util.NetworkStatusHelper
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -38,7 +45,12 @@ class MainActivity : AppCompatActivity() {
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
+    private val firestore by lazy {
+        Firebase.firestore
+    }
 
+
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,7 +61,16 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .add(binding.mainFrameLayout.id, HomeFragment()).commit()
 
+        // initialize couple document ID
+        // todo: 추후 login activity로 이동 (앱 재설치시 커플 연결 때 저장했던 ID local DB에 재저장)
+        firestore.collection("user").document(App.userPrefs.getString("current_email")).get()
+            .addOnSuccessListener {
+                App.userPrefs.setString("couple_chat_id", it["coupleChatID"].toString())
+                Log.d("pref_test", App.userPrefs.getString("couple_chat_id"))
+            }
+
         listener()
+        checkNetworkStatus()
     }
 
     private fun listener() {
@@ -115,6 +136,18 @@ class MainActivity : AppCompatActivity() {
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(binding.mainFrameLayout.id, fragment)
             .commit()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun checkNetworkStatus() {
+        NetworkStatusHelper(applicationContext).observe(this) { isConnected ->
+            if (isConnected) {
+                binding.loadingScreenView.visibility = View.INVISIBLE
+            } else {
+                binding.loadingScreenView.visibility = View.VISIBLE
+                Toast.makeText(this, "현재 인터넷이 연결되어 있지 않습니다. 인터넷을 연결해주세요.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun onBackPressed() {}
