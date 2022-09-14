@@ -2,28 +2,38 @@ package org.jin.calenee.chat
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.gun0912.tedpermission.PermissionListener
+import com.gun0912.tedpermission.normal.TedPermission
 import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
+import org.jin.calenee.util.NetworkStatusHelper
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val DATE_TIME = 0
 const val TIME = 1
 const val DATE = 2
+const val CAMERA = 10
+const val ALBUM = 11
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -48,11 +58,13 @@ class ChattingActivity : AppCompatActivity() {
     private var message: String = ""
     private var nickname: String = ""
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(binding.root)
         listener()
+        checkNetworkStatus()
         getNickname()
         getSavedChatData()
     }
@@ -159,6 +171,22 @@ class ChattingActivity : AppCompatActivity() {
             }
         }
 
+        binding.cameraBtn.setOnClickListener {
+            if (checkPermission(CAMERA)) {
+                Log.d("cam_test", "success")
+            } else {
+                Log.d("cam_test", "fail")
+            }
+        }
+
+        binding.albumBtn.setOnClickListener {
+
+        }
+
+        binding.fileBtn.setOnClickListener {
+
+        }
+
         binding.messageEt.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
@@ -186,7 +214,8 @@ class ChattingActivity : AppCompatActivity() {
                          */
                         if (snapshot.childrenCount.toInt() == 4) {
                             Log.d("msg_test2", chatDataList.size.toString() + "/  -1")
-                            val currentTimeInMillis = Calendar.getInstance(Locale.KOREA).timeInMillis
+                            val currentTimeInMillis =
+                                Calendar.getInstance(Locale.KOREA).timeInMillis
                             val tmpDate = Calendar.getInstance().apply {
                                 App.userPrefs.getString("chat_last_msg_time").apply {
                                     timeInMillis = if (this.isBlank()) {
@@ -204,7 +233,10 @@ class ChattingActivity : AppCompatActivity() {
 
                             when {
                                 chatDataList.size == 0 -> {
-                                    App.userPrefs.setString("chat_last_msg_time", currentTimeInMillis.toString())
+                                    App.userPrefs.setString(
+                                        "chat_last_msg_time",
+                                        currentTimeInMillis.toString()
+                                    )
                                     Log.d("msg_test2", "0")
                                     chatDataList.add(
                                         ChatData(
@@ -218,7 +250,10 @@ class ChattingActivity : AppCompatActivity() {
                                 }
 
                                 tmpDate <= currentTimeInMillis -> {
-                                    App.userPrefs.setString("chat_last_msg_time", currentTimeInMillis.toString())
+                                    App.userPrefs.setString(
+                                        "chat_last_msg_time",
+                                        currentTimeInMillis.toString()
+                                    )
 
                                     Log.d("msg_test2", "1")
                                     chatDataList.add(
@@ -236,16 +271,16 @@ class ChattingActivity : AppCompatActivity() {
                             val viewType =
                                 if (data?.senderEmail == currentUserEmail) 1 else 0
 
-                                chatDataList.add(
-                                    ChatData(
-                                        data?.senderNickname,
-                                        data?.message,
-                                        data?.createdAt,
-                                        viewType
-                                    )
+                            chatDataList.add(
+                                ChatData(
+                                    data?.senderNickname,
+                                    data?.message,
+                                    data?.createdAt,
+                                    viewType
                                 )
+                            )
 
-                                initRecycler()
+                            initRecycler()
 
                             Log.d("msg_test2", snapshot.key.toString() + "  /2")
                             App.userPrefs.setString("chat_last_msg_time", snapshot.key.toString())
@@ -305,12 +340,18 @@ class ChattingActivity : AppCompatActivity() {
                         // SP에 저장된 마지막 메세지 데이터를 이용해 현재 메세지를 전송할 때 비교
                         Log.d("msg_test", "index: $index")
                         Log.d("msg_test", "last count: ${it.childrenCount}")
-                        if (index.toLong() == (it.childrenCount -1)) {
+                        if (index.toLong() == (it.childrenCount - 1)) {
                             Log.d("msg_test", "key: ${dataSnapshot.key}")
-                            App.userPrefs.setString("chat_last_msg_time", dataSnapshot.key.toString())
-                        } else if (index == 0){
+                            App.userPrefs.setString(
+                                "chat_last_msg_time",
+                                dataSnapshot.key.toString()
+                            )
+                        } else if (index == 0) {
                             // first chat
-                            App.userPrefs.setString("chat_last_msg_time", getCurrentTimeStamp(DATE_TIME))
+                            App.userPrefs.setString(
+                                "chat_last_msg_time",
+                                getCurrentTimeStamp(DATE_TIME)
+                            )
                         }
 
                         val tmpDate = Calendar.getInstance().apply {
@@ -374,6 +415,73 @@ class ChattingActivity : AppCompatActivity() {
             TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
             DATE -> SimpleDateFormat("yyyy년 MM월 dd일 (E)", Locale.KOREAN).format(timeInMillis)
             else -> throw RuntimeException("get time error")
+        }
+    }
+
+    private fun checkPermission(type: Int): Boolean {
+        return when (type) {
+            CAMERA -> {
+                val captureListener = object : PermissionListener {
+                    override fun onPermissionGranted() {
+                        startCapture()
+                    }
+
+                    override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
+                }
+
+                TedPermission.create()
+                    .setPermissionListener(captureListener)
+                    .setRationaleMessage("카메라 사진 권한 필요")
+                    .setDeniedMessage("카메라 권한이 거절되었습니다. 설정에서 권한을 허용해주세요.")
+                    .setPermissions(
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        android.Manifest.permission.CAMERA
+                    )
+                    .check()
+
+                true
+            }
+
+            ALBUM -> {
+                true
+            }
+
+            else -> {
+                false
+            }
+        }
+    }
+
+    private fun startCapture() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
+            packageManager.resolveActivity(intent, 0).also {
+                startActivityForResult(intent, CAMERA)
+            }
+//            intent.resolveActivity(packageManager)?.also {
+//                startActivityForResult(intent, CAMERA)
+//            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun checkNetworkStatus() {
+        NetworkStatusHelper(applicationContext).observe(this) { isConnected ->
+            if (!isConnected) {
+                Toast.makeText(this, "현재 인터넷이 연결되어 있지 않습니다. 인터넷을 연결해주세요.", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                CAMERA -> {
+                    Log.d("cam_test", "result 3")
+                }
+            }
         }
     }
 

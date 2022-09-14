@@ -97,6 +97,9 @@ dependencies {
 
     // lottie
     implementation 'com.airbnb.android:lottie:3.4.0'
+
+    // ted permission
+    implementation 'io.github.ParkSangGwon:tedpermission-normal:3.3.0'
     
     implementation "androidx.recyclerview:recyclerview:1.2.1"
 }
