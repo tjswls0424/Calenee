@@ -3,6 +3,7 @@ package org.jin.calenee.chat
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -21,11 +22,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
 import org.jin.calenee.util.NetworkStatusHelper
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -212,6 +218,8 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.senderEmail.isNullOrBlank() &&
                             !data?.senderNickname.isNullOrBlank()
                          */
+
+                        // + (data.count > 4)
                         if (snapshot.childrenCount.toInt() == 4) {
                             Log.d("msg_test2", chatDataList.size.toString() + "/  -1")
                             val currentTimeInMillis =
@@ -329,6 +337,39 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
+    private fun saveImageData(bitmap: Bitmap) {
+        val baos = ByteArrayOutputStream().also {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it)
+        }
+        val storageRef = FirebaseStorage.getInstance().reference
+        val dateTime = getCurrentTimeStamp(DATE_TIME)
+        val imageRef =
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.jpg")
+        val ratio = bitmap.width.toDouble().div(bitmap.height.toDouble())
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val uploadTask = imageRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener { taskSnapshot ->
+                    chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("senderEmail").setValue(currentUserEmail)
+                        child("senderNickname").setValue(nickname)
+                        child("message").setValue(null)
+                        child("fileAbsolutePath").setValue(imageRef.path)
+                        child("fileRelativePath").setValue(imageRef.name)
+                        child("fileType").setValue("image")
+                        child("fileRatio").setValue(ratio)
+                        child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
+                    }
+
+                    Log.d("img_test", "success - meta data: ${taskSnapshot.metadata}")
+                }
+                .addOnFailureListener {
+                    Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
+                    Log.d("img_test", "fail to upload bitmap2: ${it.message}")
+                }
+        }
+    }
+
     // first loading chat screen
     private var tmpTimeKey = 0L
     private fun getSavedChatData() {
@@ -409,10 +450,10 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeStamp(type: Int, timeInMillis: Long = 0): String {
+    private fun getCurrentTimeStamp(type: Int, timeInMillis: Long = System.currentTimeMillis()): String {
         return when (type) {
-            DATE_TIME -> Calendar.getInstance(Locale.KOREA).toString()
-            TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(System.currentTimeMillis())
+            DATE_TIME -> Calendar.getInstance(Locale.KOREA).timeInMillis.toString()
+            TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(timeInMillis)
             DATE -> SimpleDateFormat("yyyy년 MM월 dd일 (E)", Locale.KOREAN).format(timeInMillis)
             else -> throw RuntimeException("get time error")
         }
@@ -454,12 +495,9 @@ class ChattingActivity : AppCompatActivity() {
 
     private fun startCapture() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
-            packageManager.resolveActivity(intent, 0).also {
+            intent.resolveActivity(packageManager)?.also {
                 startActivityForResult(intent, CAMERA)
             }
-//            intent.resolveActivity(packageManager)?.also {
-//                startActivityForResult(intent, CAMERA)
-//            }
         }
     }
 
@@ -479,6 +517,9 @@ class ChattingActivity : AppCompatActivity() {
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 CAMERA -> {
+                    val bitmap = data?.extras?.get("data") as Bitmap
+                    saveImageData(bitmap)
+
                     Log.d("cam_test", "result 3")
                 }
             }
