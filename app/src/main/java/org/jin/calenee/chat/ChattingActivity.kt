@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -167,7 +168,7 @@ class ChattingActivity : AppCompatActivity() {
             if (message.isNotEmpty()) {
                 val currentTimeInMillis = Calendar.getInstance(Locale.KOREA).timeInMillis
 
-                ChatData(nickname, message, getCurrentTimeStamp(TIME), 1).also {
+                ChatData(1, nickname, message, getCurrentTimeStamp(TIME)).also {
 //                    chatDataList.add(it)
                     saveChatData(it, currentTimeInMillis)
                 }
@@ -281,10 +282,10 @@ class ChattingActivity : AppCompatActivity() {
 
                             chatDataList.add(
                                 ChatData(
+                                    viewType,
                                     data?.senderNickname,
                                     data?.message,
                                     data?.createdAt,
-                                    viewType
                                 )
                             )
 
@@ -339,7 +340,7 @@ class ChattingActivity : AppCompatActivity() {
 
     private fun saveImageData(bitmap: Bitmap) {
         val baos = ByteArrayOutputStream().also {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, it)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         }
         val storageRef = FirebaseStorage.getInstance().reference
         val dateTime = getCurrentTimeStamp(DATE_TIME)
@@ -423,15 +424,64 @@ class ChattingActivity : AppCompatActivity() {
                             }
                         }
 
-                        val viewType = if (data?.senderEmail == currentUserEmail) 1 else 0
-                        chatDataList.add(
-                            ChatData(
-                                data?.senderNickname,
-                                data?.message,
-                                data?.createdAt,
-                                viewType
-                            )
-                        )
+                        val viewType = when {
+                            data?.fileType == "image" -> 3
+                            (data?.senderEmail == currentUserEmail) -> 1
+                            else -> 0
+                        }
+                        Log.d("img_test/type", "view type = $viewType")
+                        Log.d("img_test/data", data.toString())
+
+                        when (viewType) {
+                            0, 1 -> {
+                                chatDataList.add(
+                                    ChatData(
+                                        viewType,
+                                        data?.senderNickname,
+                                        data?.message,
+                                        data?.createdAt,
+                                    )
+                                )
+                            }
+
+                            3 -> {
+                                Log.d("img_test/type", "view type 3 (1)")
+
+                                val imageRef =
+                                    FirebaseStorage.getInstance().reference.child(
+                                        "chat/${
+                                            App.userPrefs.getString(
+                                                "couple_chat_id"
+                                            )
+                                        }/${dataSnapshot.key}.jpg"
+                                    )
+
+                                Log.d("img_test/key", dataSnapshot.key.toString())
+                                Log.d("img_test/path", imageRef.path)
+
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    imageRef.getBytes(1024*1024)
+                                        .addOnSuccessListener { byteArray ->
+                                            val bitmap = BitmapFactory.decodeByteArray(
+                                                byteArray,
+                                                0,
+                                                byteArray.size
+                                            )
+
+                                            chatDataList.add(
+                                                ChatData(
+                                                    viewType,
+                                                    data?.senderNickname,
+                                                    time = data?.createdAt,
+                                                    bitmap = bitmap,
+                                                )
+                                            )
+                                        }
+                                }
+                            }
+
+                            else -> {}
+                        }
                     }
                 }
 
@@ -450,7 +500,10 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrentTimeStamp(type: Int, timeInMillis: Long = System.currentTimeMillis()): String {
+    private fun getCurrentTimeStamp(
+        type: Int,
+        timeInMillis: Long = System.currentTimeMillis()
+    ): String {
         return when (type) {
             DATE_TIME -> Calendar.getInstance(Locale.KOREA).timeInMillis.toString()
             TIME -> SimpleDateFormat("HH:mm", Locale.KOREA).format(timeInMillis)

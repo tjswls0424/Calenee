@@ -3,8 +3,10 @@ package org.jin.calenee.chat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import org.jin.calenee.R
 import java.lang.RuntimeException
 
@@ -43,6 +45,15 @@ class ChatAdapter() :
 
                 CenterViewHolder(view)
             }
+            ChatData.VIEW_TYPE_IMAGE -> {
+                view = LayoutInflater.from(parent.context).inflate(
+                    R.layout.chat_image_item,
+                    parent,
+                    false
+                )
+
+                ImageViewHolder(view)
+            }
             else -> throw RuntimeException("unknown view type")
         }
     }
@@ -59,6 +70,10 @@ class ChatAdapter() :
             }
             ChatData.VIEW_TYPE_CENTER -> {
                 (holder as CenterViewHolder).bind(data[position])
+                holder.setIsRecyclable(false)
+            }
+            ChatData.VIEW_TYPE_IMAGE -> {
+                (holder as ImageViewHolder).bind(data[position])
                 holder.setIsRecyclable(false)
             }
             else -> throw RuntimeException("unknown view type")
@@ -103,4 +118,16 @@ class ChatAdapter() :
             time.text = item.time
         }
     }
+
+    // image file
+    inner class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val time = view.findViewById<TextView>(R.id.chat_image_time_text)
+        private val image = view.findViewById<ImageView>(R.id.chat_image)
+
+        fun bind(item: ChatData) {
+            time.text = item.time
+            image.setImageBitmap(item.bitmap)
+        }
+    }
+
 }
