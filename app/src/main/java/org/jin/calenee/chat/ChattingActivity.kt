@@ -5,9 +5,12 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -18,6 +21,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -33,6 +37,8 @@ import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
 import org.jin.calenee.util.NetworkStatusHelper
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -64,6 +70,7 @@ class ChattingActivity : AppCompatActivity() {
     private var chatDataList: MutableList<ChatData> = mutableListOf()
     private var message: String = ""
     private var nickname: String = ""
+    private lateinit var currentImagePath: String
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -404,7 +411,6 @@ class ChattingActivity : AppCompatActivity() {
                             set(Calendar.SECOND, 0)
                             set(Calendar.MILLISECOND, 0)
                         }.timeInMillis
-                        Log.d("fb_test/date2", getCurrentTimeStamp(DATE, tmpDate))
 
                         // for date text
                         when {
@@ -427,10 +433,9 @@ class ChattingActivity : AppCompatActivity() {
                         val viewType = when {
                             data?.fileType == "image" -> 3
                             (data?.senderEmail == currentUserEmail) -> 1
-                            else -> 0
+                            (data?.senderEmail != currentUserEmail) -> 0
+                            else -> -1
                         }
-                        Log.d("img_test/type", "view type = $viewType")
-                        Log.d("img_test/data", data.toString())
 
                         when (viewType) {
                             0, 1 -> {
@@ -445,8 +450,6 @@ class ChattingActivity : AppCompatActivity() {
                             }
 
                             3 -> {
-                                Log.d("img_test/type", "view type 3 (1)")
-
                                 val imageRef =
                                     FirebaseStorage.getInstance().reference.child(
                                         "chat/${
@@ -456,11 +459,8 @@ class ChattingActivity : AppCompatActivity() {
                                         }/${dataSnapshot.key}.jpg"
                                     )
 
-                                Log.d("img_test/key", dataSnapshot.key.toString())
-                                Log.d("img_test/path", imageRef.path)
-
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    imageRef.getBytes(1024*1024)
+                                    imageRef.getBytes(3000 * 4000)
                                         .addOnSuccessListener { byteArray ->
                                             val bitmap = BitmapFactory.decodeByteArray(
                                                 byteArray,
@@ -476,11 +476,15 @@ class ChattingActivity : AppCompatActivity() {
                                                     bitmap = bitmap,
                                                 )
                                             )
+
+                                            initRecycler()
                                         }
                                 }
                             }
 
-                            else -> {}
+                            else -> {
+                                Log.d("chat_test", "view type error : -1")
+                            }
                         }
                     }
                 }
@@ -549,8 +553,37 @@ class ChattingActivity : AppCompatActivity() {
     private fun startCapture() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
             intent.resolveActivity(packageManager)?.also {
-                startActivityForResult(intent, CAMERA)
+                val photofile: File? = try {
+                    createImageFile()
+                } catch (e: IOException) {
+                    null
+                }
+
+                photofile?.also {
+                    val photoUri = FileProvider.getUriForFile(
+                        this,
+                        "org.jin.calenee.fileprovider",
+                        it
+                    )
+
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                    startActivityForResult(intent, CAMERA)
+                }
             }
+        }
+    }
+
+    private fun createImageFile(): File {
+        val fileName = getCurrentTimeStamp(DATE_TIME)
+//        val storageDir = Environment.getExternalStorageDirectory().absolutePath + "/calenee"
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        return File.createTempFile(
+            "JPEG_$fileName",
+            ".jpg",
+            storageDir
+        ).apply {
+            currentImagePath = absolutePath
         }
     }
 
@@ -570,17 +603,28 @@ class ChattingActivity : AppCompatActivity() {
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 CAMERA -> {
-                    val bitmap = data?.extras?.get("data") as Bitmap
-                    saveImageData(bitmap)
+                    // for thumbnail
+//                    val bitmap = data?.extras?.get("data") as Bitmap
 
-                    Log.d("cam_test", "result 3")
+                    val file = File(currentImagePath)
+                    val bitmap = if (Build.VERSION.SDK_INT < 28) {
+                        MediaStore.Images.Media
+                            .getBitmap(contentResolver, Uri.fromFile(file))
+                    } else {
+                        val decode = ImageDecoder.createSource(
+                            this.contentResolver,
+                            Uri.fromFile(file)
+                        )
+                        ImageDecoder.decodeBitmap(decode)
+                    }
+
+                    saveImageData(bitmap)
                 }
             }
         }
     }
 
     override fun onBackPressed() {
-        // bbi
         if (binding.bottomSheetView.visibility == View.VISIBLE) {
             val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
             param.setMargins(0, 0, 0, binding.bottomLayout.height)

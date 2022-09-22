@@ -85,7 +85,7 @@
         android:minHeight="300dp"
         android:orientation="horizontal"
         android:paddingVertical="15dp"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintTop_toBottomOf="@+id/bottom_layout">
 
         <LinearLayout
