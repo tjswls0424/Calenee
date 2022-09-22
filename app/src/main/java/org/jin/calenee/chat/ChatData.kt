@@ -7,7 +7,8 @@ data class ChatData(
     var nickname: String? = "",
     var message: String? = "",
     var time: String? = "",
-    var bitmap: Bitmap? = null
+    var bitmap: Bitmap? = null,
+    var ratio: Double = 1.0
 ) {
     companion object {
         const val VIEW_TYPE_LEFT = 0

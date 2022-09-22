@@ -1,5 +1,6 @@
 package org.jin.calenee.chat
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,10 +8,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.gun0912.tedpermission.provider.TedPermissionProvider.context
+import kotlinx.android.synthetic.main.chat_image_item.view.*
 import org.jin.calenee.R
 import java.lang.RuntimeException
 
-class ChatAdapter() :
+class ChatAdapter(context: Context) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var data = mutableListOf<ChatData>()
@@ -122,9 +125,62 @@ class ChatAdapter() :
     // image file
     inner class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val time = view.findViewById<TextView>(R.id.chat_image_time_text)
-        private val image = view.findViewById<ImageView>(R.id.chat_image)
+        private var image = view.findViewById<ImageView>(R.id.chat_image)
 
+        val dp = 300
+        val density = context.resources.displayMetrics.density
+        val px = (dp * density).toInt()
         fun bind(item: ChatData) {
+            Glide.with(itemView)
+                .load(item.bitmap)
+                .override(px, (px*item.ratio).toInt())
+                .into(itemView.chat_image)
+
+//            when {
+//                item.ratio in 0.832..1.165 -> {
+//                    // 1:1, 1.0
+//                    Glide.with(image)
+//                        .load(item.bitmap)
+//                        .override(300, 300)
+//                        .into(image)
+//                }
+//
+//                item.ratio in 1.165..1.555 -> {
+//                    // 3:4, 1.33
+//                    Glide.with(image)
+//                        .load(item.bitmap)
+//                        .override(300, 300)
+//                        .into(image)
+//
+//                }
+//
+//                item.ratio in 1.555..1.89 -> {
+//                    // 9:16, 1.78
+//                    Glide.with(image)
+//                        .load(item.bitmap)
+//                        .override(300, 300)
+//                        .into(image)
+//
+//                }
+//
+//                item.ratio > 1.89 -> {
+//                    // 1:2, 2.0
+//                    Glide.with(image)
+//                        .load(item.bitmap)
+//                        .override(300, 300)
+//                        .into(image)
+//
+//                }
+//
+//                else -> {
+//                    // 1:1
+//                    Glide.with(image)
+//                        .load(item.bitmap)
+//                        .override(300, 300)
+//                        .into(image)
+//                }
+//            }
+
             time.text = item.time
             image.setImageBitmap(item.bitmap)
         }

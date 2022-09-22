@@ -63,7 +63,7 @@ class ChattingActivity : AppCompatActivity() {
         FirebaseDatabase.getInstance().getReference("chat")
     }
     private val chatAdapter by lazy {
-        ChatAdapter()
+        ChatAdapter(applicationContext)
     }
 
     private var isKeyboardShown: Boolean = false
@@ -353,7 +353,8 @@ class ChattingActivity : AppCompatActivity() {
         val dateTime = getCurrentTimeStamp(DATE_TIME)
         val imageRef =
             storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.jpg")
-        val ratio = bitmap.width.toDouble().div(bitmap.height.toDouble())
+//        val ratio = bitmap.width.toDouble().div(bitmap.height.toDouble())
+        val ratio = bitmap.height.toDouble().div(bitmap.width.toDouble())
 
         CoroutineScope(Dispatchers.IO).launch {
             val uploadTask = imageRef.putBytes(baos.toByteArray())
@@ -474,6 +475,7 @@ class ChattingActivity : AppCompatActivity() {
                                                     data?.senderNickname,
                                                     time = data?.createdAt,
                                                     bitmap = bitmap,
+                                                    ratio = data?.fileRatio ?: 1.0
                                                 )
                                             )
 
