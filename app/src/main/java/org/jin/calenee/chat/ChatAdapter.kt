@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gun0912.tedpermission.provider.TedPermissionProvider.context
-import kotlinx.android.synthetic.main.chat_image_item.view.*
 import org.jin.calenee.R
 import java.lang.RuntimeException
 
@@ -127,62 +126,17 @@ class ChatAdapter(context: Context) :
         private val time = view.findViewById<TextView>(R.id.chat_image_time_text)
         private var image = view.findViewById<ImageView>(R.id.chat_image)
 
-        val dp = 300
+        val dp = 250 // can be modified as needed
         val density = context.resources.displayMetrics.density
-        val px = (dp * density).toInt()
+        val width = (dp * density).toInt()
         fun bind(item: ChatData) {
-            Glide.with(itemView)
+            Glide.with(image)
                 .load(item.bitmap)
-                .override(px, (px*item.ratio).toInt())
-                .into(itemView.chat_image)
-
-//            when {
-//                item.ratio in 0.832..1.165 -> {
-//                    // 1:1, 1.0
-//                    Glide.with(image)
-//                        .load(item.bitmap)
-//                        .override(300, 300)
-//                        .into(image)
-//                }
-//
-//                item.ratio in 1.165..1.555 -> {
-//                    // 3:4, 1.33
-//                    Glide.with(image)
-//                        .load(item.bitmap)
-//                        .override(300, 300)
-//                        .into(image)
-//
-//                }
-//
-//                item.ratio in 1.555..1.89 -> {
-//                    // 9:16, 1.78
-//                    Glide.with(image)
-//                        .load(item.bitmap)
-//                        .override(300, 300)
-//                        .into(image)
-//
-//                }
-//
-//                item.ratio > 1.89 -> {
-//                    // 1:2, 2.0
-//                    Glide.with(image)
-//                        .load(item.bitmap)
-//                        .override(300, 300)
-//                        .into(image)
-//
-//                }
-//
-//                else -> {
-//                    // 1:1
-//                    Glide.with(image)
-//                        .load(item.bitmap)
-//                        .override(300, 300)
-//                        .into(image)
-//                }
-//            }
+                .override(width, (width*item.ratio).toInt())
+                .centerCrop()
+                .into(image)
 
             time.text = item.time
-            image.setImageBitmap(item.bitmap)
         }
     }
 
