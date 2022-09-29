@@ -84,7 +84,8 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun initRecycler() {
-        Log.d("fb_test/chat-init", "init recycler view")
+        binding.chatRecyclerView.itemAnimator = null
+
         LinearLayoutManager(applicationContext).apply {
             stackFromEnd = true
             binding.chatRecyclerView.layoutManager = this
@@ -381,6 +382,7 @@ class ChattingActivity : AppCompatActivity() {
 
     // first loading chat screen
     private var tmpTimeKey = 0L
+    private var tmpImageMap = hashMapOf<String, Int>()
     private fun getSavedChatData() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
@@ -451,6 +453,19 @@ class ChattingActivity : AppCompatActivity() {
                             }
 
                             3 -> {
+                                // Since it takes time to complete loading the image from server, add a temporary item to the index where the image data will be stored.
+                                tmpImageMap[dataSnapshot.key.toString()] = chatDataList.size
+                                chatDataList.add(
+                                    ChatData(
+                                        viewType,
+                                        data?.senderNickname,
+                                        time = "",
+                                        bitmap = null,
+                                        ratio = data?.fileRatio ?: 1.0,
+                                        tmpIndex = chatDataList.size
+                                    )
+                                )
+
                                 val imageRef =
                                     FirebaseStorage.getInstance().reference.child(
                                         "chat/${
@@ -469,7 +484,7 @@ class ChattingActivity : AppCompatActivity() {
                                                 byteArray.size
                                             )
 
-                                            chatDataList.add(
+                                            chatDataList[tmpImageMap[dataSnapshot.key] ?: 0] =
                                                 ChatData(
                                                     viewType,
                                                     data?.senderNickname,
@@ -477,9 +492,8 @@ class ChattingActivity : AppCompatActivity() {
                                                     bitmap = bitmap,
                                                     ratio = data?.fileRatio ?: 1.0
                                                 )
-                                            )
 
-                                            initRecycler()
+                                            notifyItemChanged(tmpImageMap[dataSnapshot.key] ?: 0)
                                         }
                                 }
                             }
@@ -498,6 +512,13 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
+    private fun notifyItemChanged(position: Int) {
+        binding.chatRecyclerView.adapter?.notifyItemChanged(position)
+    }
+
+    private fun notifyItemInserted(position: Int) {
+        binding.chatRecyclerView.adapter?.notifyItemInserted(position)
+    }
 
     private fun setLottieInitialState() {
         binding.lottieAddCloseBtn.apply {

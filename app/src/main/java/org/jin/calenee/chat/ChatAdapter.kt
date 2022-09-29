@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gun0912.tedpermission.provider.TedPermissionProvider.context
@@ -75,7 +76,7 @@ class ChatAdapter(context: Context) :
                 holder.setIsRecyclable(false)
             }
             ChatData.VIEW_TYPE_IMAGE -> {
-                (holder as ImageViewHolder).bind(data[position])
+                (holder as ImageViewHolder).bind(data[position], position)
                 holder.setIsRecyclable(false)
             }
             else -> throw RuntimeException("unknown view type")
@@ -129,14 +130,46 @@ class ChatAdapter(context: Context) :
         val dp = 250 // can be modified as needed
         val density = context.resources.displayMetrics.density
         val width = (dp * density).toInt()
-        fun bind(item: ChatData) {
-            Glide.with(image)
-                .load(item.bitmap)
-                .override(width, (width*item.ratio).toInt())
-                .centerCrop()
-                .into(image)
+        fun bind(item: ChatData, position: Int) {
+            val loadingBitmap = image.background.toBitmap(300, 300)
+            if (item.bitmap != null && item.time != "") {
+                Glide.with(image)
+                    .load(item.bitmap)
+                    .override(width, (width*item.ratio).toInt())
+                    .fallback(R.drawable.chat_item_background)
+                    .centerCrop()
+                    .into(image)
 
-            time.text = item.time
+                time.text = item.time
+            } else {
+                // temp image (while loading)
+                Glide.with(context)
+                    .load(loadingBitmap)
+                    .override(width, (width*item.ratio).toInt())
+                    .centerCrop()
+                    .into(image)
+            }
+
+            // preload
+            if (position <= data.size) {
+                val endPosition = if (position + 6 > data.size) {
+                    data.size
+                } else {
+                    position + 6
+                }
+
+                data.subList(position, endPosition).map { it.bitmap }.forEach {
+                    if (it != null) {
+                        Glide.with(context)
+                            .load(it)
+                            .preload(width, (width*item.ratio).toInt())
+                    } else {
+                        Glide.with(context)
+                            .load(loadingBitmap)
+                            .preload(width, (width*item.ratio).toInt())
+                    }
+                }
+            }
         }
     }
 
