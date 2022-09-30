@@ -222,15 +222,22 @@ class ChattingActivity : AppCompatActivity() {
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     snapshot.getValue(SavedChatData::class.java).also { data ->
                         /*
-                        !data?.message.isNullOrBlank() &&
+                        * !data?.message.isNullOrBlank() &&
                             !data?.createdAt.isNullOrBlank() &&
                             !data?.senderEmail.isNullOrBlank() &&
                             !data?.senderNickname.isNullOrBlank()
-                         */
+                        * */
 
-                        // + (data.count > 4)
-                        if (snapshot.childrenCount.toInt() == 4) {
+                        // snapshot.childrenCount.toInt() == 4
+                        if (!data?.message.isNullOrBlank() &&
+                            !data?.createdAt.isNullOrBlank() &&
+                            !data?.senderEmail.isNullOrBlank() &&
+                            !data?.senderNickname.isNullOrBlank()) {
                             Log.d("msg_test2", chatDataList.size.toString() + "/  -1")
+
+                            // add element "chat_last_msg_time" to SP
+                            // for comparing the date of the last message and the next message to be sent
+                            // to display date text(viewType==2) when two messages have different dates
                             val currentTimeInMillis =
                                 Calendar.getInstance(Locale.KOREA).timeInMillis
                             val tmpDate = Calendar.getInstance().apply {
@@ -249,12 +256,12 @@ class ChattingActivity : AppCompatActivity() {
                             }.timeInMillis
 
                             when {
-                                chatDataList.size == 0 -> {
+                                chatDataList.size == 0 || tmpDate <= currentTimeInMillis -> {
                                     App.userPrefs.setString(
                                         "chat_last_msg_time",
                                         currentTimeInMillis.toString()
                                     )
-                                    Log.d("msg_test2", "0")
+
                                     chatDataList.add(
                                         ChatData(
                                             time = getCurrentTimeStamp(
@@ -263,44 +270,29 @@ class ChattingActivity : AppCompatActivity() {
                                             ), viewType = 2
                                         )
                                     )
-                                    initRecycler()
-                                }
 
-                                tmpDate <= currentTimeInMillis -> {
-                                    App.userPrefs.setString(
-                                        "chat_last_msg_time",
-                                        currentTimeInMillis.toString()
-                                    )
-
-                                    Log.d("msg_test2", "1")
-                                    chatDataList.add(
-                                        ChatData(
-                                            time = getCurrentTimeStamp(
-                                                DATE,
-                                                currentTimeInMillis
-                                            ), viewType = 2
-                                        )
-                                    )
                                     initRecycler()
                                 }
                             }
 
-                            val viewType =
-                                if (data?.senderEmail == currentUserEmail) 1 else 0
+                            val viewType = when {
+                                data?.fileType == "image" -> 3
+                                (data?.senderEmail == currentUserEmail) -> 1
+                                (data?.senderEmail != currentUserEmail) -> 0
+                                else -> -1
+                            }
 
-                            chatDataList.add(
-                                ChatData(
-                                    viewType,
-                                    data?.senderNickname,
-                                    data?.message,
-                                    data?.createdAt,
-                                )
-                            )
+                            addChatDataList(viewType, data, snapshot.key.toString())
+                            initRecycler()
+                        } else if (snapshot.childrenCount.toInt() == 7 && data?.fileType == "image") {
+                            val viewType = when {
+                                data.fileType == "image" -> 3
+                                else -> -1
+                            }
 
+                            addChatDataList(viewType, data, snapshot.key.toString())
                             initRecycler()
 
-                            Log.d("msg_test2", snapshot.key.toString() + "  /2")
-                            App.userPrefs.setString("chat_last_msg_time", snapshot.key.toString())
                         }
                     }
 
@@ -376,13 +368,13 @@ class ChattingActivity : AppCompatActivity() {
                 .addOnFailureListener {
                     Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
                     Log.d("img_test", "fail to upload bitmap2: ${it.message}")
+                    Log.d("img_test", "fail to upload bitmap2: ${it.message}")
                 }
         }
     }
 
     // first loading chat screen
     private var tmpTimeKey = 0L
-    private var tmpImageMap = hashMapOf<String, Int>()
     private fun getSavedChatData() {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .get().addOnSuccessListener {
@@ -440,68 +432,7 @@ class ChattingActivity : AppCompatActivity() {
                             else -> -1
                         }
 
-                        when (viewType) {
-                            0, 1 -> {
-                                chatDataList.add(
-                                    ChatData(
-                                        viewType,
-                                        data?.senderNickname,
-                                        data?.message,
-                                        data?.createdAt,
-                                    )
-                                )
-                            }
-
-                            3 -> {
-                                // Since it takes time to complete loading the image from server, add a temporary item to the index where the image data will be stored.
-                                tmpImageMap[dataSnapshot.key.toString()] = chatDataList.size
-                                chatDataList.add(
-                                    ChatData(
-                                        viewType,
-                                        data?.senderNickname,
-                                        time = "",
-                                        bitmap = null,
-                                        ratio = data?.fileRatio ?: 1.0,
-                                        tmpIndex = chatDataList.size
-                                    )
-                                )
-
-                                val imageRef =
-                                    FirebaseStorage.getInstance().reference.child(
-                                        "chat/${
-                                            App.userPrefs.getString(
-                                                "couple_chat_id"
-                                            )
-                                        }/${dataSnapshot.key}.jpg"
-                                    )
-
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    imageRef.getBytes(3000 * 4000)
-                                        .addOnSuccessListener { byteArray ->
-                                            val bitmap = BitmapFactory.decodeByteArray(
-                                                byteArray,
-                                                0,
-                                                byteArray.size
-                                            )
-
-                                            chatDataList[tmpImageMap[dataSnapshot.key] ?: 0] =
-                                                ChatData(
-                                                    viewType,
-                                                    data?.senderNickname,
-                                                    time = data?.createdAt,
-                                                    bitmap = bitmap,
-                                                    ratio = data?.fileRatio ?: 1.0
-                                                )
-
-                                            notifyItemChanged(tmpImageMap[dataSnapshot.key] ?: 0)
-                                        }
-                                }
-                            }
-
-                            else -> {
-                                Log.d("chat_test", "view type error : -1")
-                            }
-                        }
+                        addChatDataList(viewType, data, dataSnapshot.key.toString())
                     }
                 }
 
@@ -510,6 +441,79 @@ class ChattingActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Log.d("db_test", "fail to read from realtime database")
             }
+    }
+
+    private var tmpImageMap = hashMapOf<String, Int>()
+    private fun addChatDataList(viewType: Int, data: SavedChatData?, key: String = "") {
+        when (viewType) {
+            0, 1 -> {
+                chatDataList.add(
+                    ChatData(
+                        viewType,
+                        data?.senderNickname,
+                        data?.message,
+                        data?.createdAt,
+                    )
+                )
+            }
+
+            3 -> {
+                // Since it takes time to complete loading the image from server,
+                // add a temporary item to chatDataList where the image data will be stored.
+                tmpImageMap[key] = chatDataList.size
+                chatDataList.add(
+                    ChatData(
+                        viewType,
+                        data?.senderNickname,
+                        time = "",
+                        bitmap = null,
+                        ratio = data?.fileRatio ?: 1.0,
+                        tmpIndex = chatDataList.size
+                    )
+                )
+
+                notifyItemInserted(tmpImageMap[key] ?: 0)
+
+                val imageRef =
+                    FirebaseStorage.getInstance().reference.child(
+                        "chat/${
+                            App.userPrefs.getString(
+                                "couple_chat_id"
+                            )
+                        }/${key}.jpg"
+                    )
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    imageRef.getBytes(3000 * 4000)
+                        .addOnSuccessListener { byteArray ->
+                            val bitmap = BitmapFactory.decodeByteArray(
+                                byteArray,
+                                0,
+                                byteArray.size
+                            )
+
+                            chatDataList[tmpImageMap[key] ?: 0] =
+                                ChatData(
+                                    viewType,
+                                    data?.senderNickname,
+                                    time = data?.createdAt,
+                                    bitmap = bitmap,
+                                    ratio = data?.fileRatio ?: 1.0
+                                )
+
+                            notifyItemChanged(tmpImageMap[key] ?: 0)
+
+                            App.userPrefs.setString("chat_last_msg_time", key)
+                        }
+                }
+            }
+
+            else -> {
+                Log.d("chat_test", "view type error : -1")
+            }
+        }
+
+        App.userPrefs.setString("chat_last_msg_time", key)
     }
 
     private fun notifyItemChanged(position: Int) {
