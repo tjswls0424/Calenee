@@ -221,6 +221,48 @@ class ChattingActivity : AppCompatActivity() {
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     snapshot.getValue(SavedChatData::class.java).also { data ->
+                        // add element "chat_last_msg_time" to SP
+                        // for comparing the date of the last message and the next message to be sent
+                        // to display date text(viewType==2) when two messages have different dates
+                        val currentTimeInMillis =
+                            Calendar.getInstance(Locale.KOREA).timeInMillis
+                        val tmpDate = Calendar.getInstance().apply {
+                            App.userPrefs.getString("chat_last_msg_time").apply {
+                                timeInMillis = if (this.isBlank()) {
+                                    currentTimeInMillis
+                                } else {
+                                    this.toLong()
+                                }
+                            }
+                            add(Calendar.DAY_OF_MONTH, 1)
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+
+                        when {
+                            chatDataList.size == 0 || tmpDate <= currentTimeInMillis -> {
+                                App.userPrefs.setString(
+                                    "chat_last_msg_time",
+                                    currentTimeInMillis.toString()
+                                )
+
+                                chatDataList.add(
+                                    ChatData(
+                                        time = getCurrentTimeStamp(
+                                            DATE,
+                                            currentTimeInMillis
+                                        ), viewType = 2
+                                    )
+                                )
+
+                                initRecycler()
+                            }
+                        }
+
+
+
                         /*
                         * !data?.message.isNullOrBlank() &&
                             !data?.createdAt.isNullOrBlank() &&
@@ -233,48 +275,6 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.createdAt.isNullOrBlank() &&
                             !data?.senderEmail.isNullOrBlank() &&
                             !data?.senderNickname.isNullOrBlank()) {
-                            Log.d("msg_test2", chatDataList.size.toString() + "/  -1")
-
-                            // add element "chat_last_msg_time" to SP
-                            // for comparing the date of the last message and the next message to be sent
-                            // to display date text(viewType==2) when two messages have different dates
-                            val currentTimeInMillis =
-                                Calendar.getInstance(Locale.KOREA).timeInMillis
-                            val tmpDate = Calendar.getInstance().apply {
-                                App.userPrefs.getString("chat_last_msg_time").apply {
-                                    timeInMillis = if (this.isBlank()) {
-                                        currentTimeInMillis
-                                    } else {
-                                        this.toLong()
-                                    }
-                                }
-                                add(Calendar.DAY_OF_MONTH, 1)
-                                set(Calendar.HOUR_OF_DAY, 0)
-                                set(Calendar.MINUTE, 0)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }.timeInMillis
-
-                            when {
-                                chatDataList.size == 0 || tmpDate <= currentTimeInMillis -> {
-                                    App.userPrefs.setString(
-                                        "chat_last_msg_time",
-                                        currentTimeInMillis.toString()
-                                    )
-
-                                    chatDataList.add(
-                                        ChatData(
-                                            time = getCurrentTimeStamp(
-                                                DATE,
-                                                currentTimeInMillis
-                                            ), viewType = 2
-                                        )
-                                    )
-
-                                    initRecycler()
-                                }
-                            }
-
                             val viewType = when {
                                 data?.fileType == "image" -> 3
                                 (data?.senderEmail == currentUserEmail) -> 1
@@ -284,7 +284,7 @@ class ChattingActivity : AppCompatActivity() {
 
                             addChatDataList(viewType, data, snapshot.key.toString())
                             initRecycler()
-                        } else if (snapshot.childrenCount.toInt() == 7 && data?.fileType == "image") {
+                        } else if (snapshot.childrenCount.toInt() >= 7 && data?.fileType == "image") {
                             val viewType = when {
                                 data.fileType == "image" -> 3
                                 else -> -1
@@ -472,7 +472,7 @@ class ChattingActivity : AppCompatActivity() {
                     )
                 )
 
-                notifyItemInserted(tmpImageMap[key] ?: 0)
+//                notifyItemInserted(tmpImageMap[key] ?: 0)
 
                 val imageRef =
                     FirebaseStorage.getInstance().reference.child(
