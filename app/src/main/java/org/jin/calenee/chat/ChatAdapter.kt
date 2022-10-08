@@ -133,22 +133,21 @@ class ChatAdapter(context: Context) :
         fun bind(item: ChatData, position: Int) {
             val loadingBitmap = image.background.toBitmap(300, 300)
             if (item.bitmap != null && item.time != "") {
-                Glide.with(image)
+                Glide.with(context)
                     .load(item.bitmap)
                     .override(width, (width*item.ratio).toInt())
                     .fallback(R.drawable.chat_item_background)
                     .centerCrop()
                     .into(image)
-
-                time.text = item.time
             } else {
-                // temp image (while loading)
+                // first loading when enter chat room
                 Glide.with(context)
                     .load(loadingBitmap)
                     .override(width, (width*item.ratio).toInt())
                     .centerCrop()
                     .into(image)
             }
+            time.text = item.time
 
             // preload
             if (position <= data.size) {
