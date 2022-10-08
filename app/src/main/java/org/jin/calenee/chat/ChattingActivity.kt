@@ -311,6 +311,36 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("fb_test_chat/cancelled", error.message)
                 }
             })
+
+        // recycler view item click listener
+        chatAdapter.setOnItemClickListener(object: ChatAdapter.OnItemClickListener {
+            override fun onItemClick(v: View, data: ChatData, position: Int) {
+                Log.d("position_test", position.toString())
+                Log.d("position_test", data.toString())
+
+                try {
+                    Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
+                        putExtra("byteArray", bitmapToByteArray(data.bitmap))
+                        putExtra("nickname", data.nickname)
+                        putExtra("time", data.time)
+                        putExtra("timeInMillis", data.timeInMillis)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }.run { startActivity(this) }
+                } catch (e: Exception) {
+                    Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
+                    }.run { startActivity(this) }
+                    Log.d("position_test/err", e.printStackTrace().toString())
+                }
+
+            }
+        })
+    }
+
+    private fun bitmapToByteArray(bitmap: Bitmap?): ByteArray {
+        val bos = ByteArrayOutputStream()
+        bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
+
+        return bos.toByteArray()
     }
 
     // 첫 실행시 (함수 종료 될 때까지) success listener에 값이 들어오기까지 몇 초 delay가 있기 때문에 미리 호출
@@ -466,6 +496,7 @@ class ChattingActivity : AppCompatActivity() {
                     time = "",
                     ratio = data?.fileRatio ?: 1.0,
                     tmpIndex = chatDataList.size,
+                    timeInMillis = key.toLong()
                 )
 
                 // in case of sending image by me
@@ -502,7 +533,8 @@ class ChattingActivity : AppCompatActivity() {
                                     data?.senderNickname,
                                     time = data?.createdAt,
                                     bitmap = bitmap,
-                                    ratio = data?.fileRatio ?: 1.0
+                                    ratio = data?.fileRatio ?: 1.0,
+                                    timeInMillis = key.toLong()
                                 )
 
                             notifyItemChanged(tmpImageMap[key] ?: 0)

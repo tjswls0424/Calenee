@@ -1,6 +1,7 @@
 package org.jin.calenee.chat
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +17,16 @@ import java.lang.RuntimeException
 class ChatAdapter(context: Context) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    var listener: OnItemClickListener? = null
     var data = mutableListOf<ChatData>()
+
+    interface OnItemClickListener {
+        fun onItemClick(v: View, data: ChatData, position: Int)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.listener = listener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val view: View?
@@ -124,30 +134,31 @@ class ChatAdapter(context: Context) :
 
     // image file
     inner class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val time = view.findViewById<TextView>(R.id.chat_image_time_text)
-        private var image = view.findViewById<ImageView>(R.id.chat_image)
+        private val timeTextView = view.findViewById<TextView>(R.id.chat_image_time_text)
+        private var imageView = view.findViewById<ImageView>(R.id.chat_image)
 
         val dp = 250 // can be modified as needed
         val density = context.resources.displayMetrics.density
         val width = (dp * density).toInt()
+
         fun bind(item: ChatData, position: Int) {
-            val loadingBitmap = image.background.toBitmap(300, 300)
+            val loadingBitmap = imageView.background.toBitmap(300, 300)
             if (item.bitmap != null && item.time != "") {
                 Glide.with(context)
                     .load(item.bitmap)
-                    .override(width, (width*item.ratio).toInt())
+                    .override(width, (width * item.ratio).toInt())
                     .fallback(R.drawable.chat_item_background)
                     .centerCrop()
-                    .into(image)
+                    .into(imageView)
             } else {
                 // first loading when enter chat room
                 Glide.with(context)
                     .load(loadingBitmap)
-                    .override(width, (width*item.ratio).toInt())
+                    .override(width, (width * item.ratio).toInt())
                     .centerCrop()
-                    .into(image)
+                    .into(imageView)
             }
-            time.text = item.time
+            timeTextView.text = item.time
 
             // preload
             if (position <= data.size) {
@@ -161,12 +172,28 @@ class ChatAdapter(context: Context) :
                     if (it != null) {
                         Glide.with(context)
                             .load(it)
-                            .preload(width, (width*item.ratio).toInt())
+                            .preload(width, (width * item.ratio).toInt())
                     } else {
                         Glide.with(context)
                             .load(loadingBitmap)
-                            .preload(width, (width*item.ratio).toInt())
+                            .preload(width, (width * item.ratio).toInt())
                     }
+                }
+            }
+
+            // listener
+            if (position != RecyclerView.NO_POSITION) {
+                itemView.setOnClickListener {
+                    Log.d("position_test/position", position.toString())
+                    Log.d("position_test/oldPosition", oldPosition.toString())
+                    Log.d("position_test/layoutPosition", layoutPosition.toString())
+                    Log.d(
+                        "position_test/absoluteAdapterPosition",
+                        absoluteAdapterPosition.toString()
+                    )
+                    Log.d("position_test/bindingAdapterPosition", bindingAdapterPosition.toString())
+
+                    listener?.onItemClick(imageView, data[position], position)
                 }
             }
         }
