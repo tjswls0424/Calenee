@@ -4,9 +4,8 @@ import android.graphics.Bitmap
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
-@Parcelize
 data class ChatData(
-    var viewType: Int,
+    var viewType: Int = -1,
     var nickname: String? = "",
     var message: String? = "",
     var time: String? = "", // HH:mm
@@ -14,7 +13,7 @@ data class ChatData(
     var bitmap: Bitmap? = null,
     var ratio: Double = -1.0,
     var tmpIndex: Int = 0,
-): Parcelable {
+) {
     companion object {
         const val VIEW_TYPE_LEFT = 0
         const val VIEW_TYPE_RIGHT = 1

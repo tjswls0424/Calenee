@@ -1,7 +1,6 @@
 package org.jin.calenee.chat
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -183,16 +182,7 @@ class ChatAdapter(context: Context) :
 
             // listener
             if (position != RecyclerView.NO_POSITION) {
-                itemView.setOnClickListener {
-                    Log.d("position_test/position", position.toString())
-                    Log.d("position_test/oldPosition", oldPosition.toString())
-                    Log.d("position_test/layoutPosition", layoutPosition.toString())
-                    Log.d(
-                        "position_test/absoluteAdapterPosition",
-                        absoluteAdapterPosition.toString()
-                    )
-                    Log.d("position_test/bindingAdapterPosition", bindingAdapterPosition.toString())
-
+                imageView.setOnClickListener {
                     listener?.onItemClick(imageView, data[position], position)
                 }
             }

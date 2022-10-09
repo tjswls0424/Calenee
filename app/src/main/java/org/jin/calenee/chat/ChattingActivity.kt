@@ -277,7 +277,8 @@ class ChattingActivity : AppCompatActivity() {
                         if (!data?.message.isNullOrBlank() &&
                             !data?.createdAt.isNullOrBlank() &&
                             !data?.senderEmail.isNullOrBlank() &&
-                            !data?.senderNickname.isNullOrBlank()) {
+                            !data?.senderNickname.isNullOrBlank()
+                        ) {
                             val viewType = when {
                                 (data?.senderEmail == currentUserEmail) -> 1
                                 (data?.senderEmail != currentUserEmail) -> 0
@@ -313,7 +314,7 @@ class ChattingActivity : AppCompatActivity() {
             })
 
         // recycler view item click listener
-        chatAdapter.setOnItemClickListener(object: ChatAdapter.OnItemClickListener {
+        chatAdapter.setOnItemClickListener(object : ChatAdapter.OnItemClickListener {
             override fun onItemClick(v: View, data: ChatData, position: Int) {
                 Log.d("position_test", position.toString())
                 Log.d("position_test", data.toString())
@@ -321,24 +322,23 @@ class ChattingActivity : AppCompatActivity() {
                 try {
                     Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
                         putExtra("byteArray", bitmapToByteArray(data.bitmap))
-                        putExtra("nickname", data.nickname)
-                        putExtra("time", data.time)
+                        putExtra("nickname", data.nickname.toString())
+                        putExtra("time", data.time.toString())
                         putExtra("timeInMillis", data.timeInMillis)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }.run { startActivity(this) }
                 } catch (e: Exception) {
-                    Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
-                    }.run { startActivity(this) }
-                    Log.d("position_test/err", e.printStackTrace().toString())
+                    Log.d("position_test/err", e.stackTraceToString())
+                    Log.d("position_test/err", e.message.toString())
                 }
 
             }
         })
     }
 
+    // if set image high quality, (intent putExtra) do not work
     private fun bitmapToByteArray(bitmap: Bitmap?): ByteArray {
         val bos = ByteArrayOutputStream()
-        bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, bos)
+        bitmap?.compress(Bitmap.CompressFormat.JPEG, 10, bos)
 
         return bos.toByteArray()
     }
@@ -472,7 +472,12 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
-    private fun addChatDataList(viewType: Int, data: SavedChatData?, key: String = "", isMine: Boolean = false) {
+    private fun addChatDataList(
+        viewType: Int,
+        data: SavedChatData?,
+        key: String = "",
+        isMine: Boolean = false
+    ) {
         when (viewType) {
             0, 1 -> {
                 chatDataList.add(
