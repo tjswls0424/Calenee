@@ -3,6 +3,7 @@ package org.jin.calenee.chat
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -16,8 +17,11 @@ import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatMediaDetailsBinding
 import java.io.File
 import java.io.OutputStream
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.log10
+import kotlin.math.pow
 
 class ChatMediaDetailsActivity : AppCompatActivity() {
 
@@ -26,6 +30,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
     }
 
     private var imageData: ChatData = ChatData()
+    private var imageSize: String = ""
     private var isBitmapNull: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +57,14 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
             val fileName = getStringExtra("fileName")
             val bitmapForDetails = BitmapFactory.decodeStream(openFileInput(fileName))
 
+            val exif = ExifInterface(openFileInput(fileName)).apply {
+                Log.d("img_test/byteCounts1", bitmapForDetails.byteCount.toString())
+                Log.d("img_test/byteCounts2", bitmapForDetails.allocationByteCount.toString())
+                Log.d("img_test/width(horizon)", getAttribute(ExifInterface.TAG_IMAGE_WIDTH).toString())
+                Log.d("img_test/length(vertical)", getAttribute(ExifInterface.TAG_IMAGE_LENGTH).toString())
+                imageSize = getAttribute(ExifInterface.TAG_IMAGE_WIDTH).toString() + "x" + getAttribute(ExifInterface.TAG_IMAGE_LENGTH).toString()
+            }
+
             imageData = ChatData(
                 bitmap = bitmapForDetails,
                 nickname = getStringExtra("nickname"),
@@ -70,7 +83,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
                 dateTimeTv.text = SimpleDateFormat(
                     "yyyy.MM.dd (E) HH:mm",
                     Locale.KOREAN
-                ).format(imageData?.timeInMillis ?: System.currentTimeMillis())
+                ).format(imageData.timeInMillis)
             }
         }
     }
@@ -96,8 +109,8 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     private fun saveImageFile() {
         try {
+            var fos: OutputStream?
             val fileName = imageData.timeInMillis.toString()
-            var fos: OutputStream? = null
 
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -120,14 +133,20 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
                 }
             }
 
-            fos?.use {
-                imageData.bitmap?.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            fos?.use { outputStream ->
+                imageData.bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                 Snackbar.make(binding.root, "사진이 저장되었습니다", Snackbar.LENGTH_SHORT).show()
             }
-            fos?.flush()
-            fos?.close()
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun showImageInfo() {
+        binding.apply {
+            imageInfoGl.visibility = View.VISIBLE
+            infoTypeTv.text = "JPEG"
+            infoSizeTv.text = imageSize
         }
     }
 
@@ -150,6 +169,11 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
             }
             R.id.chat_image_share -> {
                 Log.d("menu_test", "chat_image_share")
+                return true
+            }
+            R.id.chat_image_info -> {
+                showImageInfo()
+                Log.d("menu_test", "info")
                 return true
             }
         }

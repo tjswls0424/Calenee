@@ -13,4 +13,10 @@
         android:icon="@drawable/ic_share_24"
         app:showAsAction="always"
         android:title="" />
+    <item
+        android:id="@+id/chat_image_info"
+        android:enabled="true"
+        android:icon="@drawable/ic_outline_info_24"
+        app:showAsAction="always"
+        android:title="" />
 </menu>

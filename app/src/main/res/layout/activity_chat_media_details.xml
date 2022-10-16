@@ -67,4 +67,38 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <GridLayout
+        android:id="@+id/image_info_gl"
+        android:visibility="invisible"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:background="@color/chatting_info_text_view_background"
+        android:columnCount="2"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="15dp"
+        android:rowCount="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            style="@style/ChatImageInfo"
+            android:text="종류" />
+
+        <TextView
+            android:id="@+id/info_type_tv"
+            style="@style/ChatImageInfo"
+            tools:text="JPEG" />
+
+        <TextView
+            style="@style/ChatImageInfo"
+            android:text="해상도" />
+
+        <TextView
+            android:id="@+id/info_size_tv"
+            style="@style/ChatImageInfo"
+            tools:text="1024x1024" />
+    </GridLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
