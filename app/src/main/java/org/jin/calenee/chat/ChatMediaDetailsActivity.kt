@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.snackbar.Snackbar
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatMediaDetailsBinding
@@ -50,13 +49,8 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     private fun initImageData() {
         intent.apply {
-            val byteArray = getByteArrayExtra("byteArray")
-            val bitmapForDetails = if (byteArray != null) {
-                BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-            } else {
-                isBitmapNull = true
-                binding.imageView.background.toBitmap(300, 300)
-            }
+            val fileName = getStringExtra("fileName")
+            val bitmapForDetails = BitmapFactory.decodeStream(openFileInput(fileName))
 
             imageData = ChatData(
                 bitmap = bitmapForDetails,

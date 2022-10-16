@@ -2,6 +2,7 @@ package org.jin.calenee.chat
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -321,7 +322,8 @@ class ChattingActivity : AppCompatActivity() {
 
                 try {
                     Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
-                        putExtra("byteArray", bitmapToByteArray(data.bitmap))
+//                        putExtra("byteArray", bitmapToByteArray(data.bitmap))
+                        putExtra("fileName", bitmapToByteArray(data.bitmap))
                         putExtra("nickname", data.nickname.toString())
                         putExtra("time", data.time.toString())
                         putExtra("timeInMillis", data.timeInMillis)
@@ -336,11 +338,19 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     // if set image high quality, (intent putExtra) do not work
-    private fun bitmapToByteArray(bitmap: Bitmap?): ByteArray {
-        val bos = ByteArrayOutputStream()
-        bitmap?.compress(Bitmap.CompressFormat.JPEG, 10, bos)
+    private fun bitmapToByteArray(bitmap: Bitmap?): String? {
+        var fileName: String? = "tempFileName"
+        try {
+            val fo = openFileOutput(fileName, Context.MODE_PRIVATE)
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 90, fo)
+            fo.flush()
+            fo.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fileName = null
+        }
 
-        return bos.toByteArray()
+        return fileName
     }
 
     // 첫 실행시 (함수 종료 될 때까지) success listener에 값이 들어오기까지 몇 초 delay가 있기 때문에 미리 호출
