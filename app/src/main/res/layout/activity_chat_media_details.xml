@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
@@ -68,37 +69,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <GridLayout
-        android:id="@+id/image_info_gl"
-        android:visibility="invisible"
-        android:layout_width="300dp"
-        android:layout_height="100dp"
-        android:background="@color/chatting_info_text_view_background"
-        android:columnCount="2"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="15dp"
-        android:rowCount="2"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+    <LinearLayout
+        android:id="@+id/image_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="@color/chatting_info_background"
+        android:gravity="center"
+        android:layout_marginTop="?attr/actionBarSize">
 
-        <TextView
-            style="@style/ChatImageInfo"
-            android:text="종류" />
+        <GridLayout
+            android:id="@+id/image_info_gl"
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:background="@color/chatting_info_text_view_background"
+            android:columnCount="2"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="15dp"
+            android:rowCount="2">
 
-        <TextView
-            android:id="@+id/info_type_tv"
-            style="@style/ChatImageInfo"
-            tools:text="JPEG" />
+            <TextView
+                style="@style/ChatImageInfo"
+                android:text="종류" />
 
-        <TextView
-            style="@style/ChatImageInfo"
-            android:text="해상도" />
+            <TextView
+                android:id="@+id/info_type_tv"
+                style="@style/ChatImageInfo"
+                tools:text="JPEG" />
 
-        <TextView
-            android:id="@+id/info_size_tv"
-            style="@style/ChatImageInfo"
-            tools:text="1024x1024" />
-    </GridLayout>
+            <TextView
+                style="@style/ChatImageInfo"
+                android:text="해상도" />
+
+            <TextView
+                android:id="@+id/info_size_tv"
+                style="@style/ChatImageInfo"
+                tools:text="1024x1024" />
+        </GridLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,8 +1,7 @@
 package org.jin.calenee.chat
 
 import android.content.ContentValues
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.media.ExifInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -17,11 +16,8 @@ import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatMediaDetailsBinding
 import java.io.File
 import java.io.OutputStream
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.log10
-import kotlin.math.pow
 
 class ChatMediaDetailsActivity : AppCompatActivity() {
 
@@ -44,10 +40,18 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     private fun listener() {
         binding.imageView.setOnClickListener {
-            if (supportActionBar?.isShowing == true) {
+            if (binding.imageInfoLayout.visibility == View.VISIBLE) {
+                hideImageInfo()
+            } else if (supportActionBar?.isShowing == true) {
                 supportActionBar?.hide()
             } else {
                 supportActionBar?.show()
+            }
+        }
+
+        if (binding.imageInfoLayout.visibility == View.VISIBLE) {
+            binding.parentLayout.setOnClickListener {
+                hideImageInfo()
             }
         }
     }
@@ -57,12 +61,11 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
             val fileName = getStringExtra("fileName")
             val bitmapForDetails = BitmapFactory.decodeStream(openFileInput(fileName))
 
-            val exif = ExifInterface(openFileInput(fileName)).apply {
-                Log.d("img_test/byteCounts1", bitmapForDetails.byteCount.toString())
-                Log.d("img_test/byteCounts2", bitmapForDetails.allocationByteCount.toString())
-                Log.d("img_test/width(horizon)", getAttribute(ExifInterface.TAG_IMAGE_WIDTH).toString())
-                Log.d("img_test/length(vertical)", getAttribute(ExifInterface.TAG_IMAGE_LENGTH).toString())
-                imageSize = getAttribute(ExifInterface.TAG_IMAGE_WIDTH).toString() + "x" + getAttribute(ExifInterface.TAG_IMAGE_LENGTH).toString()
+            ExifInterface(openFileInput(fileName)).apply {
+                imageSize =
+                    getAttribute(ExifInterface.TAG_IMAGE_WIDTH).toString() + "x" + getAttribute(
+                        ExifInterface.TAG_IMAGE_LENGTH
+                    ).toString()
             }
 
             imageData = ChatData(
@@ -144,9 +147,15 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     private fun showImageInfo() {
         binding.apply {
-            imageInfoGl.visibility = View.VISIBLE
+            imageInfoLayout.visibility = View.VISIBLE
             infoTypeTv.text = "JPEG"
             infoSizeTv.text = imageSize
+        }
+    }
+
+    private fun hideImageInfo() {
+        binding.apply {
+            imageInfoLayout.visibility = View.GONE
         }
     }
 
@@ -179,5 +188,13 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onBackPressed() {
+        if (binding.imageInfoGl.visibility == View.VISIBLE) {
+            hideImageInfo()
+        } else {
+            super.onBackPressed()
+        }
     }
 }

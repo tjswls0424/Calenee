@@ -1,5 +1,5 @@
 <resources>
-<!--    <string name="default_web_client_id">56486367802-fnbm2rdvqq7uuj4g9503dtkj26mu61np.apps.googleusercontent.com</string>-->
+    <!--    <string name="default_web_client_id">56486367802-fnbm2rdvqq7uuj4g9503dtkj26mu61np.apps.googleusercontent.com</string>-->
 
     <string name="app_name_eng">Calenee</string>
     <string name="app_name_kor">캘린이</string>
@@ -57,6 +57,10 @@
     <!-- chat -->
     <string name="enter_msg">메세지를 입력해주세요</string>
     <string name="camera">카메라</string>
-    <string name="album">앨범</string>d
-    <string name="file">파일</string>d
+    <string name="album">앨범</string>
+    <string name="file">파일</string>
+
+    <string name="save">저장</string>
+    <string name="share">공유</string>
+    <string name="details">상세정보</string>
 </resources>
