@@ -271,14 +271,11 @@ class ChattingActivity : AppCompatActivity() {
                         * */
 
                         // snapshot.childrenCount.toInt() == 4
-                        if (!data?.message.isNullOrBlank() &&
-                            !data?.createdAt.isNullOrBlank() &&
-                            !data?.senderEmail.isNullOrBlank() &&
-                            !data?.senderNickname.isNullOrBlank()
-                        ) {
+
+                        if (snapshot.childrenCount.toInt() == 5 && data?.dataType == "text") {
                             val viewType = when {
-                                (data?.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
-                                (data?.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
+                                (data.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
+                                (data.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
                                 else -> -1
                             }
 
@@ -286,7 +283,12 @@ class ChattingActivity : AppCompatActivity() {
                             initRecycler()
                         } else if (snapshot.childrenCount.toInt() == 7 && data?.dataType == "image") {
                             val isMyChat = data.senderEmail == currentUserEmail
-                            addChatDataList(ChatData.VIEW_TYPE_IMAGE, data, snapshot.key.toString(), isMyChat)
+                            addChatDataList(
+                                ChatData.VIEW_TYPE_IMAGE,
+                                data,
+                                snapshot.key.toString(),
+                                isMyChat
+                            )
                             initRecycler()
                         }
                     }
