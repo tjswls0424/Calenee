@@ -3,4 +3,7 @@
     <external-path
         name="my_images"
         path="Android/data/org.jin.calenee/files/Pictures" />
+    <cache-path
+        name="cache_file"
+        path="." />
 </paths>

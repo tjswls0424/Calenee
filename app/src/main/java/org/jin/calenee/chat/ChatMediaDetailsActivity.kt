@@ -1,6 +1,7 @@
 package org.jin.calenee.chat
 
 import android.content.ContentValues
+import android.content.Intent
 import android.graphics.*
 import android.media.ExifInterface
 import androidx.appcompat.app.AppCompatActivity
@@ -11,11 +12,11 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.FileProvider
 import com.google.android.material.snackbar.Snackbar
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatMediaDetailsBinding
-import java.io.File
-import java.io.OutputStream
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -159,6 +160,52 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveBitmapToCacheDir(bitmap: Bitmap?) {
+        val bos = ByteArrayOutputStream()
+        bos.use {
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, it)
+        }
+
+        val cacheFile = File(applicationContext.cacheDir, "calenee_${imageData.timeInMillis}.jpg")
+        try {
+            cacheFile.createNewFile()
+            val fos = FileOutputStream(cacheFile, false)
+            fos.use {
+                bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, it)
+//                it.write(bos.toByteArray())
+            }
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun deleteCacheFile(cacheFile: File) {
+        cacheFile.delete()
+        applicationContext.deleteFile(cacheFile.name)
+        Log.d("del_test", "deleted cache file")
+    }
+
+    private fun getCacheFile(): File =
+        File(applicationContext.cacheDir, "calenee_${imageData.timeInMillis}.jpg")
+
+
+    private fun shareImage(cacheFile: File) {
+        val bitmapUri = FileProvider.getUriForFile(
+            this@ChatMediaDetailsActivity,
+            "org.jin.calenee.fileprovider",
+            cacheFile
+        )
+
+        Intent(Intent.ACTION_SEND).apply {
+            type = "image/*"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            putExtra(Intent.EXTRA_STREAM, bitmapUri)
+            startActivity(Intent.createChooser(this, "공유"))
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.chat_top_menu, menu)
         return true
@@ -170,31 +217,36 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+        return when (item.itemId) {
             R.id.chat_image_download -> {
                 saveImageFile()
-                Log.d("menu_test", "chat_image_download")
-                return true
+                true
             }
             R.id.chat_image_share -> {
-                Log.d("menu_test", "chat_image_share")
-                return true
+                saveBitmapToCacheDir(imageData.bitmap)
+                shareImage(getCacheFile())
+                true
             }
             R.id.chat_image_info -> {
                 showImageInfo()
                 Log.d("menu_test", "info")
-                return true
+                true
             }
+            else -> super.onOptionsItemSelected(item)
         }
 
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onBackPressed() {
-        if (binding.imageInfoGl.visibility == View.VISIBLE) {
+        if (binding.imageInfoLayout.visibility == View.VISIBLE) {
             hideImageInfo()
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        deleteCacheFile(getCacheFile())
+        super.onDestroy()
     }
 }
