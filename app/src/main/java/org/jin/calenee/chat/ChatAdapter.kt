@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.gun0912.tedpermission.provider.TedPermissionProvider.context
@@ -30,7 +32,7 @@ class ChatAdapter(context: Context) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val view: View?
         return when (viewType) {
-            ChatData.VIEW_TYPE_LEFT -> {
+            ChatData.VIEW_TYPE_LEFT_TEXT -> {
                 view = LayoutInflater.from(parent.context).inflate(
                     R.layout.chat_partner_item,
                     parent,
@@ -39,7 +41,7 @@ class ChatAdapter(context: Context) :
 
                 LeftViewHolder(view)
             }
-            ChatData.VIEW_TYPE_RIGHT -> {
+            ChatData.VIEW_TYPE_RIGHT_TEXT -> {
                 view = LayoutInflater.from(parent.context).inflate(
                     R.layout.chat_mine_item,
                     parent,
@@ -48,7 +50,7 @@ class ChatAdapter(context: Context) :
 
                 RightViewHolder(view)
             }
-            ChatData.VIEW_TYPE_CENTER -> {
+            ChatData.VIEW_TYPE_CENTER_TEXT -> {
                 view = LayoutInflater.from(parent.context).inflate(
                     R.layout.chat_date_item,
                     parent,
@@ -72,15 +74,15 @@ class ChatAdapter(context: Context) :
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (data[position].viewType) {
-            ChatData.VIEW_TYPE_LEFT -> {
+            ChatData.VIEW_TYPE_LEFT_TEXT -> {
                 (holder as LeftViewHolder).bind(data[position])
                 holder.setIsRecyclable(false)
             }
-            ChatData.VIEW_TYPE_RIGHT -> {
+            ChatData.VIEW_TYPE_RIGHT_TEXT -> {
                 (holder as RightViewHolder).bind(data[position])
                 holder.setIsRecyclable(false)
             }
-            ChatData.VIEW_TYPE_CENTER -> {
+            ChatData.VIEW_TYPE_CENTER_TEXT -> {
                 (holder as CenterViewHolder).bind(data[position])
                 holder.setIsRecyclable(false)
             }
@@ -133,14 +135,30 @@ class ChatAdapter(context: Context) :
 
     // image file
     inner class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+//        private val parentLayout = view.findViewById<ConstraintLayout>(R.id.chat_image_layout)
         private val timeTextView = view.findViewById<TextView>(R.id.chat_image_time_text)
         private var imageView = view.findViewById<ImageView>(R.id.chat_image)
 
-        val dp = 250 // can be modified as needed
-        val density = context.resources.displayMetrics.density
-        val width = (dp * density).toInt()
+        private val dp = 250 // can be modified as needed
+        private val density = context.resources.displayMetrics.density
+        private val width = (dp * density).toInt()
 
         fun bind(item: ChatData, position: Int) {
+            if (!item.isMyChat) {
+                // chat data from partner
+                imageView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    endToEnd = ConstraintLayout.LayoutParams.UNSET
+                    topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                }
+
+                timeTextView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    endToStart = ConstraintLayout.LayoutParams.UNSET
+                    bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    startToEnd = imageView.id
+                }
+            }
+
             val loadingBitmap = imageView.background.toBitmap(300, 300)
             if (item.bitmap != null && item.time != "") {
                 Glide.with(context)

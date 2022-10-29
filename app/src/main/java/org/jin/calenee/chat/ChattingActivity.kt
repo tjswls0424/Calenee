@@ -37,17 +37,13 @@ import kotlinx.coroutines.launch
 import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
 import org.jin.calenee.util.NetworkStatusHelper
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.IOException
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val DATE_TIME = 0
 const val TIME = 1
 const val DATE = 2
-
-const val IMAGE_TYPE = 3
 
 const val CAMERA = 10
 const val ALBUM = 11
@@ -281,19 +277,16 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.senderNickname.isNullOrBlank()
                         ) {
                             val viewType = when {
-                                (data?.senderEmail == currentUserEmail) -> 1
-                                (data?.senderEmail != currentUserEmail) -> 0
+                                (data?.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
+                                (data?.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
                                 else -> -1
                             }
 
                             addChatDataList(viewType, data, snapshot.key.toString())
                             initRecycler()
-                        } else if (snapshot.childrenCount.toInt() == 7 && data?.fileType == "image") {
-                            if (data.senderEmail != currentUserEmail) {
-                                addChatDataList(IMAGE_TYPE, data, snapshot.key.toString())
-                            } else {
-                                addChatDataList(IMAGE_TYPE, data, snapshot.key.toString(), true)
-                            }
+                        } else if (snapshot.childrenCount.toInt() == 7 && data?.dataType == "image") {
+                            val isMyChat = data.senderEmail == currentUserEmail
+                            addChatDataList(ChatData.VIEW_TYPE_IMAGE, data, snapshot.key.toString(), isMyChat)
                             initRecycler()
                         }
                     }
@@ -322,8 +315,7 @@ class ChattingActivity : AppCompatActivity() {
 
                 try {
                     Intent(this@ChattingActivity, ChatMediaDetailsActivity::class.java).apply {
-//                        putExtra("byteArray", bitmapToByteArray(data.bitmap))
-                        putExtra("fileName", bitmapToByteArray(data.bitmap))
+                        putExtra("fileName", createTempFileForBitmap(data.bitmap))
                         putExtra("nickname", data.nickname.toString())
                         putExtra("time", data.time.toString())
                         putExtra("timeInMillis", data.timeInMillis)
@@ -337,14 +329,13 @@ class ChattingActivity : AppCompatActivity() {
         })
     }
 
-    // if set image high quality, (intent putExtra) do not work
-    private fun bitmapToByteArray(bitmap: Bitmap?): String? {
+    private fun createTempFileForBitmap(bitmap: Bitmap?): String? {
         var fileName: String? = "tempFileName"
         try {
             val fo = openFileOutput(fileName, Context.MODE_PRIVATE)
-            bitmap?.compress(Bitmap.CompressFormat.JPEG, 90, fo)
-            fo.flush()
-            fo.close()
+            fo.use {
+                bitmap?.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             fileName = null
@@ -374,6 +365,7 @@ class ChattingActivity : AppCompatActivity() {
                 child("senderNickname").setValue(data.nickname)
                 child("message").setValue(data.message)
                 child("createdAt").setValue(data.time)
+                child("dataType").setValue(data.dataType)
 //                child("read").setValue(false)
             }
     }
@@ -395,7 +387,7 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("img_test/success", "success")
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
-                        child("fileType").setValue("image")
+                        child("dataType").setValue("image")
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
                         child("fileAbsolutePath").setValue(imageRef.path)
@@ -464,14 +456,18 @@ class ChattingActivity : AppCompatActivity() {
                             }
                         }
 
-                        val viewType = when {
-                            data?.fileType == "image" -> 3
-                            (data?.senderEmail == currentUserEmail) -> 1
-                            (data?.senderEmail != currentUserEmail) -> 0
+                        val isMyChat = data?.senderEmail == currentUserEmail
+                        val viewType: Int = when (data?.dataType) {
+                            "text" -> {
+                                if (isMyChat) ChatData.VIEW_TYPE_RIGHT_TEXT else ChatData.VIEW_TYPE_LEFT_TEXT
+                            }
+
+                            "image" -> ChatData.VIEW_TYPE_IMAGE
+
                             else -> -1
                         }
 
-                        addChatDataList(viewType, data, dataSnapshot.key.toString())
+                        addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat)
                     }
                 }
 
@@ -486,10 +482,10 @@ class ChattingActivity : AppCompatActivity() {
         viewType: Int,
         data: SavedChatData?,
         key: String = "",
-        isMine: Boolean = false
+        isMyChat: Boolean = false
     ) {
         when (viewType) {
-            0, 1 -> {
+            ChatData.VIEW_TYPE_LEFT_TEXT, ChatData.VIEW_TYPE_RIGHT_TEXT -> {
                 chatDataList.add(
                     ChatData(
                         viewType,
@@ -500,7 +496,7 @@ class ChattingActivity : AppCompatActivity() {
                 )
             }
 
-            3 -> {
+            ChatData.VIEW_TYPE_IMAGE -> {
                 // Since it takes time to complete loading the image from server,
                 // add a temporary item(empty ImageView) to chatDataList where the image data will be stored.
                 tmpImageMap[key] = chatDataList.size
@@ -511,13 +507,15 @@ class ChattingActivity : AppCompatActivity() {
                     time = "",
                     ratio = data?.fileRatio ?: 1.0,
                     tmpIndex = chatDataList.size,
-                    timeInMillis = key.toLong()
+                    timeInMillis = key.toLong(),
+                    dataType = "image",
+                    isMyChat = isMyChat
                 )
 
                 // in case of sending image by me
-                if (isMine) {
-                    tmpChatData.time = "전송 중"
-                }
+//                if (isMyChat) {
+//                    tmpChatData.time = "전송 중"
+//                }
 
                 chatDataList.add(
                     tmpImageMap[key] ?: 0,
@@ -549,7 +547,9 @@ class ChattingActivity : AppCompatActivity() {
                                     time = data?.createdAt,
                                     bitmap = bitmap,
                                     ratio = data?.fileRatio ?: 1.0,
-                                    timeInMillis = key.toLong()
+                                    timeInMillis = key.toLong(),
+                                    dataType = "image",
+                                    isMyChat = isMyChat
                                 )
 
                             notifyItemChanged(tmpImageMap[key] ?: 0)

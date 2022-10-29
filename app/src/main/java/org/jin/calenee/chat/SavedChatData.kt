@@ -8,6 +8,6 @@ data class SavedChatData(
     val fileAbsolutePath: String? = "",
     val fileRelativePath: String? = "",
     val fileRatio: Double = 0.5,
-    val fileType: String? = "",
+    val dataType: String = "text",
 //    val read: Boolean? = false,
 )

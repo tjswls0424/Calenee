@@ -13,11 +13,13 @@ data class ChatData(
     var bitmap: Bitmap? = null,
     var ratio: Double = -1.0,
     var tmpIndex: Int = 0,
+    var dataType: String = "text",
+    var isMyChat: Boolean = true,
 ) {
     companion object {
-        const val VIEW_TYPE_LEFT = 0
-        const val VIEW_TYPE_RIGHT = 1
-        const val VIEW_TYPE_CENTER = 2
+        const val VIEW_TYPE_LEFT_TEXT = 0
+        const val VIEW_TYPE_RIGHT_TEXT = 1
+        const val VIEW_TYPE_CENTER_TEXT = 2
         const val VIEW_TYPE_IMAGE = 3
     }
 }
