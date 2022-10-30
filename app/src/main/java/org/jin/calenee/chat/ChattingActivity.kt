@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
@@ -36,6 +37,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jin.calenee.App
 import org.jin.calenee.databinding.ActivityChattingBinding
+import org.jin.calenee.dialog.CaptureDialog
 import org.jin.calenee.util.NetworkStatusHelper
 import java.io.*
 import java.text.SimpleDateFormat
@@ -47,6 +49,7 @@ const val DATE = 2
 
 const val CAMERA = 10
 const val ALBUM = 11
+const val RECORD_AUDIO = 12
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -190,6 +193,26 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.cameraBtn.setOnClickListener {
             if (checkPermission(CAMERA)) {
+                CaptureDialog(this).apply {
+                    setOnClickedListener { captureType ->
+                        when (captureType) {
+                            ChatData.VIEW_TYPE_IMAGE -> {
+                                startCapture()
+                            }
+                            ChatData.VIEW_TYPE_VIDEO -> {
+                                checkPermission(RECORD_AUDIO)
+                            }
+                            else -> {
+                                Snackbar.make(
+                                    binding.root,
+                                    "카메라를 실행할 수 없습니다. 잠시 후 다시 시도해주세요.",
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                }.show()
+
                 Log.d("cam_test", "success")
             } else {
                 Log.d("cam_test", "fail")
@@ -596,30 +619,48 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun checkPermission(type: Int): Boolean {
+//        val tedPermission = TedPermission.create()
+
         return when (type) {
             CAMERA -> {
-                val captureListener = object : PermissionListener {
-                    override fun onPermissionGranted() {
-                        startCapture()
-                    }
+                TedPermission.create().apply {
+                    setPermissionListener(object : PermissionListener {
+                        override fun onPermissionGranted() {
+//                        startCapture()
+                        }
 
-                    override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
-                }
-
-                TedPermission.create()
-                    .setPermissionListener(captureListener)
-                    .setRationaleMessage("카메라 사진 권한 필요")
-                    .setDeniedMessage("카메라 권한이 거절되었습니다. 설정에서 권한을 허용해주세요.")
-                    .setPermissions(
+                        override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
+                    })
+                    setRationaleMessage("카메라 사진 권한 필요")
+                    setDeniedMessage("카메라 권한이 거절되었습니다. 설정에서 권한을 허용해주세요.")
+                    setPermissions(
                         android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         android.Manifest.permission.CAMERA
                     )
-                    .check()
+                }.check()
 
                 true
             }
 
             ALBUM -> {
+                true
+            }
+
+            RECORD_AUDIO -> {
+                TedPermission.create().apply {
+                    setPermissionListener(object : PermissionListener {
+                        override fun onPermissionGranted() {
+//                        startRecordVideo()
+                            Snackbar.make(binding.root, "audio", Snackbar.LENGTH_SHORT).show()
+                        }
+
+                        override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
+                    })
+                    setRationaleMessage("오디오 녹화 권한 필요")
+                    setPermissions(android.Manifest.permission.RECORD_AUDIO)
+                    setDeniedMessage("설정에서 권한을 허용해주세요.")
+                }.check()
+
                 true
             }
 

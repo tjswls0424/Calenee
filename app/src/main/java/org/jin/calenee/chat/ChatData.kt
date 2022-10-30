@@ -21,5 +21,6 @@ data class ChatData(
         const val VIEW_TYPE_RIGHT_TEXT = 1
         const val VIEW_TYPE_CENTER_TEXT = 2
         const val VIEW_TYPE_IMAGE = 3
+        const val VIEW_TYPE_VIDEO = 4
     }
 }
