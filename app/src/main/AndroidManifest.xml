@@ -34,6 +34,9 @@
         </provider>
 
         <activity
+            android:name=".chat.ChatVideoDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".chat.ChatMediaDetailsActivity"
             android:theme="@style/Theme.DarkStatusBar" />
         <activity

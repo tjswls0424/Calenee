@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -49,7 +50,7 @@ const val DATE = 2
 
 const val CAMERA = 10
 const val ALBUM = 11
-const val RECORD_AUDIO = 12
+const val CAPTURE_VIDEO = 12
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -76,6 +77,7 @@ class ChattingActivity : AppCompatActivity() {
 
     private var tmpImageMap = hashMapOf<String, Int>()
     private lateinit var currentImagePath: String
+    private lateinit var currentVideoPath: String
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,7 +202,7 @@ class ChattingActivity : AppCompatActivity() {
                                 startCapture()
                             }
                             ChatData.VIEW_TYPE_VIDEO -> {
-                                checkPermission(RECORD_AUDIO)
+                                checkPermission(CAPTURE_VIDEO)
                             }
                             else -> {
                                 Snackbar.make(
@@ -646,11 +648,11 @@ class ChattingActivity : AppCompatActivity() {
                 true
             }
 
-            RECORD_AUDIO -> {
+            CAPTURE_VIDEO -> {
                 TedPermission.create().apply {
                     setPermissionListener(object : PermissionListener {
                         override fun onPermissionGranted() {
-//                        startRecordVideo()
+                            startRecordVideo()
                             Snackbar.make(binding.root, "audio", Snackbar.LENGTH_SHORT).show()
                         }
 
@@ -671,23 +673,50 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun startCapture() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
-            intent.resolveActivity(packageManager)?.also {
-                val photofile: File? = try {
-                    createImageFile()
-                } catch (e: IOException) {
-                    null
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
+                intent.resolveActivity(packageManager)?.also {
+                    val photofile: File? = try {
+                        createImageFile()
+                    } catch (e: IOException) {
+                        null
+                    }
+
+                    photofile?.also {
+                        val photoUri = FileProvider.getUriForFile(
+                            this,
+                            "org.jin.calenee.fileprovider",
+                            it
+                        )
+
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                        startActivityForResult(intent, CAMERA)
+                    }
                 }
+            }
+        }
+    }
 
-                photofile?.also {
-                    val photoUri = FileProvider.getUriForFile(
-                        this,
-                        "org.jin.calenee.fileprovider",
-                        it
-                    )
+    private fun startRecordVideo() {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { intent ->
+                intent.resolveActivity(packageManager)?.also {
+                    val videoFile: File? = try {
+                        createVideoFile()
+                    } catch (e: IOException) {
+                        null
+                    }
 
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                    startActivityForResult(intent, CAMERA)
+                    videoFile?.also {
+                        val videoUri = FileProvider.getUriForFile(
+                            this,
+                            "org.jin.calenee.fileprovider",
+                            it
+                        )
+
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri) // it will be written to specified path
+                        startActivityForResult(intent, CAPTURE_VIDEO)
+                    }
                 }
             }
         }
@@ -696,14 +725,26 @@ class ChattingActivity : AppCompatActivity() {
     private fun createImageFile(): File {
         val fileName = getCurrentTimeStamp(DATE_TIME)
 //        val storageDir = Environment.getExternalStorageDirectory().absolutePath + "/calenee"
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+//        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
 
         return File.createTempFile(
             "JPEG_$fileName",
             ".jpg",
-            storageDir
+            applicationContext.cacheDir
         ).apply {
             currentImagePath = absolutePath
+        }
+    }
+
+    private fun createVideoFile(): File {
+        val fileName = getCurrentTimeStamp(DATE_TIME)
+
+        return File.createTempFile(
+            "VIDEO_$fileName",
+            ".mp4",
+            applicationContext.cacheDir
+        ).apply {
+            currentVideoPath = absolutePath
         }
     }
 
@@ -739,6 +780,17 @@ class ChattingActivity : AppCompatActivity() {
                     }
 
                     saveImageData(bitmap)
+                }
+
+                CAPTURE_VIDEO -> {
+                    Log.d("video_test", "video abs path: $currentVideoPath")
+                    Toast.makeText(this, "video success", Toast.LENGTH_SHORT).show()
+
+                    Intent(applicationContext, ChatVideoDetailsActivity::class.java).apply {
+                        putExtra("filePath", currentVideoPath)
+                        startActivity(this)
+                    }
+
                 }
             }
         }
