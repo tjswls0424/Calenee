@@ -15,13 +15,32 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        setToolbar()
+
+
 
         val filePath = intent.getStringExtra("filePath").toString()
         val tmpFile = File(filePath)
-        if( tmpFile.isFile) {
-            Glide.with(applicationContext)
-                .load(tmpFile)
-                .into(binding.thumbnailView)
-        }
+
+
+//        if( tmpFile.isFile) {
+//            Glide.with(applicationContext)
+//                .load(tmpFile)
+//                .into(binding.thumbnailView)
+//        }
+    }
+
+    private fun listener() {
+
+    }
+
+    private fun initVideoData() {
+
+    }
+
+    private fun setToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
     }
 }
