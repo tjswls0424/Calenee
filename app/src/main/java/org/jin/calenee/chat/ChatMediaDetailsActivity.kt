@@ -105,6 +105,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
     }
 
     private fun setToolbar() {
+        binding.toolbar.bringToFront()
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)

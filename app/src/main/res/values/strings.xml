@@ -61,6 +61,6 @@
     <string name="file">파일</string>
 
     <string name="save">저장</string>
-    <string name="share">공유</string>
+    <string name="share">다른 앱으로 공유</string>
     <string name="details">상세정보</string>
 </resources>

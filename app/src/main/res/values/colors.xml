@@ -25,6 +25,7 @@
     <color name="chatting_date_background">#7CA3A3A3</color>
     <color name="chatting_info_background">#63000000</color>
     <color name="chatting_info_text_view_background">#B2373737</color>
+    <color name="chat_toolbar_background">#CC000000</color>
 
     <color name="loading_screen_color">#4D535353</color>
     <color name="transparent">#00FFFFFF</color>
