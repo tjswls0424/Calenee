@@ -2,29 +2,24 @@ package org.jin.calenee.chat
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.content.res.AppCompatResources
+import android.widget.ImageButton
 import androidx.core.content.FileProvider
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatVideoDetailsBinding
-import org.jin.calenee.databinding.PlayerControlViewBinding
 import java.io.File
 
 class ChatVideoDetailsActivity : AppCompatActivity() {
     private val binding: ActivityChatVideoDetailsBinding by lazy {
         ActivityChatVideoDetailsBinding.inflate(layoutInflater)
     }
-    private val controllerBinding: PlayerControlViewBinding by lazy {
-        PlayerControlViewBinding.inflate(layoutInflater)
-    }
-
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayer.Builder(this).build()
     }
 
+    private val muteBtn = findViewById<ImageButton>(R.id.exo_volume_mute_btn)
     private var isVolumeMuted: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,14 +30,6 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
         listener()
 
         initPlayer()
-//        buildMediaSource()
-
-
-//        if( tmpFile.isFile) {
-//            Glide.with(applicationContext)
-//                .load(tmpFile)
-//                .into(binding.thumbnailView)
-//        }
     }
 
     private fun listener() {
@@ -50,15 +37,9 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
             if (supportActionBar?.isShowing == true) {
                 supportActionBar?.hide()
                 binding.playerView.hideController()
-//                binding.playerControlView.hide()
-//                binding.controllerLayout1.visibility = View.GONE
             } else {
                 supportActionBar?.show()
                 binding.playerView.showController()
-
-//                binding.playerControlView.show()
-
-//                binding.controllerLayout1.visibility = View.VISIBLE
             }
         }
 
@@ -86,20 +67,17 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
             }
         })
 
-        controllerBinding.exoVolumeMuteBtn.setOnClickListener { btn ->
+        muteBtn.setOnClickListener {
             if (isVolumeMuted) {
-                //////////////////////////////
-                /////////////
-                controllerBinding.exoVolumeMuteBtn.background = AppCompatResources.getDrawable(this, R.drawable.ic_baseline_volume_up_24 )
                 // muted X
+                binding.playerView.player?.isDeviceMuted = false
+                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_up_24)
                 isVolumeMuted = false
-                btn.setBackgroundResource(R.drawable.ic_baseline_volume_up_24)
-                Log.d("mute_test", "volume on")
             } else {
                 // muted
+                binding.playerView.player?.isDeviceMuted = true
+                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_off_24)
                 isVolumeMuted = true
-                btn.setBackgroundResource(R.drawable.ic_baseline_volume_off_24)
-                Log.d("mute_test", "volume off")
             }
         }
     }
