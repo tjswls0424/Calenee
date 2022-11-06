@@ -2,6 +2,7 @@ package org.jin.calenee.chat
 
 import android.content.ContentValues
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -160,19 +161,24 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
         }
     }
 
-//    private fun showVideoInfo() {
-//        val exif = ExifInterface(File(videoPath))
-//        val videoSize =
-//            exif.getAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH) + "x" + exif.getAttribute(
-//                ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH
-//            )
-//
-//        binding.apply {
-//            videoInfoLayout.visibility = View.VISIBLE
-//            infoTypeTv.text = "MP4"
-//            infoSizeTv.text = videoSize
-//        }
-//    }
+    private fun showVideoInfo() {
+        val retriever = MediaMetadataRetriever().apply {
+            setDataSource(applicationContext, videoUri)
+        }
+
+        val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) ?: 0
+        val height =
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) ?: 0
+        val mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: ""
+
+        retriever.release()
+
+        binding.apply {
+            videoInfoLayout.visibility = View.VISIBLE
+            infoTypeTv.text = mimeType
+            infoSizeTv.text = "${width}x${height}"
+        }
+    }
 
     private fun hideVideoInfo() {
         binding.apply {
@@ -201,7 +207,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
                 true
             }
             R.id.chat_media_info -> {
-//                showVideoInfo()
+                showVideoInfo()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -218,7 +224,10 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        exoPlayer.playWhenReady = true
+        exoPlayer.apply {
+            prepare()
+            playWhenReady = true
+        }
     }
 
     override fun onStop() {

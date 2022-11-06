@@ -80,7 +80,7 @@
 
             <TextView
                 style="@style/ChatMediaInfo"
-                android:text="종류" />
+                android:text="타입" />
 
             <TextView
                 android:id="@+id/info_type_tv"
