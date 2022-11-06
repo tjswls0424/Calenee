@@ -2,18 +2,14 @@ package org.jin.calenee.chat
 
 import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Bitmap
-import android.media.ExifInterface
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.core.content.FileProvider
 import com.google.android.exoplayer2.ExoPlayer
@@ -23,7 +19,6 @@ import com.google.android.material.snackbar.Snackbar
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatVideoDetailsBinding
 import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
 
 class ChatVideoDetailsActivity : AppCompatActivity() {
@@ -38,7 +33,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
     }
 
 
-//    private val muteBtn = findViewById<ImageButton>(R.id.exo_volume_mute_btn)
+    //    private val muteBtn = findViewById<ImageButton>(R.id.exo_volume_mute_btn)
     private var videoPath: String = ""
     private var videoUri: Uri = Uri.EMPTY
     private var isVolumeMuted: Boolean = false
@@ -114,53 +109,41 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
 
     private fun initPlayer() {
         videoPath = intent.getStringExtra("filePath").toString()
+        val file = File(videoPath)
         videoUri =
-            FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", File(videoPath))
+            FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", file, file.name)
 
         exoPlayer.setMediaItem(MediaItem.fromUri(videoUri))
         binding.playerView.player = exoPlayer
         exoPlayer.prepare()
     }
 
-//    private fun saveVideoFile() {
-//        try {
-//            var fos: OutputStream?
-//            val file = File(videoPath)
-//
-//            val contentValues = ContentValues().apply {
-//                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
-//                put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-//                put(MediaStore.MediaColumns.DATA, file.absolutePath)
-//                put(
-//                    MediaStore.MediaColumns.RELATIVE_PATH, "CaleneeVideo"
-//                )
-//            }
-//
-//            contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
-//
-//            Snackbar.make(binding.root, "저장되었습니다.", Snackbar.LENGTH_SHORT).show()
-//
-//
-////            contentResolver.apply {
-////                val videoUri =
-////                    insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues).apply {
-//////                        val id = this?.path?.split("/") ?: listOf()
-////                    }
-////
-////                fos = videoUri?.let {
-////                    openOutputStream(it)
-////                }
-////            }
-////
-////            fos = contentResolver.openOutputStream(videoUri)
-////            fos?.use { outputStream ->
-////                imageData.bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-////                Snackbar.make(binding.root, "사진이 저장되었습니다", Snackbar.LENGTH_SHORT).show()
-////            }
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-//    }
+    private fun saveVideoFile() {
+        try {
+            val fos: OutputStream?
+            val file = File(videoPath)
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+                put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    Environment.DIRECTORY_MOVIES + File.separator + "Calenee"
+                )
+            }
+
+            val uri =
+                contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues)
+            fos = uri?.let { contentResolver.openOutputStream(it) }
+            fos.use {
+                fos?.write(file.readBytes())
+            }
+
+            Snackbar.make(binding.root, "저장되었습니다.", Snackbar.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     private fun shareVideo() {
         val videoUri = FileProvider.getUriForFile(
@@ -180,8 +163,8 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
 //    private fun showVideoInfo() {
 //        val exif = ExifInterface(File(videoPath))
 //        val videoSize =
-//            exif.getAttribute(ExifInterface.TAG_IMAGE_WIDTH) + "x" + exif.getAttribute(
-//                ExifInterface.TAG_IMAGE_LENGTH
+//            exif.getAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH) + "x" + exif.getAttribute(
+//                ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH
 //            )
 //
 //        binding.apply {
@@ -210,7 +193,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.chat_media_download -> {
-//                saveVideoFile()
+                saveVideoFile()
                 true
             }
             R.id.chat_media_share -> {

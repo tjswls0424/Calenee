@@ -431,6 +431,10 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveVideoData() {
+
+    }
+
     // first loading chat screen
     private var tmpTimeKey = 0L
     private fun getSavedChatData() {
@@ -714,7 +718,10 @@ class ChattingActivity : AppCompatActivity() {
                             it
                         )
 
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, videoUri) // it will be written to specified path
+                        intent.putExtra(
+                            MediaStore.EXTRA_OUTPUT,
+                            videoUri
+                        ) // it will be written to specified path
                         startActivityForResult(intent, CAPTURE_VIDEO)
                     }
                 }
@@ -723,26 +730,18 @@ class ChattingActivity : AppCompatActivity() {
     }
 
     private fun createImageFile(): File {
-        val fileName = getCurrentTimeStamp(DATE_TIME)
-//        val storageDir = Environment.getExternalStorageDirectory().absolutePath + "/calenee"
-//        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-
-        return File.createTempFile(
-            "JPEG_$fileName",
-            ".jpg",
-            applicationContext.cacheDir
+        return File(
+            applicationContext.cacheDir,
+            "IMG_${getCurrentTimeStamp(DATE_TIME)}.jpg"
         ).apply {
             currentImagePath = absolutePath
         }
     }
 
     private fun createVideoFile(): File {
-        val fileName = getCurrentTimeStamp(DATE_TIME)
-
-        return File.createTempFile(
-            "VIDEO_$fileName",
-            ".mp4",
-            applicationContext.cacheDir
+        return File(
+            applicationContext.cacheDir,
+            "VID_${getCurrentTimeStamp(DATE_TIME)}.mp4"
         ).apply {
             currentVideoPath = absolutePath
         }
@@ -785,6 +784,10 @@ class ChattingActivity : AppCompatActivity() {
                 CAPTURE_VIDEO -> {
                     Log.d("video_test", "video abs path: $currentVideoPath")
                     Toast.makeText(this, "video success", Toast.LENGTH_SHORT).show()
+
+//                    val videoUri =
+//                        FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", File(currentVideoPath))
+
 
                     Intent(applicationContext, ChatVideoDetailsActivity::class.java).apply {
                         putExtra("filePath", currentVideoPath)
