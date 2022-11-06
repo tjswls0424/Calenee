@@ -91,21 +91,21 @@
             android:rowCount="2">
 
             <TextView
-                style="@style/ChatImageInfo"
+                style="@style/ChatMediaInfo"
                 android:text="종류" />
 
             <TextView
                 android:id="@+id/info_type_tv"
-                style="@style/ChatImageInfo"
+                style="@style/ChatMediaInfo"
                 tools:text="JPEG" />
 
             <TextView
-                style="@style/ChatImageInfo"
+                style="@style/ChatMediaInfo"
                 android:text="해상도" />
 
             <TextView
                 android:id="@+id/info_size_tv"
-                style="@style/ChatImageInfo"
+                style="@style/ChatMediaInfo"
                 tools:text="1024x1024" />
         </GridLayout>
     </LinearLayout>

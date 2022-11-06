@@ -104,8 +104,8 @@
         <item name="android:backgroundTint">@color/sub_color7</item>
     </style>
 
-    <style name="ChatImageInfo">
-        <item name="android:layout_width">60dp</item>
+    <style name="ChatMediaInfo">
+        <item name="android:layout_width">65dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">12sp</item>
         <item name="android:paddingVertical">1dp</item>

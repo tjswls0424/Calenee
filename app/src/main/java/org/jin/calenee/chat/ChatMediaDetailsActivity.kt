@@ -129,8 +129,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
             contentResolver.apply {
                 val imageUri =
                     insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues).apply {
-                        val id = this?.path?.split("/") ?: listOf()
-                        Log.d("img_test/path", this?.path.toString())
+//                        val id = this?.path?.split("/") ?: listOf()
                     }
 
                 fos = imageUri?.let {
@@ -219,23 +218,22 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.chat_image_download -> {
+            R.id.chat_media_download -> {
                 saveImageFile()
                 true
             }
-            R.id.chat_image_share -> {
+            R.id.chat_media_share -> {
                 saveBitmapToCacheDir(imageData.bitmap)
                 shareImage(getCacheFile())
                 true
             }
-            R.id.chat_image_info -> {
+            R.id.chat_media_info -> {
                 showImageInfo()
                 Log.d("menu_test", "info")
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-
     }
 
     override fun onBackPressed() {

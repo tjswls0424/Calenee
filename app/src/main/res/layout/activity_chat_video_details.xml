@@ -2,10 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    android:id="@+id/parent_layout"
     tools:context=".chat.ChatVideoDetailsActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -47,14 +47,54 @@
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:animateLayoutChanges="false"
-        app:resize_mode="fixed_width"
-        app:show_buffering="always"
-        app:use_controller="true"
         app:bar_gravity="bottom"
         app:controller_layout_id="@layout/player_control_view"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:resize_mode="fixed_width"
+        app:show_buffering="always"
+        app:use_controller="true" />
+
+    <LinearLayout
+        android:id="@+id/video_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="@color/chatting_info_background"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <GridLayout
+            android:id="@+id/video_info_gl"
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:background="@color/chatting_info_text_view_background"
+            android:columnCount="2"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="15dp"
+            android:rowCount="2">
+
+            <TextView
+                style="@style/ChatMediaInfo"
+                android:text="종류" />
+
+            <TextView
+                android:id="@+id/info_type_tv"
+                style="@style/ChatMediaInfo"
+                tools:text="MP4" />
+
+            <TextView
+                style="@style/ChatMediaInfo"
+                android:text="해상도" />
+
+            <TextView
+                android:id="@+id/info_size_tv"
+                style="@style/ChatMediaInfo"
+                tools:text="1024x1024" />
+        </GridLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
