@@ -9,10 +9,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Rect
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -43,6 +43,7 @@ import org.jin.calenee.util.NetworkStatusHelper
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 const val DATE_TIME = 0
 const val TIME = 1
@@ -431,8 +432,44 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveVideoData() {
+    private fun saveVideoData(videoUri: Uri) {
+        val mp = MediaPlayer.create(applicationContext, videoUri)
+//        val retriever = MediaMetadataRetriever().apply {
+//            setDataSource(applicationContext, videoUri)
+//        }
+//
+//        val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toDouble() ?: 0.0
+//        val height =
+//            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toDouble() ?: 0.0
+//        val mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: ""
+        val ms = mp.duration.milliseconds.toString()
+        val width = mp.videoWidth
+        val height = mp.videoHeight
 
+        Log.d("vid_test/ratio", "${width/height}")
+        Log.d("vid_test/formattedDuration", getDurationText(ms))
+
+
+    }
+
+    private fun getDurationText(duration: String): String {
+        var min = "0"
+        var sec = ""
+
+        if (duration.contains("m")) {
+            duration.split("m ", ".").also { list ->
+                min = list[0]
+                sec = list[1]
+            }
+        } else {
+            sec = duration.split(".", "s")[0]
+        }
+
+        return if (sec.length <= 1) {
+            "$min:0$sec"
+        } else {
+            "$min:$sec"
+        }
     }
 
     // first loading chat screen
@@ -785,14 +822,15 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("video_test", "video abs path: $currentVideoPath")
                     Toast.makeText(this, "video success", Toast.LENGTH_SHORT).show()
 
-//                    val videoUri =
-//                        FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", File(currentVideoPath))
+                    val videoUri =
+                        FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", File(currentVideoPath))
 
+                    saveVideoData(videoUri)
 
-                    Intent(applicationContext, ChatVideoDetailsActivity::class.java).apply {
-                        putExtra("filePath", currentVideoPath)
-                        startActivity(this)
-                    }
+//                    Intent(applicationContext, ChatVideoDetailsActivity::class.java).apply {
+//                        putExtra("filePath", currentVideoPath)
+//                        startActivity(this)
+//                    }
 
                 }
             }
