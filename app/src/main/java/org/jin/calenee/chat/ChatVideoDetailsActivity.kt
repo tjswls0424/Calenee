@@ -29,24 +29,21 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayer.Builder(this).build()
     }
-    private val muteBtn by lazy {
-        findViewById<ImageButton>(R.id.exo_volume_mute_btn)
-    }
 
-
-    //    private val muteBtn = findViewById<ImageButton>(R.id.exo_volume_mute_btn)
+    private lateinit var muteBtn: ImageButton
     private var videoPath: String = ""
     private var videoUri: Uri = Uri.EMPTY
     private var isVolumeMuted: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        muteBtn = findViewById(R.id.exo_volume_mute_btn)
 
         setToolbar()
         listener()
 
         initPlayer()
-        setContentView(binding.root)
     }
 
     private fun listener() {
@@ -86,19 +83,19 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
             }
         })
 
-//        muteBtn.setOnClickListener {
-//            if (isVolumeMuted) {
-//                // muted X
-//                binding.playerView.player?.isDeviceMuted = false
-//                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_up_24)
-//                isVolumeMuted = false
-//            } else {
-//                // muted
-//                binding.playerView.player?.isDeviceMuted = true
-//                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_off_24)
-//                isVolumeMuted = true
-//            }
-//        }
+        muteBtn.setOnClickListener {
+            if (isVolumeMuted) {
+                // muted X
+                binding.playerView.player?.isDeviceMuted = false
+                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_up_24)
+                isVolumeMuted = false
+            } else {
+                // muted
+                binding.playerView.player?.isDeviceMuted = true
+                muteBtn.setBackgroundResource(R.drawable.ic_baseline_volume_off_24)
+                isVolumeMuted = true
+            }
+        }
     }
 
     private fun setToolbar() {
