@@ -31,6 +31,7 @@ import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
 import kotlinx.coroutines.CoroutineScope
@@ -69,6 +70,10 @@ class ChattingActivity : AppCompatActivity() {
     }
     private val chatAdapter by lazy {
         ChatAdapter(applicationContext)
+    }
+
+    private val storageRef by lazy {
+        FirebaseStorage.getInstance().reference
     }
 
     private var isKeyboardShown: Boolean = false
@@ -403,14 +408,18 @@ class ChattingActivity : AppCompatActivity() {
         val baos = ByteArrayOutputStream().also {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         }
-        val storageRef = FirebaseStorage.getInstance().reference
+
+//        val storageRef = FirebaseStorage.getInstance().reference
         val dateTime = getCurrentTimeStamp(DATE_TIME)
         val imageRef =
             storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.jpg")
         val ratio = bitmap.height.toDouble().div(bitmap.width.toDouble())
+        val metadata = StorageMetadata.Builder()
+            .setCustomMetadata("contentType", "image/jpg")
+            .build()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val uploadTask = imageRef.putBytes(baos.toByteArray())
+            val uploadTask = imageRef.putBytes(baos.toByteArray(), metadata)
                 .addOnSuccessListener { taskSnapshot ->
                     Log.d("img_test/success", "success")
 
@@ -419,7 +428,7 @@ class ChattingActivity : AppCompatActivity() {
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
                         child("fileAbsolutePath").setValue(imageRef.path)
-                        child("fileRelativePath").setValue(imageRef.name)
+                        child("fileName").setValue(imageRef.name)
                         child("fileRatio").setValue(ratio)
                         child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
                     }
@@ -427,12 +436,12 @@ class ChattingActivity : AppCompatActivity() {
                 .addOnFailureListener {
                     Log.d("img_test", "fail to upload bitmap1: ${it.printStackTrace()}")
                     Log.d("img_test", "fail to upload bitmap2: ${it.message}")
-                    Log.d("img_test", "fail to upload bitmap2: ${it.message}")
                 }
         }
     }
 
     private fun saveVideoData(videoUri: Uri) {
+        val videoFile = File(videoUri.path.toString())
         val mp = MediaPlayer.create(applicationContext, videoUri)
 //        val retriever = MediaMetadataRetriever().apply {
 //            setDataSource(applicationContext, videoUri)
@@ -442,14 +451,42 @@ class ChattingActivity : AppCompatActivity() {
 //        val height =
 //            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toDouble() ?: 0.0
 //        val mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: ""
-        val ms = mp.duration.milliseconds.toString()
-        val width = mp.videoWidth
-        val height = mp.videoHeight
 
-        Log.d("vid_test/ratio", "${width/height}")
+        val ms = mp.duration.milliseconds.toString()
+        val ratio = (mp.videoWidth / mp.videoHeight).toDouble()
+
+        Log.d("vid_test/name", videoFile.name)
+        Log.d("vid_test/ratio", ratio.toString())
         Log.d("vid_test/formattedDuration", getDurationText(ms))
 
+        val videoRef =
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${videoFile.name}")
+        val metadata = StorageMetadata.Builder()
+            .setCustomMetadata("contentType", "video/mp4")
+            .build()
 
+        val dateTime = videoFile.nameWithoutExtension.split("_").last()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            videoRef.putFile(videoUri, metadata)
+                .addOnSuccessListener { taskSnapshot ->
+                    Log.d("vid_test", "success")
+
+                    chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("dataType").setValue("video")
+                        child("senderEmail").setValue(currentUserEmail)
+                        child("senderNickname").setValue(nickname)
+                        child("fileAbsolutePath").setValue(videoRef.path)
+                        child("fileName").setValue(videoRef.name)
+                        child("fileRatio").setValue(ratio)
+                        child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
+                    }
+                }
+                .addOnFailureListener {
+                    Log.d("vid_test", "fail to upload video1: ${it.printStackTrace()}")
+                    Log.d("vid_test", "fail to upload video2: ${it.message}")
+                }
+        }
     }
 
     private fun getDurationText(duration: String): String {
@@ -823,7 +860,11 @@ class ChattingActivity : AppCompatActivity() {
                     Toast.makeText(this, "video success", Toast.LENGTH_SHORT).show()
 
                     val videoUri =
-                        FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", File(currentVideoPath))
+                        FileProvider.getUriForFile(
+                            this,
+                            "org.jin.calenee.fileprovider",
+                            File(currentVideoPath)
+                        )
 
                     saveVideoData(videoUri)
 
