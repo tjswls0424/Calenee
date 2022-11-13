@@ -6,8 +6,9 @@ data class SavedChatData(
     val senderEmail: String? = "",
     val senderNickname: String? = "",
     val fileAbsolutePath: String? = "",
-    val fileRelativePath: String? = "",
+    val fileName: String? = "",
     val fileRatio: Double = 0.5,
     val dataType: String = "text",
+    val duration: String = "",
 //    val read: Boolean? = false,
 )
