@@ -408,14 +408,13 @@ class ChattingActivity : AppCompatActivity() {
         val baos = ByteArrayOutputStream().also {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         }
-
-//        val storageRef = FirebaseStorage.getInstance().reference
         val dateTime = getCurrentTimeStamp(DATE_TIME)
         val imageRef =
             storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.jpg")
         val ratio = bitmap.height.toDouble().div(bitmap.width.toDouble())
         val metadata = StorageMetadata.Builder()
             .setCustomMetadata("contentType", "image/jpg")
+            .setCustomMetadata("resolution", "${bitmap.width}x${bitmap.height}")
             .build()
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -452,17 +451,20 @@ class ChattingActivity : AppCompatActivity() {
 //            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toDouble() ?: 0.0
 //        val mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: ""
 
-        val ms = mp.duration.milliseconds.toString()
+//        val ms = mp.duration.milliseconds.toString()
+        val duration = getDurationText(mp.duration.milliseconds.toString())
         val ratio = (mp.videoWidth / mp.videoHeight).toDouble()
 
         Log.d("vid_test/name", videoFile.name)
         Log.d("vid_test/ratio", ratio.toString())
-        Log.d("vid_test/formattedDuration", getDurationText(ms))
+        Log.d("vid_test/durationText", duration)
 
         val videoRef =
             storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${videoFile.name}")
         val metadata = StorageMetadata.Builder()
             .setCustomMetadata("contentType", "video/mp4")
+            .setCustomMetadata("duration", duration)
+            .setCustomMetadata("resolution", "${mp.videoWidth}x${mp.videoHeight}")
             .build()
 
         val dateTime = videoFile.nameWithoutExtension.split("_").last()
@@ -480,7 +482,10 @@ class ChattingActivity : AppCompatActivity() {
                         child("fileName").setValue(videoRef.name)
                         child("fileRatio").setValue(ratio)
                         child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
+                        child("duration").setValue(duration)
                     }
+
+                    clearFileCache(videoFile)
                 }
                 .addOnFailureListener {
                     Log.d("vid_test", "fail to upload video1: ${it.printStackTrace()}")
@@ -819,6 +824,14 @@ class ChattingActivity : AppCompatActivity() {
         ).apply {
             currentVideoPath = absolutePath
         }
+    }
+
+//    private fun getCacheFile(fileNameWithExtension: String): File =
+//        File(applicationContext.cacheDir, fileNameWithExtension)
+
+    private fun clearFileCache(cacheFile: File) {
+        cacheFile.delete()
+        applicationContext.deleteFile(cacheFile.name)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
