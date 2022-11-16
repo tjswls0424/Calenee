@@ -14,6 +14,7 @@ data class ChatData(
     var dataType: String = "text",
     var fileNameWithExtension: String = "",
     var isMyChat: Boolean = true,
+    var duration: String = "0:00",
 ) {
     companion object {
         const val VIEW_TYPE_LEFT_TEXT = 0

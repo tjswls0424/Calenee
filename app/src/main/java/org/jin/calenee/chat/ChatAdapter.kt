@@ -59,15 +59,16 @@ class ChatAdapter(context: Context) :
 
                 CenterViewHolder(view)
             }
-            ChatData.VIEW_TYPE_IMAGE -> {
+            ChatData.VIEW_TYPE_IMAGE, ChatData.VIEW_TYPE_VIDEO -> {
                 view = LayoutInflater.from(parent.context).inflate(
-                    R.layout.chat_image_item,
+                    R.layout.chat_media_item,
                     parent,
                     false
                 )
 
-                ImageViewHolder(view)
+                MediaViewHolder(view)
             }
+
             else -> throw RuntimeException("unknown view type")
         }
     }
@@ -86,8 +87,8 @@ class ChatAdapter(context: Context) :
                 (holder as CenterViewHolder).bind(data[position])
                 holder.setIsRecyclable(false)
             }
-            ChatData.VIEW_TYPE_IMAGE -> {
-                (holder as ImageViewHolder).bind(data[position], position)
+            ChatData.VIEW_TYPE_IMAGE, ChatData.VIEW_TYPE_VIDEO -> {
+                (holder as MediaViewHolder).bind(data[position], position)
                 holder.setIsRecyclable(false)
             }
             else -> throw RuntimeException("unknown view type")
@@ -133,9 +134,8 @@ class ChatAdapter(context: Context) :
         }
     }
 
-    // image file
-    inner class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//        private val parentLayout = view.findViewById<ConstraintLayout>(R.id.chat_image_layout)
+    // image, video
+    inner class MediaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val timeTextView = view.findViewById<TextView>(R.id.chat_image_time_text)
         private var imageView = view.findViewById<ImageView>(R.id.chat_image)
 
@@ -159,6 +159,8 @@ class ChatAdapter(context: Context) :
                 }
             }
 
+            // bbi
+            // video: video thumbnail + play button + duration text
             val loadingBitmap = imageView.background.toBitmap(300, 300)
             if (item.bitmap != null && item.time != "") {
                 Glide.with(context)
