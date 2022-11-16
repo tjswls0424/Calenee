@@ -44,7 +44,6 @@ import org.jin.calenee.util.NetworkStatusHelper
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
 const val DATE_TIME = 0
@@ -356,6 +355,7 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
 
+                            // bbi
 //                            "video" -> {
 //                                if (snapshot.childrenCount.toInt() == 8) {
 //                                    val isMyChat = data.senderEmail == currentUserEmail
@@ -603,6 +603,7 @@ class ChattingActivity : AppCompatActivity() {
 
                             "image" -> ChatData.VIEW_TYPE_IMAGE
 
+                            // bbi
 //                            "video" -> ChatData.VIEW_TYPE_VIDEO
 
                             else -> -1
@@ -675,28 +676,48 @@ class ChattingActivity : AppCompatActivity() {
                     }/${key}.jpg"
                 )
 
+                val tmpFile = File(applicationContext.cacheDir, "$key.jpg")
                 CoroutineScope(Dispatchers.IO).launch {
-                    imageRef.getBytes(3 * 10.0.pow(8.0).toLong())
-                        .addOnSuccessListener { byteArray ->
-                            val bitmap = BitmapFactory.decodeByteArray(
-                                byteArray,
-                                0,
-                                byteArray.size
-                            )
+                    val ref = FirebaseStorage.getInstance().getReference(data?.fileAbsolutePath.toString()).apply {
+                        getFile(tmpFile)
+                            .addOnSuccessListener {
+                                Log.d("fb_test", "success to get file")
+                                val bitmap = BitmapFactory.decodeFile(tmpFile.path)
 
-                            val chatData = tmpChatData.apply {
-                                this.time = data?.createdAt
-                                this.bitmap = bitmap
+                                val chatData = tmpChatData.apply {
+                                    this.time = data?.createdAt
+                                    this.bitmap = bitmap
+                                }
+
+                                chatDataList[tmpImageMap[key] ?: tmpChatData.tmpIndex] = chatData
+                                notifyItemChanged(tmpImageMap[key] ?: tmpChatData.tmpIndex)
+                                App.userPrefs.setString("chat_last_msg_time", key)
                             }
-
-                            chatDataList[tmpImageMap[key] ?: tmpChatData.tmpIndex] = chatData
-
-                            notifyItemChanged(tmpImageMap[key] ?: tmpChatData.tmpIndex)
-                            App.userPrefs.setString("chat_last_msg_time", key)
-                        }
+                            .addOnFailureListener {
+                                Log.d("fb_test", "fail to get file")
+                            }
+                    }
+//                    ref.getFile(tmpFile)
+//                        .addOnSuccessListener {
+//                            Log.d("fb_test", "success to get file")
+//                            val bitmap = BitmapFactory.decodeFile(tmpFile.path)
+//
+//                            val chatData = tmpChatData.apply {
+//                                this.time = data?.createdAt
+//                                this.bitmap = bitmap
+//                            }
+//
+//                            chatDataList[tmpImageMap[key] ?: tmpChatData.tmpIndex] = chatData
+//                            notifyItemChanged(tmpImageMap[key] ?: tmpChatData.tmpIndex)
+//                            App.userPrefs.setString("chat_last_msg_time", key)
+//                        }
+//                        .addOnFailureListener {
+//                            Log.d("fb_test", "fail to get file")
+//                        }
                 }
             }
 
+            // bbi
 //            ChatData.VIEW_TYPE_VIDEO -> {
 //                tmpImageMap[key] = chatDataList.size
 //
@@ -721,7 +742,22 @@ class ChattingActivity : AppCompatActivity() {
 //                    tmpChatData
 //                )
 //
-//                val videoRef = storageRef.child()
+//                val videoRef = storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${data?.fileName}")
+//
+//                val tmpFile = File.createTempFile(key, "mp4")
+//                val tmpUri = Uri.EMPTY
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    val a = videoRef.getFile(tmpUri)
+//                        .addOnSuccessListener {
+//                            Glide.with(binding.root)
+//                                .load(it)
+//                                .into()
+//
+//                            it.
+//                        }
+//
+//
+//                }
 //
 //            }
 
