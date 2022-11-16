@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -21,6 +22,8 @@ import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityChatVideoDetailsBinding
 import java.io.File
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ChatVideoDetailsActivity : AppCompatActivity() {
     private val binding: ActivityChatVideoDetailsBinding by lazy {
@@ -31,7 +34,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
     }
 
     private lateinit var muteBtn: ImageButton
-    private var videoPath: String = ""
+    private var videoFileName: String = ""
     private var videoUri: Uri = Uri.EMPTY
     private var isVolumeMuted: Boolean = false
 
@@ -103,11 +106,21 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        intent.apply {
+            binding.nicknameTv.text = getStringExtra("nickname")
+            binding.dateTimeTv.text = SimpleDateFormat(
+                "yyyy.MM.dd (E) HH:mm",
+                Locale.KOREAN
+            ).format(getLongExtra("timeInMillis", Calendar.getInstance(Locale.KOREA).timeInMillis))
+        }
     }
 
     private fun initPlayer() {
-        videoPath = intent.getStringExtra("filePath").toString()
-        val file = File(videoPath)
+        videoFileName = intent.getStringExtra("fileName").toString().trim()
+        val file = File(applicationContext.cacheDir, videoFileName)
+        Log.d("vid_test", "path: ${file.path}")
+        Log.d("vid_test", "name: ${file.name}")
         videoUri =
             FileProvider.getUriForFile(this, "org.jin.calenee.fileprovider", file, file.name)
 
@@ -119,7 +132,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
     private fun saveVideoFile() {
         try {
             val fos: OutputStream?
-            val file = File(videoPath)
+            val file = File(applicationContext.cacheDir, videoFileName)
 
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
@@ -147,7 +160,7 @@ class ChatVideoDetailsActivity : AppCompatActivity() {
         val videoUri = FileProvider.getUriForFile(
             this@ChatVideoDetailsActivity,
             "org.jin.calenee.fileprovider",
-            File(videoPath)
+            File(applicationContext.cacheDir, videoFileName)
         )
 
         Intent(Intent.ACTION_SEND).apply {
