@@ -1,8 +1,6 @@
 package org.jin.calenee.chat
 
 import android.graphics.Bitmap
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
 
 data class ChatData(
     var viewType: Int = -1,
@@ -14,6 +12,7 @@ data class ChatData(
     var ratio: Double = -1.0,
     var tmpIndex: Int = 0,
     var dataType: String = "text",
+    var fileNameWithExtension: String = "",
     var isMyChat: Boolean = true,
 ) {
     companion object {
