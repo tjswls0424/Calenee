@@ -39,7 +39,7 @@
             android:theme="@style/Theme.DarkStatusBar"
             android:exported="false" />
         <activity
-            android:name=".chat.ChatMediaDetailsActivity"
+            android:name=".chat.ChatImageDetailsActivity"
             android:theme="@style/Theme.DarkStatusBar" />
         <activity
             android:name=".chat.ChattingActivity"

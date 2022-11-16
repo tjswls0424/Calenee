@@ -15,15 +15,15 @@ import android.view.View
 import androidx.core.content.FileProvider
 import com.google.android.material.snackbar.Snackbar
 import org.jin.calenee.R
-import org.jin.calenee.databinding.ActivityChatMediaDetailsBinding
+import org.jin.calenee.databinding.ActivityChatImageDetailsBinding
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ChatMediaDetailsActivity : AppCompatActivity() {
+class ChatImageDetailsActivity : AppCompatActivity() {
 
-    private val binding: ActivityChatMediaDetailsBinding by lazy {
-        ActivityChatMediaDetailsBinding.inflate(layoutInflater)
+    private val binding: ActivityChatImageDetailsBinding by lazy {
+        ActivityChatImageDetailsBinding.inflate(layoutInflater)
     }
 
     private var imageData: ChatData = ChatData()
@@ -72,7 +72,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
             imageData = ChatData(
                 bitmap = bitmapForDetails,
                 nickname = getStringExtra("nickname"),
-                time = getStringExtra("nickname"),
+                time = getStringExtra("time"),
                 timeInMillis = getLongExtra(
                     "timeInMillis",
                     Calendar.getInstance(Locale.KOREA).timeInMillis
@@ -181,7 +181,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun deleteCacheFile(cacheFile: File) {
+    private fun clearFileCache(cacheFile: File) {
         cacheFile.delete()
         applicationContext.deleteFile(cacheFile.name)
         Log.d("del_test", "deleted cache file")
@@ -193,7 +193,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
 
     private fun shareImage(cacheFile: File) {
         val bitmapUri = FileProvider.getUriForFile(
-            this@ChatMediaDetailsActivity,
+            this@ChatImageDetailsActivity,
             "org.jin.calenee.fileprovider",
             cacheFile
         )
@@ -245,7 +245,7 @@ class ChatMediaDetailsActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        deleteCacheFile(getCacheFile())
+        clearFileCache(getCacheFile())
         super.onDestroy()
     }
 }
