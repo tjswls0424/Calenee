@@ -28,4 +28,37 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/chat_image"
         tools:text="21:45" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/video_thumbnail_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/chat_image"
+        app:layout_constraintEnd_toEndOf="@id/chat_image"
+        app:layout_constraintStart_toStartOf="@id/chat_image"
+        app:layout_constraintTop_toTopOf="@id/chat_image">
+
+        <ImageView
+            android:id="@+id/video_play_iv"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_outline_play_circle_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/video_duration_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@id/video_play_iv"
+            app:layout_constraintStart_toStartOf="@id/video_play_iv"
+            app:layout_constraintTop_toBottomOf="@id/video_play_iv"
+            tools:text="1:15" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

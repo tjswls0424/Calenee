@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
@@ -138,6 +139,8 @@ class ChatAdapter(context: Context) :
     inner class MediaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val timeTextView = view.findViewById<TextView>(R.id.chat_image_time_text)
         private var imageView = view.findViewById<ImageView>(R.id.chat_image)
+        private var videoThumbnailLayout = view.findViewById<ConstraintLayout>(R.id.video_thumbnail_layout)
+        private var videoDurationTextView = view.findViewById<TextView>(R.id.video_duration_tv)
 
         private val dp = 250 // can be modified as needed
         private val density = context.resources.displayMetrics.density
@@ -159,16 +162,35 @@ class ChatAdapter(context: Context) :
                 }
             }
 
-            // bbi
-            // video: video thumbnail + play button + duration text
             val loadingBitmap = imageView.background.toBitmap(300, 300)
             if (item.bitmap != null && item.time != "") {
-                Glide.with(context)
-                    .load(item.bitmap)
-                    .override(width, (width * item.ratio).toInt())
-                    .fallback(R.drawable.chat_item_background)
-                    .centerCrop()
-                    .into(imageView)
+                when (item.dataType) {
+                    "image" -> {
+                        Glide.with(context)
+                            .load(item.bitmap)
+                            .override(width, (width * item.ratio).toInt())
+                            .fallback(R.drawable.chat_item_background)
+                            .centerCrop()
+                            .into(imageView)
+                    }
+                    "video" -> {
+                        videoThumbnailLayout.visibility = View.VISIBLE
+                        videoDurationTextView.text = item.duration
+                        imageView.setColorFilter(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.chatting_info_background
+                            )
+                        )
+
+                        Glide.with(context)
+                            .load(item.bitmap)
+                            .override(width, (width * item.ratio).toInt())
+                            .fallback(R.drawable.chat_item_background)
+                            .centerCrop()
+                            .into(imageView)
+                    }
+                }
             } else {
                 // first loading when enter chat room
                 Glide.with(context)
