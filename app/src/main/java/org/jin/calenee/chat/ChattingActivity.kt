@@ -22,6 +22,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
@@ -77,6 +79,8 @@ class ChattingActivity : AppCompatActivity() {
         FirebaseStorage.getInstance().reference
     }
 
+//    private lateinit var pickFilesResult: ActivityResultLauncher<Intent>
+
     private var isKeyboardShown: Boolean = false
     private var chatDataList: MutableList<ChatData> = mutableListOf()
     private var message: String = ""
@@ -93,6 +97,7 @@ class ChattingActivity : AppCompatActivity() {
         setContentView(binding.root)
         listener()
         firebaseListener()
+//        resultCallbackListener()
         checkNetworkStatus()
         getNickname()
         getSavedChatData()
@@ -116,7 +121,6 @@ class ChattingActivity : AppCompatActivity() {
     private fun listener() {
         val inputMethodManager =
             getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-//        var viewHeight = -1
 
         binding.root.viewTreeObserver.addOnGlobalLayoutListener {
             val param = binding.scrollView.layoutParams as ViewGroup.MarginLayoutParams
@@ -138,17 +142,6 @@ class ChattingActivity : AppCompatActivity() {
             } else {
                 isKeyboardShown = false
             }
-
-//            val currentViewHeight = binding.root.height
-//            if (currentViewHeight > viewHeight) {
-//                val dm = applicationContext.resources.displayMetrics.heightPixels
-//                window.attributes.height = (dm * 0.7).toInt()
-//
-//
-//                binding.bottomSheetView.minimumHeight = currentViewHeight / 2 - binding.messageEt.height
-//
-//                viewHeight = currentViewHeight
-//            }
         }
 
         binding.lottieAddCloseBtn.setOnClickListener {
@@ -230,11 +223,21 @@ class ChattingActivity : AppCompatActivity() {
         }
 
         binding.albumBtn.setOnClickListener {
-
+            Intent().apply {
+                action = Intent.ACTION_PICK
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                type = "video/* image/*"
+                startActivityForResult(Intent.createChooser(this, null), ALBUM)
+            }
         }
 
         binding.fileBtn.setOnClickListener {
-
+//            Intent(Intent.ACTION_GET_CONTENT).apply {
+//                type = "*/*"
+//                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+//                addCategory(Intent.CATEGORY_OPENABLE)
+//                pickFilesResult.launch(this)
+//            }
         }
 
         binding.messageEt.addTextChangedListener(object : TextWatcher {
@@ -427,6 +430,17 @@ class ChattingActivity : AppCompatActivity() {
             })
     }
 
+//    private fun resultCallbackListener() {
+//        pickFilesResult =
+//            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//                if (result.resultCode == RESULT_OK) {
+//
+//                } else {
+//                    Log.d("intent_test", "resultCode: ${result.resultCode}")
+//                }
+//            }
+//    }
+
     private fun createTempFileForBitmap(bitmap: Bitmap?): String? {
         var fileName: String? = "tempFileName"
         try {
@@ -507,38 +521,20 @@ class ChattingActivity : AppCompatActivity() {
     private fun saveVideoData(videoUri: Uri) {
         val videoFile = File(videoUri.path.toString())
         val mp = MediaPlayer.create(applicationContext, videoUri)
-//        val retriever = MediaMetadataRetriever().apply {
-//            setDataSource(applicationContext, videoUri)
-//        }
-//
-//        val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toDouble() ?: 0.0
-//        val height =
-//            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toDouble() ?: 0.0
-//        val mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) ?: ""
-
-//        val ms = mp.duration.milliseconds.toString()
         val duration = getDurationText(mp.duration.milliseconds.toString())
-        val ratio = (mp.videoWidth / mp.videoHeight).toDouble()
-
-        Log.d("vid_test/name", videoFile.name)
-        Log.d("vid_test/ratio", ratio.toString())
-        Log.d("vid_test/durationText", duration)
-
+        val dateTime = getCurrentTimeStamp(DATE_TIME)
         val videoRef =
-            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${videoFile.name}")
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.mp4")
+        val ratio = (mp.videoHeight.toDouble() / mp.videoWidth.toDouble())
         val metadata = StorageMetadata.Builder()
             .setCustomMetadata("contentType", "video/mp4")
             .setCustomMetadata("duration", duration)
             .setCustomMetadata("resolution", "${mp.videoWidth}x${mp.videoHeight}")
             .build()
 
-        val dateTime = videoFile.nameWithoutExtension.split("_").last()
-
         CoroutineScope(Dispatchers.IO).launch {
             videoRef.putFile(videoUri, metadata)
                 .addOnSuccessListener { taskSnapshot ->
-                    Log.d("vid_test", "success")
-
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
                         child("dataType").setValue("video")
                         child("senderEmail").setValue(currentUserEmail)
@@ -702,7 +698,7 @@ class ChattingActivity : AppCompatActivity() {
                     tmpChatData
                 )
 
-                val tmpFile = File(applicationContext.cacheDir, "$key.jpg")
+                val tmpFile = File(applicationContext.cacheDir, data?.fileName.toString())
                 CoroutineScope(Dispatchers.IO).launch {
                     FirebaseStorage.getInstance().getReference(data?.fileAbsolutePath.toString())
                         .apply {
@@ -758,7 +754,7 @@ class ChattingActivity : AppCompatActivity() {
 //                val videoRef =
 //                    storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${data?.fileName}")
 
-                val tmpFile = File(applicationContext.cacheDir, "$key.mp4")
+                val tmpFile = File(applicationContext.cacheDir, data?.fileName.toString())
                 CoroutineScope(Dispatchers.IO).launch {
                     FirebaseStorage.getInstance().getReference(data?.fileAbsolutePath.toString())
                         .apply {
@@ -963,7 +959,6 @@ class ChattingActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 CAMERA -> {
@@ -986,9 +981,6 @@ class ChattingActivity : AppCompatActivity() {
                 }
 
                 CAPTURE_VIDEO -> {
-                    Log.d("video_test", "video abs path: $currentVideoPath")
-                    Toast.makeText(this, "video success", Toast.LENGTH_SHORT).show()
-
                     val videoUri =
                         FileProvider.getUriForFile(
                             this,
@@ -997,6 +989,46 @@ class ChattingActivity : AppCompatActivity() {
                         )
 
                     saveVideoData(videoUri)
+                }
+
+                ALBUM -> {
+                    if (data?.clipData != null) {
+                        // picked multiple files
+                        val count = data.clipData!!.itemCount
+                        if (count > 15) {
+                            Snackbar.make(
+                                binding.root,
+                                "15장 이상은 전송할 수 없습니다.",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            for (i in 0 until count) {
+                                val uri = data.clipData!!.getItemAt(i).uri
+                                val mimeType = applicationContext.contentResolver.getType(uri)
+
+                                if (mimeType != null) {
+                                    if (mimeType.contains("image")) {
+                                        val bitmap = ImageDecoder.decodeBitmap(
+                                            ImageDecoder.createSource(
+                                                contentResolver,
+                                                uri
+                                            )
+                                        )
+                                        saveImageData(bitmap)
+                                    } else if (mimeType.contains("video")) {
+                                        saveVideoData(uri)
+                                    }
+                                } else {
+                                    Log.d("uri_test/mimtType-err", "mimeType is null")
+                                }
+
+                                Log.d("uri_test", uri.toString())
+                                Log.d("uri_test/mimeType", mimeType.toString())
+                            }
+                        }
+                    } else {
+                        // picked a single file
+                    }
                 }
             }
         }
