@@ -15,12 +15,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -79,7 +81,7 @@ class ChattingActivity : AppCompatActivity() {
         FirebaseStorage.getInstance().reference
     }
 
-//    private lateinit var pickFilesResult: ActivityResultLauncher<Intent>
+    private lateinit var pickFilesResult: ActivityResultLauncher<Intent>
 
     private var isKeyboardShown: Boolean = false
     private var chatDataList: MutableList<ChatData> = mutableListOf()
@@ -97,7 +99,7 @@ class ChattingActivity : AppCompatActivity() {
         setContentView(binding.root)
         listener()
         firebaseListener()
-//        resultCallbackListener()
+        resultCallbackListener()
         checkNetworkStatus()
         getNickname()
         getSavedChatData()
@@ -232,12 +234,12 @@ class ChattingActivity : AppCompatActivity() {
         }
 
         binding.fileBtn.setOnClickListener {
-//            Intent(Intent.ACTION_GET_CONTENT).apply {
-//                type = "*/*"
-//                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-//                addCategory(Intent.CATEGORY_OPENABLE)
-//                pickFilesResult.launch(this)
-//            }
+            // + extraMimeType
+            Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "*/*"
+                addCategory(Intent.CATEGORY_OPENABLE)
+                pickFilesResult.launch(this)
+            }
         }
 
         binding.messageEt.addTextChangedListener(object : TextWatcher {
@@ -257,8 +259,8 @@ class ChattingActivity : AppCompatActivity() {
                 Log.d("position_test", data.toString())
 
                 try {
-                    when (data.dataType) {
-                        "image" -> {
+                    when {
+                        "image" in data.mimeType -> {
                             Intent(
                                 this@ChattingActivity,
                                 ChatImageDetailsActivity::class.java
@@ -270,7 +272,7 @@ class ChattingActivity : AppCompatActivity() {
                             }.run { startActivity(this) }
                         }
 
-                        "video" -> {
+                        "video" in data.mimeType -> {
                             Intent(
                                 this@ChattingActivity,
                                 ChatVideoDetailsActivity::class.java
@@ -360,12 +362,12 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.senderNickname.isNullOrBlank()
                         * */
 
-                        when (data?.dataType) {
-                            "text" -> {
+                        when {
+                            "text/*" in data?.mimeType.toString() -> {
                                 if (snapshot.childrenCount.toInt() == 5) {
                                     val viewType = when {
-                                        (data.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
-                                        (data.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
+                                        (data?.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
+                                        (data?.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
                                         else -> -1
                                     }
 
@@ -379,29 +381,45 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
 
-                            "image" -> {
+                            "image" in data?.mimeType.toString() -> {
                                 if (snapshot.childrenCount.toInt() == 7) {
-                                    val isMyChat = data.senderEmail == currentUserEmail
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_IMAGE,
                                         data,
                                         snapshot.key.toString(),
-                                        isMyChat,
+                                        data?.senderEmail == currentUserEmail,
                                         true
                                     )
+                                    Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_SHORT)
+                                        .show()
+
                                     initRecycler()
                                 }
                             }
 
-                            // bbi
-                            "video" -> {
+                            "video" in data?.mimeType.toString() -> {
                                 if (snapshot.childrenCount.toInt() == 8) {
-                                    val isMyChat = data.senderEmail == currentUserEmail
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_VIDEO,
                                         data,
                                         snapshot.key.toString(),
-                                        isMyChat,
+                                        data?.senderEmail == currentUserEmail,
+                                        true
+                                    )
+
+                                    Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_LONG)
+                                        .show()
+                                }
+                            }
+
+                            else -> {
+                                // files
+                                if (snapshot.childrenCount.toInt() == 6) {
+                                    addChatDataList(
+                                        ChatData.VIEW_TYPE_FILE,
+                                        data,
+                                        snapshot.key.toString(),
+                                        data?.senderEmail == currentUserEmail,
                                         true
                                     )
 
@@ -410,7 +428,6 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
                         }
-
                     }
 
                     Log.d("fb_test_chat/changed", snapshot.value.toString())
@@ -430,16 +447,36 @@ class ChattingActivity : AppCompatActivity() {
             })
     }
 
-//    private fun resultCallbackListener() {
-//        pickFilesResult =
-//            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-//                if (result.resultCode == RESULT_OK) {
-//
-//                } else {
-//                    Log.d("intent_test", "resultCode: ${result.resultCode}")
-//                }
-//            }
-//    }
+    private fun resultCallbackListener() {
+        pickFilesResult =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    // mimeType: image, video, txt, audio(m4a)
+                    // mimeType 조건문 세팅해서 나머지는 "지원하지 않는 파일 형식입니다." Toast
+                    // 파일을 열 수 있는 앱이 없습니다.
+
+                    val uri = result.data?.data!!
+
+                    result.data?.data?.let { returnUri ->
+                        applicationContext.contentResolver.query(returnUri, null, null, null, null)
+                    }?.use { cursor ->
+                        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+
+                        cursor.moveToFirst()
+                        val name = cursor.getString(nameIndex)
+                        val size = cursor.getString(sizeIndex)
+
+                        Log.d("uri_test/name", name)
+                        Log.d("uri_test/size", size)
+
+                        result.data?.data?.let { saveFileData(it, name) }
+                    }
+                } else {
+                    Log.d("intent_test", "resultCode: ${result.resultCode}")
+                }
+            }
+    }
 
     private fun createTempFileForBitmap(bitmap: Bitmap?): String? {
         var fileName: String? = "tempFileName"
@@ -477,22 +514,24 @@ class ChattingActivity : AppCompatActivity() {
                 child("senderNickname").setValue(data.nickname)
                 child("message").setValue(data.message)
                 child("createdAt").setValue(data.time)
-                child("dataType").setValue(data.dataType)
+                child("mimeType").setValue(data.mimeType)
 //                child("read").setValue(false)
             }
     }
 
     // in case of sending message by me
-    private fun saveImageData(bitmap: Bitmap) {
+    private fun saveImageData(bitmap: Bitmap, uri: Uri) {
         val baos = ByteArrayOutputStream().also {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         }
+        val mimeType = applicationContext.contentResolver.getType(uri)
+        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
         val dateTime = getCurrentTimeStamp(DATE_TIME)
         val imageRef =
-            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.jpg")
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.$extension")
         val ratio = bitmap.height.toDouble().div(bitmap.width.toDouble())
         val metadata = StorageMetadata.Builder()
-            .setCustomMetadata("contentType", "image/jpg")
+            .setCustomMetadata("contentType", mimeType ?: "image/jpeg")
             .setCustomMetadata("resolution", "${bitmap.width}x${bitmap.height}")
             .build()
 
@@ -502,7 +541,7 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("img_test/success", "success")
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
-                        child("dataType").setValue("image")
+                        child("mimeType").setValue(mimeType ?: "image/jpeg")
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
                         child("fileAbsolutePath").setValue(imageRef.path)
@@ -522,12 +561,14 @@ class ChattingActivity : AppCompatActivity() {
         val videoFile = File(videoUri.path.toString())
         val mp = MediaPlayer.create(applicationContext, videoUri)
         val duration = getDurationText(mp.duration.milliseconds.toString())
+        val mimeType = applicationContext.contentResolver.getType(videoUri)
+        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
         val dateTime = getCurrentTimeStamp(DATE_TIME)
         val videoRef =
-            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.mp4")
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/$dateTime.$extension")
         val ratio = (mp.videoHeight.toDouble() / mp.videoWidth.toDouble())
         val metadata = StorageMetadata.Builder()
-            .setCustomMetadata("contentType", "video/mp4")
+            .setCustomMetadata("contentType", mimeType ?: "video/mp4")
             .setCustomMetadata("duration", duration)
             .setCustomMetadata("resolution", "${mp.videoWidth}x${mp.videoHeight}")
             .build()
@@ -536,7 +577,7 @@ class ChattingActivity : AppCompatActivity() {
             videoRef.putFile(videoUri, metadata)
                 .addOnSuccessListener { taskSnapshot ->
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
-                        child("dataType").setValue("video")
+                        child("mimeType").setValue(mimeType ?: "video")
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
                         child("fileAbsolutePath").setValue(videoRef.path)
@@ -551,6 +592,49 @@ class ChattingActivity : AppCompatActivity() {
                 .addOnFailureListener {
                     Log.d("vid_test", "fail to upload video1: ${it.printStackTrace()}")
                     Log.d("vid_test", "fail to upload video2: ${it.message}")
+                }
+        }
+    }
+
+    private fun saveFileData(fileUri: Uri, fileName: String) {
+        val dateTime = getCurrentTimeStamp(DATE_TIME)
+        val mimeType = applicationContext.contentResolver.getType(fileUri)
+        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+        val expirationDate = Calendar.getInstance().apply {
+            timeInMillis = dateTime.toLong()
+            add(Calendar.DAY_OF_MONTH, 14)
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+        }.timeInMillis
+        val expirationDateText =
+            SimpleDateFormat("yyyy.MM.dd HH:mm:s", Locale.KOREA).format(expirationDate)
+
+        Log.d("uri_test/extension", extension.toString())
+        Log.d("uri_test/mimeType", mimeType.toString())
+        Log.d("uri_test/expirationDate", expirationDateText)
+
+        val fileRef =
+            storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/files/$dateTime.$extension")
+        val metadata = StorageMetadata.Builder()
+            .setCustomMetadata("contentType", mimeType)
+            .setCustomMetadata("expirationDate", expirationDateText)
+            .build()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            fileRef.putFile(fileUri, metadata)
+                .addOnSuccessListener {
+                    Log.d("uri_test/size2", it.metadata?.sizeBytes.toString())
+
+                    chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("mimeType").setValue(mimeType)
+                        child("senderEmail").setValue(currentUserEmail)
+                        child("senderNickname").setValue(nickname)
+                        child("fileAbsolutePath").setValue(fileRef.path)
+                        child("fileName").setValue(fileName)
+                        child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
+                        child("expirationDate").setValue(expirationDateText.split(" "[0]))
+                    }
                 }
         }
     }
@@ -628,17 +712,13 @@ class ChattingActivity : AppCompatActivity() {
                         }
 
                         val isMyChat = data?.senderEmail == currentUserEmail
-                        val viewType: Int = when (data?.dataType) {
-                            "text" -> {
+                        val viewType: Int = when {
+                            "text/*" in data?.mimeType.toString() -> {
                                 if (isMyChat) ChatData.VIEW_TYPE_RIGHT_TEXT else ChatData.VIEW_TYPE_LEFT_TEXT
                             }
-
-                            "image" -> ChatData.VIEW_TYPE_IMAGE
-
-                            // bbi
-                            "video" -> ChatData.VIEW_TYPE_VIDEO
-
-                            else -> -1
+                            "image" in data?.mimeType.toString() -> ChatData.VIEW_TYPE_IMAGE
+                            "video" in data?.mimeType.toString() -> ChatData.VIEW_TYPE_VIDEO
+                            else -> ChatData.VIEW_TYPE_FILE
                         }
 
                         addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat)
@@ -683,7 +763,7 @@ class ChattingActivity : AppCompatActivity() {
                     ratio = data?.fileRatio ?: 1.0,
                     tmpIndex = chatDataList.size,
                     timeInMillis = key.toLong(),
-                    dataType = "image",
+                    mimeType = data?.mimeType.toString(),
                     fileNameWithExtension = data?.fileName.toString(),
                     isMyChat = isMyChat
                 )
@@ -724,7 +804,6 @@ class ChattingActivity : AppCompatActivity() {
                 }
             }
 
-            // bbi
             ChatData.VIEW_TYPE_VIDEO -> {
                 tmpMediaMap[key] = chatDataList.size
 
@@ -736,7 +815,7 @@ class ChattingActivity : AppCompatActivity() {
                     tmpIndex = chatDataList.size,
                     timeInMillis = key.toLong(),
                     fileNameWithExtension = data?.fileName.toString(),
-                    dataType = "video",
+                    mimeType = data?.mimeType.toString(),
                     isMyChat = isMyChat,
                     duration = data?.duration.toString()
                 )
@@ -750,9 +829,6 @@ class ChattingActivity : AppCompatActivity() {
                     tmpMediaMap[key] ?: chatDataList.size,
                     tmpChatData
                 )
-
-//                val videoRef =
-//                    storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/${data?.fileName}")
 
                 val tmpFile = File(applicationContext.cacheDir, data?.fileName.toString())
                 CoroutineScope(Dispatchers.IO).launch {
@@ -777,12 +853,59 @@ class ChattingActivity : AppCompatActivity() {
                                     Log.d("fb_test", "fail to get video file")
                                 }
                         }
+                }
+            }
 
+            ChatData.VIEW_TYPE_FILE -> {
+                tmpMediaMap[key] = chatDataList.size
+
+                val tmpChatData = ChatData(
+                    viewType,
+                    data?.senderNickname,
+                    time = "",
+                    tmpIndex = chatDataList.size,
+                    timeInMillis = key.toLong(),
+                    mimeType = data?.mimeType.toString(),
+                    fileNameWithExtension = data?.fileName.toString(),
+                    isMyChat = isMyChat,
+                    expirationDate = data?.expirationDate.toString(),
+                    fileSize = data?.fileSize ?: 0L
+                )
+
+                if (isMyChat && isRealtime) {
+                    tmpChatData.time = "전송 중"
+                }
+
+                chatDataList.add(
+                    tmpMediaMap[key] ?: chatDataList.size,
+                    tmpChatData
+                )
+
+                val tmpFile = File(applicationContext.cacheDir, data?.fileName.toString())
+                CoroutineScope(Dispatchers.IO).launch {
+                    FirebaseStorage.getInstance().getReference(data?.fileAbsolutePath.toString())
+                        .apply {
+                            val fileSizeBytes = this.metadata.result.sizeBytes
+                            getFile(tmpFile)
+                                .addOnSuccessListener {
+                                    val chatData = tmpChatData.apply {
+                                        this.time = data?.createdAt
+                                        this.fileSize = fileSizeBytes
+                                    }
+
+                                    chatDataList[tmpMediaMap[key] ?: tmpChatData.tmpIndex] = chatData
+                                    notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
+                                    App.userPrefs.setString("chat_last_msg_time", key)
+                                }
+                                .addOnFailureListener {
+                                    Log.d("fb_test", "fail to get file")
+                                }
+                        }
                 }
             }
 
             else -> {
-                Log.d("chat_test", "view type error : -1")
+                Log.d("chat_test", "view type error")
             }
         }
 
@@ -965,19 +1088,16 @@ class ChattingActivity : AppCompatActivity() {
                     // for thumbnail
 //                    val bitmap = data?.extras?.get("data") as Bitmap
 
-                    val file = File(currentImagePath)
-                    val bitmap = if (Build.VERSION.SDK_INT < 28) {
-                        MediaStore.Images.Media
-                            .getBitmap(contentResolver, Uri.fromFile(file))
-                    } else {
-                        val decode = ImageDecoder.createSource(
-                            this.contentResolver,
-                            Uri.fromFile(file)
-                        )
-                        ImageDecoder.decodeBitmap(decode)
-                    }
 
-                    saveImageData(bitmap)
+                    // file말고 uri로 수정?
+                    val file = File(currentImagePath)
+                    val decode = ImageDecoder.createSource(
+                        this.contentResolver,
+                        Uri.fromFile(file)
+                    )
+                    val bitmap = ImageDecoder.decodeBitmap(decode)
+
+                    saveImageData(bitmap, data?.data!!)
                 }
 
                 CAPTURE_VIDEO -> {
@@ -1014,7 +1134,7 @@ class ChattingActivity : AppCompatActivity() {
                                                 uri
                                             )
                                         )
-                                        saveImageData(bitmap)
+                                        saveImageData(bitmap, uri)
                                     } else if (mimeType.contains("video")) {
                                         saveVideoData(uri)
                                     }
