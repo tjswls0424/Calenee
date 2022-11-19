@@ -259,8 +259,8 @@ class ChattingActivity : AppCompatActivity() {
                 Log.d("position_test", data.toString())
 
                 try {
-                    when {
-                        "image" in data.mimeType -> {
+                    when (data.dataType){
+                        "image" -> {
                             Intent(
                                 this@ChattingActivity,
                                 ChatImageDetailsActivity::class.java
@@ -272,7 +272,7 @@ class ChattingActivity : AppCompatActivity() {
                             }.run { startActivity(this) }
                         }
 
-                        "video" in data.mimeType -> {
+                        "video" -> {
                             Intent(
                                 this@ChattingActivity,
                                 ChatVideoDetailsActivity::class.java
@@ -282,6 +282,10 @@ class ChattingActivity : AppCompatActivity() {
                                 putExtra("time", data.time.toString())
                                 putExtra("timeInMillis", data.timeInMillis)
                             }.run { startActivity(this) }
+                        }
+
+                        "file" -> {
+                            Snackbar.make(binding.root, data.fileNameWithExtension, Snackbar.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
@@ -362,12 +366,12 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.senderNickname.isNullOrBlank()
                         * */
 
-                        when {
-                            "text/*" in data?.mimeType.toString() -> {
+                        when (data?.dataType){
+                            "text" -> {
                                 if (snapshot.childrenCount.toInt() == 5) {
                                     val viewType = when {
-                                        (data?.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
-                                        (data?.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
+                                        (data.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
+                                        (data.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
                                         else -> -1
                                     }
 
@@ -381,13 +385,13 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
 
-                            "image" in data?.mimeType.toString() -> {
+                            "image" -> {
                                 if (snapshot.childrenCount.toInt() == 7) {
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_IMAGE,
                                         data,
                                         snapshot.key.toString(),
-                                        data?.senderEmail == currentUserEmail,
+                                        data.senderEmail == currentUserEmail,
                                         true
                                     )
                                     Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_SHORT)
@@ -397,13 +401,13 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
 
-                            "video" in data?.mimeType.toString() -> {
+                            "video" -> {
                                 if (snapshot.childrenCount.toInt() == 8) {
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_VIDEO,
                                         data,
                                         snapshot.key.toString(),
-                                        data?.senderEmail == currentUserEmail,
+                                        data.senderEmail == currentUserEmail,
                                         true
                                     )
 
@@ -412,7 +416,7 @@ class ChattingActivity : AppCompatActivity() {
                                 }
                             }
 
-                            else -> {
+                            "file" -> {
                                 // files
                                 if (snapshot.childrenCount.toInt() == 6) {
                                     addChatDataList(
@@ -426,6 +430,10 @@ class ChattingActivity : AppCompatActivity() {
                                     Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_LONG)
                                         .show()
                                 }
+                            }
+
+                            else -> {
+                                Log.d("data_type_err", "data type err")
                             }
                         }
                     }
@@ -510,6 +518,7 @@ class ChattingActivity : AppCompatActivity() {
     private fun saveChatData(data: ChatData, timeInMillis: Long = 0L) {
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .child(timeInMillis.toString()).apply {
+                child("dataType").setValue(data.dataType)
                 child("senderEmail").setValue(currentUserEmail)
                 child("senderNickname").setValue(data.nickname)
                 child("message").setValue(data.message)
@@ -541,6 +550,7 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("img_test/success", "success")
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("dataType").setValue("image")
                         child("mimeType").setValue(mimeType ?: "image/jpeg")
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
@@ -577,6 +587,7 @@ class ChattingActivity : AppCompatActivity() {
             videoRef.putFile(videoUri, metadata)
                 .addOnSuccessListener { taskSnapshot ->
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("dataType").setValue("video")
                         child("mimeType").setValue(mimeType ?: "video")
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
@@ -619,6 +630,7 @@ class ChattingActivity : AppCompatActivity() {
         val metadata = StorageMetadata.Builder()
             .setCustomMetadata("contentType", mimeType)
             .setCustomMetadata("expirationDate", expirationDateText)
+            .setCustomMetadata("fileName", fileName)
             .build()
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -627,13 +639,14 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("uri_test/size2", it.metadata?.sizeBytes.toString())
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
+                        child("dataType").setValue("file")
                         child("mimeType").setValue(mimeType)
                         child("senderEmail").setValue(currentUserEmail)
                         child("senderNickname").setValue(nickname)
                         child("fileAbsolutePath").setValue(fileRef.path)
                         child("fileName").setValue(fileName)
                         child("createdAt").setValue(getCurrentTimeStamp(TIME, dateTime.toLong()))
-                        child("expirationDate").setValue(expirationDateText.split(" "[0]))
+                        child("expirationDate").setValue(expirationDateText.split(" ")[0])
                     }
                 }
         }
@@ -712,13 +725,14 @@ class ChattingActivity : AppCompatActivity() {
                         }
 
                         val isMyChat = data?.senderEmail == currentUserEmail
-                        val viewType: Int = when {
-                            "text/*" in data?.mimeType.toString() -> {
+                        val viewType: Int = when (data?.dataType) {
+                            "text" -> {
                                 if (isMyChat) ChatData.VIEW_TYPE_RIGHT_TEXT else ChatData.VIEW_TYPE_LEFT_TEXT
                             }
-                            "image" in data?.mimeType.toString() -> ChatData.VIEW_TYPE_IMAGE
-                            "video" in data?.mimeType.toString() -> ChatData.VIEW_TYPE_VIDEO
-                            else -> ChatData.VIEW_TYPE_FILE
+                            "image" -> ChatData.VIEW_TYPE_IMAGE
+                            "video" -> ChatData.VIEW_TYPE_VIDEO
+                            "file" -> ChatData.VIEW_TYPE_FILE
+                            else -> -1
                         }
 
                         addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat)
@@ -764,6 +778,7 @@ class ChattingActivity : AppCompatActivity() {
                     tmpIndex = chatDataList.size,
                     timeInMillis = key.toLong(),
                     mimeType = data?.mimeType.toString(),
+                    dataType = data?.dataType.toString(),
                     fileNameWithExtension = data?.fileName.toString(),
                     isMyChat = isMyChat
                 )
@@ -816,6 +831,7 @@ class ChattingActivity : AppCompatActivity() {
                     timeInMillis = key.toLong(),
                     fileNameWithExtension = data?.fileName.toString(),
                     mimeType = data?.mimeType.toString(),
+                    dataType = data?.dataType.toString(),
                     isMyChat = isMyChat,
                     duration = data?.duration.toString()
                 )
@@ -866,10 +882,10 @@ class ChattingActivity : AppCompatActivity() {
                     tmpIndex = chatDataList.size,
                     timeInMillis = key.toLong(),
                     mimeType = data?.mimeType.toString(),
+                    dataType = data?.dataType.toString(),
                     fileNameWithExtension = data?.fileName.toString(),
                     isMyChat = isMyChat,
-                    expirationDate = data?.expirationDate.toString(),
-                    fileSize = data?.fileSize ?: 0L
+                    expirationDate = data?.expirationDate.toString()
                 )
 
                 if (isMyChat && isRealtime) {
@@ -885,9 +901,10 @@ class ChattingActivity : AppCompatActivity() {
                 CoroutineScope(Dispatchers.IO).launch {
                     FirebaseStorage.getInstance().getReference(data?.fileAbsolutePath.toString())
                         .apply {
-                            val fileSizeBytes = this.metadata.result.sizeBytes
                             getFile(tmpFile)
                                 .addOnSuccessListener {
+//                                    val fileSizeBytes = this.metadata.result.sizeBytes
+                                    val fileSizeBytes = it.totalByteCount
                                     val chatData = tmpChatData.apply {
                                         this.time = data?.createdAt
                                         this.fileSize = fileSizeBytes

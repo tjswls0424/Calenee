@@ -1,6 +1,8 @@
 package org.jin.calenee.chat
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,15 +14,21 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.gun0912.tedpermission.provider.TedPermissionProvider
 import com.gun0912.tedpermission.provider.TedPermissionProvider.context
 import org.jin.calenee.R
 import java.lang.RuntimeException
+import kotlin.math.pow
 
 class ChatAdapter(context: Context) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var listener: OnItemClickListener? = null
     var data = mutableListOf<ChatData>()
+
+    private val dp = 250 // can be modified as needed
+    private val density = TedPermissionProvider.context.resources.displayMetrics.density
+    val viewWidth = (dp * density).toInt()
 
     interface OnItemClickListener {
         fun onItemClick(v: View, data: ChatData, position: Int)
@@ -69,6 +77,15 @@ class ChatAdapter(context: Context) :
 
                 MediaViewHolder(view)
             }
+            ChatData.VIEW_TYPE_FILE -> {
+                view = LayoutInflater.from(parent.context).inflate(
+                    R.layout.chat_file_item,
+                    parent,
+                    false
+                )
+
+                FileViewHolder(view)
+            }
 
             else -> throw RuntimeException("unknown view type")
         }
@@ -90,6 +107,10 @@ class ChatAdapter(context: Context) :
             }
             ChatData.VIEW_TYPE_IMAGE, ChatData.VIEW_TYPE_VIDEO -> {
                 (holder as MediaViewHolder).bind(data[position], position)
+                holder.setIsRecyclable(false)
+            }
+            ChatData.VIEW_TYPE_FILE -> {
+                (holder as FileViewHolder).bind(data[position], position)
                 holder.setIsRecyclable(false)
             }
             else -> throw RuntimeException("unknown view type")
@@ -139,12 +160,13 @@ class ChatAdapter(context: Context) :
     inner class MediaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val timeTextView = view.findViewById<TextView>(R.id.chat_image_time_text)
         private var imageView = view.findViewById<ImageView>(R.id.chat_image)
-        private var videoThumbnailLayout = view.findViewById<ConstraintLayout>(R.id.video_thumbnail_layout)
+        private var videoThumbnailLayout =
+            view.findViewById<ConstraintLayout>(R.id.video_thumbnail_layout)
         private var videoDurationTextView = view.findViewById<TextView>(R.id.video_duration_tv)
 
-        private val dp = 250 // can be modified as needed
-        private val density = context.resources.displayMetrics.density
-        private val width = (dp * density).toInt()
+//        private val dp = 250 // can be modified as needed
+//        private val density = context.resources.displayMetrics.density
+//        private val width = (dp * density).toInt()
 
         fun bind(item: ChatData, position: Int) {
             if (!item.isMyChat) {
@@ -168,7 +190,7 @@ class ChatAdapter(context: Context) :
                     "image" -> {
                         Glide.with(context)
                             .load(item.bitmap)
-                            .override(width, (width * item.ratio).toInt())
+                            .override(viewWidth, (viewWidth * item.ratio).toInt())
                             .fallback(R.drawable.chat_item_background)
                             .centerCrop()
                             .into(imageView)
@@ -185,7 +207,7 @@ class ChatAdapter(context: Context) :
 
                         Glide.with(context)
                             .load(item.bitmap)
-                            .override(width, (width * item.ratio).toInt())
+                            .override(viewWidth, (viewWidth * item.ratio).toInt())
                             .fallback(R.drawable.chat_item_background)
                             .centerCrop()
                             .into(imageView)
@@ -195,7 +217,7 @@ class ChatAdapter(context: Context) :
                 // first loading when enter chat room
                 Glide.with(context)
                     .load(loadingBitmap)
-                    .override(width, (width * item.ratio).toInt())
+                    .override(viewWidth, (viewWidth * item.ratio).toInt())
                     .centerCrop()
                     .into(imageView)
             }
@@ -213,11 +235,11 @@ class ChatAdapter(context: Context) :
                     if (it != null) {
                         Glide.with(context)
                             .load(it)
-                            .preload(width, (width * item.ratio).toInt())
+                            .preload(viewWidth, (viewWidth * item.ratio).toInt())
                     } else {
                         Glide.with(context)
                             .load(loadingBitmap)
-                            .preload(width, (width * item.ratio).toInt())
+                            .preload(viewWidth, (viewWidth * item.ratio).toInt())
                     }
                 }
             }
@@ -228,6 +250,107 @@ class ChatAdapter(context: Context) :
                     listener?.onItemClick(imageView, data[position], position)
                 }
             }
+        }
+    }
+
+    // files
+    inner class FileViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val fileLayout = view.findViewById<ConstraintLayout>(R.id.file_layout)
+        private val timeTextView = view.findViewById<TextView>(R.id.chat_file_time_text)
+        private val titleTextView = view.findViewById<TextView>(R.id.file_title_tv)
+        private val validityPeriodTextView =
+            view.findViewById<TextView>(R.id.file_validity_period_tv)
+        private val fileSizeTextView = view.findViewById<TextView>(R.id.file_size_tv)
+        private var fileIcon = view.findViewById<ImageView>(R.id.chat_file_icon)
+
+        fun bind(item: ChatData, position: Int) {
+            if (!item.isMyChat) {
+                // chat data from partner
+                fileLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    endToEnd = ConstraintLayout.LayoutParams.UNSET
+                    topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                }
+
+                timeTextView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    endToStart = ConstraintLayout.LayoutParams.UNSET
+                    bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    startToEnd = fileLayout.id
+                }
+            }
+
+            fileLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                width = viewWidth
+                dimensionRatio = "4:1"
+            }
+
+            if (item.fileSize != 0L && item.time != "") {
+                titleTextView.text = item.fileNameWithExtension
+                validityPeriodTextView.text = "유효기간: ~${item.expirationDate}"
+                fileSizeTextView.text = "크기: ${getFileSize(item.fileSize)}"
+
+                when {
+                    item.mimeType.contains("image") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_album)
+                    }
+                    item.mimeType.contains("video") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_video)
+                    }
+                    item.mimeType.contains("audio") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_audio)
+                    }
+                    item.mimeType.contains("pdf") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_pdf)
+                    }
+                    item.mimeType.contains("text") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_document)
+                    }
+                    item.mimeType.contains("application") -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_file)
+                    }
+                    else -> {
+                        fileIcon.setBackgroundResource(R.drawable.ic_file)
+                    }
+                }
+            } else {
+                // first loading
+                fileLayout.setBackgroundResource(R.drawable.chat_item_background)
+                fileLayout.backgroundTintList =
+                    ColorStateList.valueOf(
+                        context.resources.getColor(
+                            R.color.chatting_message,
+                            context.theme
+                        )
+                    )
+            }
+
+            timeTextView.text = item.time
+
+            if (position != RecyclerView.NO_POSITION) {
+                fileLayout.setOnClickListener {
+                    listener?.onItemClick(fileLayout, data[position], position)
+                }
+            }
+        }
+
+        private fun getFileSize(filesizeBytes: Long): String {
+            var fileSizeNum = 0.0
+            var fileSizeUnit = "KB"
+
+            if (filesizeBytes != 0L) {
+                if (filesizeBytes.floorDiv(1024).toString().length <= 3) {
+                    fileSizeNum = filesizeBytes.div(1024.0)
+                    fileSizeUnit = "KB"
+                } else if (filesizeBytes.floorDiv(1024).toString().length <= 6) {
+                    fileSizeNum = filesizeBytes.div(1024.0.pow(2))
+                    fileSizeUnit = "MB"
+                } else {
+                    fileSizeNum = filesizeBytes.toDouble()
+                    fileSizeUnit = "B"
+                }
+            }
+
+            return String.format("%.2f ", fileSizeNum) + fileSizeUnit
         }
     }
 

@@ -9,6 +9,7 @@ data class SavedChatData(
     val fileName: String? = "",
     val fileRatio: Double = 0.5,
     val mimeType: String = "text/*",
+    val dataType: String = "text",
     val duration: String = "",
     val expirationDate: String = "",
     val fileSize: Long = 0L,

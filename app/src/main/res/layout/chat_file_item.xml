@@ -20,23 +20,21 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/file_layout"
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:background="@drawable/chat_file_item_background"
         android:paddingStart="0dp"
         android:paddingEnd="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="4:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/file_icon"
+            android:id="@+id/chat_file_icon"
             android:layout_width="0dp"
             android:layout_height="30dp"
             android:layout_marginHorizontal="20dp"
-            android:background="@drawable/ic_round_warning_amber_24"
-            android:backgroundTint="@color/red"
+            tools:background="@drawable/ic_file"
             android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1:1"
@@ -52,7 +50,7 @@
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/file_icon"
+            app:layout_constraintStart_toEndOf="@id/chat_file_icon"
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
@@ -84,7 +82,7 @@
                 android:singleLine="true"
                 android:textColor="@color/chatting_info_text_view_background"
                 android:textSize="11sp"
-                tools:text="용량: 3.50 MB" />
+                tools:text="크기: 3.50 MB" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

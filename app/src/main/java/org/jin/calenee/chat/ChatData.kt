@@ -12,6 +12,7 @@ data class ChatData(
     var ratio: Double = -1.0,
     var tmpIndex: Int = 0,
     var mimeType: String = "text/*",
+    val dataType: String = "text",
     var fileNameWithExtension: String = "",
     var isMyChat: Boolean = true,
     var duration: String = "0:00",
