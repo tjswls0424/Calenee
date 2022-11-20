@@ -259,7 +259,7 @@ class ChattingActivity : AppCompatActivity() {
                 Log.d("position_test", data.toString())
 
                 try {
-                    when (data.dataType){
+                    when (data.dataType) {
                         "image" -> {
                             Intent(
                                 this@ChattingActivity,
@@ -285,7 +285,20 @@ class ChattingActivity : AppCompatActivity() {
                         }
 
                         "file" -> {
-                            Snackbar.make(binding.root, data.fileNameWithExtension, Snackbar.LENGTH_SHORT).show()
+                            val tmpFile =
+                                File(applicationContext.cacheDir, data.fileNameWithExtension)
+                            val uri = FileProvider.getUriForFile(
+                                applicationContext,
+                                "$packageName.fileprovider",
+                                tmpFile
+                            )
+                            val type = applicationContext.contentResolver.getType(uri)
+
+                            Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, type)
+                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                startActivity(this)
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -366,7 +379,7 @@ class ChattingActivity : AppCompatActivity() {
                             !data?.senderNickname.isNullOrBlank()
                         * */
 
-                        when (data?.dataType){
+                        when (data?.dataType) {
                             "text" -> {
                                 if (snapshot.childrenCount.toInt() == 5) {
                                     val viewType = when {
@@ -910,7 +923,8 @@ class ChattingActivity : AppCompatActivity() {
                                         this.fileSize = fileSizeBytes
                                     }
 
-                                    chatDataList[tmpMediaMap[key] ?: tmpChatData.tmpIndex] = chatData
+                                    chatDataList[tmpMediaMap[key] ?: tmpChatData.tmpIndex] =
+                                        chatData
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
                                 }
@@ -1105,16 +1119,19 @@ class ChattingActivity : AppCompatActivity() {
                     // for thumbnail
 //                    val bitmap = data?.extras?.get("data") as Bitmap
 
-
                     // file말고 uri로 수정?
-                    val file = File(currentImagePath)
+                    val imageFile = File(currentImagePath)
+                    val uri = FileProvider.getUriForFile(
+                        applicationContext,
+                        "$packageName.fileprovider", imageFile
+                    )
                     val decode = ImageDecoder.createSource(
                         this.contentResolver,
-                        Uri.fromFile(file)
+                        Uri.fromFile(imageFile)
                     )
                     val bitmap = ImageDecoder.decodeBitmap(decode)
 
-                    saveImageData(bitmap, data?.data!!)
+                    saveImageData(bitmap, uri)
                 }
 
                 CAPTURE_VIDEO -> {
