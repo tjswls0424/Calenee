@@ -2,6 +2,7 @@ package org.jin.calenee.chat
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.text.Editable
@@ -27,6 +29,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -58,6 +61,11 @@ const val DATE = 2
 const val CAMERA = 10
 const val ALBUM = 11
 const val CAPTURE_VIDEO = 12
+
+const val CHAT_TEXT_COUNT = 5
+const val CHAT_IMAGE_COUNT = 8
+const val CHAT_VIDEO_COUNT = 9
+const val CHAT_FILE_COUNT = 8
 
 class ChattingActivity : AppCompatActivity() {
 
@@ -235,10 +243,12 @@ class ChattingActivity : AppCompatActivity() {
 
         binding.fileBtn.setOnClickListener {
             // + extraMimeType
-            Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
-                pickFilesResult.launch(this)
+            if (checkPermission(ALBUM)) {
+                Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "*/*"
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    pickFilesResult.launch(this)
+                }
             }
         }
 
@@ -306,6 +316,65 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("position_test/err", e.message.toString())
                 }
             }
+
+            override fun onItemLongClick(v: View, data: ChatData, position: Int) {
+                try {
+                    when (data.dataType) {
+                        "file" -> {
+                            val items = arrayOf("저장", "공유")
+                            AlertDialog.Builder(this@ChattingActivity).apply {
+                                title = "작업 선택"
+                                setItems(items) { _, index ->
+                                    when (items[index]) {
+                                        "저장" -> {
+                                            val srcFile =
+                                                File(context.cacheDir, data.fileNameWithExtension)
+
+                                            try {
+                                                val fos: OutputStream?
+                                                val contentValues = ContentValues().apply {
+                                                    put(
+                                                        MediaStore.DownloadColumns.DISPLAY_NAME,
+                                                        srcFile.name
+                                                    )
+                                                    put(
+                                                        MediaStore.DownloadColumns.RELATIVE_PATH,
+                                                        Environment.DIRECTORY_DOWNLOADS + File.separator + "CaleneeDownload"
+                                                    )
+                                                }
+
+                                                val uri =
+                                                    contentResolver.insert(
+                                                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                                                        contentValues
+                                                    )
+                                                fos =
+                                                    uri?.let { contentResolver.openOutputStream(it) }
+                                                fos.use {
+                                                    fos?.write(srcFile.readBytes())
+                                                }
+                                            } catch (e: IOException) {
+                                                Log.d("file_test", "IOException")
+                                                e.printStackTrace()
+                                            }
+
+                                            Snackbar.make(binding.root, "저장", Snackbar.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                        "공유" -> {
+                                            Snackbar.make(binding.root, "공유", Snackbar.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    }
+                                }
+                            }.show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d("position_test/err", e.stackTraceToString())
+                    Log.d("position_test/err", e.message.toString())
+                }
+            }
         })
     }
 
@@ -313,22 +382,7 @@ class ChattingActivity : AppCompatActivity() {
         // get realtime chat data (from point of view partner)
         chatDB.child(App.userPrefs.getString("couple_chat_id"))
             .addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                    snapshot.getValue(SavedChatData::class.java).also { data ->
-//                        when (data?.dataType) {
-//                            "image" -> {
-//                                addChatDataList(
-//                                    ChatData.VIEW_TYPE_IMAGE,
-//                                    data,
-//                                    snapshot.key.toString(),
-//                                    data.senderEmail == currentUserEmail,
-//                                    true
-//                                )
-//                                initRecycler()
-//                            }
-//                        }
-//                    }
-                }
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     snapshot.getValue(SavedChatData::class.java).also { data ->
@@ -381,7 +435,7 @@ class ChattingActivity : AppCompatActivity() {
 
                         when (data?.dataType) {
                             "text" -> {
-                                if (snapshot.childrenCount.toInt() == 5) {
+                                if (snapshot.childrenCount.toInt() == CHAT_TEXT_COUNT) {
                                     val viewType = when {
                                         (data.senderEmail == currentUserEmail) -> ChatData.VIEW_TYPE_RIGHT_TEXT
                                         (data.senderEmail != currentUserEmail) -> ChatData.VIEW_TYPE_LEFT_TEXT
@@ -399,23 +453,22 @@ class ChattingActivity : AppCompatActivity() {
                             }
 
                             "image" -> {
-                                if (snapshot.childrenCount.toInt() == 7) {
+                                if (snapshot.childrenCount.toInt() == CHAT_IMAGE_COUNT) {
+                                    val isMyChat = data.senderEmail == currentUserEmail
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_IMAGE,
                                         data,
                                         snapshot.key.toString(),
-                                        data.senderEmail == currentUserEmail,
+                                        isMyChat,
                                         true
                                     )
-                                    Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_SHORT)
-                                        .show()
 
                                     initRecycler()
                                 }
                             }
 
                             "video" -> {
-                                if (snapshot.childrenCount.toInt() == 8) {
+                                if (snapshot.childrenCount.toInt() == CHAT_VIDEO_COUNT) {
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_VIDEO,
                                         data,
@@ -424,14 +477,13 @@ class ChattingActivity : AppCompatActivity() {
                                         true
                                     )
 
-                                    Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_LONG)
-                                        .show()
+                                    initRecycler()
                                 }
                             }
 
                             "file" -> {
                                 // files
-                                if (snapshot.childrenCount.toInt() == 6) {
+                                if (snapshot.childrenCount.toInt() == CHAT_FILE_COUNT) {
                                     addChatDataList(
                                         ChatData.VIEW_TYPE_FILE,
                                         data,
@@ -439,9 +491,6 @@ class ChattingActivity : AppCompatActivity() {
                                         data?.senderEmail == currentUserEmail,
                                         true
                                     )
-
-                                    Snackbar.make(binding.root, "전송 중..", Snackbar.LENGTH_LONG)
-                                        .show()
                                 }
                             }
 
@@ -813,11 +862,11 @@ class ChattingActivity : AppCompatActivity() {
                             getFile(tmpFile)
                                 .addOnSuccessListener {
                                     Log.d("fb_test", "success to get file")
-//                                    val bitmap = BitmapFactory.decodeFile(tmpFile.path)
+                                    val bitmap = BitmapFactory.decodeFile(tmpFile.path)
 
                                     val chatData = tmpChatData.apply {
                                         this.time = data?.createdAt
-                                        this.bitmap = BitmapFactory.decodeFile(tmpFile.path)
+                                        this.bitmap = bitmap
                                     }
 
                                     chatDataList[tmpMediaMap[key] ?: tmpChatData.tmpIndex] =
@@ -1003,7 +1052,6 @@ class ChattingActivity : AppCompatActivity() {
                     setPermissionListener(object : PermissionListener {
                         override fun onPermissionGranted() {
                             startRecordVideo()
-                            Snackbar.make(binding.root, "audio", Snackbar.LENGTH_SHORT).show()
                         }
 
                         override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}

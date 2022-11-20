@@ -2,7 +2,6 @@ package org.jin.calenee.chat
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,6 +31,7 @@ class ChatAdapter(context: Context) :
 
     interface OnItemClickListener {
         fun onItemClick(v: View, data: ChatData, position: Int)
+        fun onItemLongClick(v: View, data: ChatData, position: Int)
     }
 
     fun setOnItemClickListener(listener: OnItemClickListener) {
@@ -329,6 +329,10 @@ class ChatAdapter(context: Context) :
             if (position != RecyclerView.NO_POSITION) {
                 fileLayout.setOnClickListener {
                     listener?.onItemClick(fileLayout, data[position], position)
+                }
+                fileLayout.setOnLongClickListener {
+                    listener?.onItemLongClick(fileLayout, data[position], position)
+                    true
                 }
             }
         }
