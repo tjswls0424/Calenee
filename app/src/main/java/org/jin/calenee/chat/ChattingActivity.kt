@@ -358,12 +358,33 @@ class ChattingActivity : AppCompatActivity() {
                                                 e.printStackTrace()
                                             }
 
-                                            Snackbar.make(binding.root, "저장", Snackbar.LENGTH_SHORT)
+                                            Snackbar.make(
+                                                binding.root,
+                                                "저장되었습니다.",
+                                                Snackbar.LENGTH_SHORT
+                                            )
                                                 .show()
                                         }
+
                                         "공유" -> {
-                                            Snackbar.make(binding.root, "공유", Snackbar.LENGTH_SHORT)
-                                                .show()
+                                            val uri = FileProvider.getUriForFile(
+                                                this@ChattingActivity,
+                                                "$packageName.fileprovider",
+                                                File(
+                                                    applicationContext.cacheDir,
+                                                    data.fileNameWithExtension
+                                                )
+                                            )
+                                            val mimeType =
+                                                applicationContext.contentResolver.getType(uri)
+                                            Intent(Intent.ACTION_SEND).apply {
+                                                type =
+                                                    "image/* video/* text/* audio/* application/*"
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                setDataAndType(uri, mimeType)
+                                                putExtra(Intent.EXTRA_STREAM, uri)
+                                                startActivity(Intent.createChooser(this, "공유"))
+                                            }
                                         }
                                     }
                                 }
