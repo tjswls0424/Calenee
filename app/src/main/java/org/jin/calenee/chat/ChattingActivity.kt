@@ -38,7 +38,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.gun0912.tedpermission.PermissionListener
@@ -202,11 +201,12 @@ class ChattingActivity : AppCompatActivity() {
 
                 // bbi
 //                ChatViewModel(application).uploadChat("message")
+//                val myToken = App.userPrefs.getString("my_fcm_token")
 
                 val chatViewModel = ChatViewModel(application)
-                val userToken = "dV6MYVMySPmS_6CtrT2YO3:APA91bH0RCBRbxdeyC9dZZBa_YbZnSvqlPGXO6twd6j-LzHsMcrxXwAa8B4eO8G7XecPZlUWce3mGuX83B-9F3PlpnDkDrGX8XH8jlJjvC79R3JXzHYftIMWm9Tyv5FWltQtVuoOKuFE"
-                val data = ChatNotificationBody.ChatNotificationData("캘린이 채팅", message, "진진")
-                val body = ChatNotificationBody(userToken, data)
+                val partnerToken = App.userPrefs.getString("partner_fcm_token")
+                val data = ChatNotificationBody.ChatNotificationData("캘린이 채팅", message, nickname)
+                val body = ChatNotificationBody(partnerToken, data)
 
                 chatViewModel.sendNotification(body)
 
@@ -547,19 +547,6 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("fb_test_chat/cancelled", error.message)
                 }
             })
-
-        // FCM: get token
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.d("fcm_test", "fetching FCM registration token failed")
-                return@addOnCompleteListener
-            }
-
-            val token = task.result
-            Toast.makeText(baseContext, "token: $token", Toast.LENGTH_SHORT).show()
-            Log.d("fcm_test/token", token)
-        }
-
     }
 
     private fun resultCallbackListener() {
