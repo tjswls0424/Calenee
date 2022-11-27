@@ -9,8 +9,12 @@ import android.media.RingtoneManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import org.jin.calenee.App
 import org.jin.calenee.R
 import org.jin.calenee.chat.ChattingActivity
 
@@ -94,6 +98,13 @@ class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendRegistrationToServer(token: String?) {
+        val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email.toString()
+        Firebase.firestore.collection("user")
+            .document(currentUserEmail)
+            .update("FCMToken", token)
+
+        App.userPrefs.setString("my_fcm_token", token.toString())
+
         Log.d("fcm_test", "sendRegistrationTokenToServer($token)")
     }
 

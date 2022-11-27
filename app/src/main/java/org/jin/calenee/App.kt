@@ -5,8 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import android.util.Log
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.*
 import org.jin.calenee.chat.notification.CaleneeFirebaseMessagingService
 import org.jin.calenee.chat.notification.CaleneeWorker
 
@@ -21,6 +27,7 @@ class App : Application() {
 //        subscribeTopic()
 
         startFCMService(this)
+        saveFCMToken()
         super.onCreate()
     }
 }
@@ -48,6 +55,45 @@ private fun startFCMService(context: Context) {
         context.startForegroundService(intent)
     } else {
         context.startService(intent)
+    }
+}
+
+// get token (mine, partner), save token to SP & Firestore
+fun saveFCMToken() {
+    val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email.toString()
+    CoroutineScope(Dispatchers.IO).launch {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.d("fcm_test", "fetching FCM registration token failed")
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            App.userPrefs.setString("my_fcm_token", token)
+
+            Firebase.firestore.collection("user")
+                .document(currentUserEmail)
+                .update("FCMToken", token)
+        }
+
+        launch {
+            Firebase.firestore.collection("user").document(currentUserEmail)
+                .addSnapshotListener { value, error ->
+                    if (value?.get("partnerEmail").toString().isNotEmpty()) {
+                        val partnerEmail = value?.get("partnerEmail").toString()
+                        Firebase.firestore.collection("user").document(partnerEmail)
+                            .addSnapshotListener { value2, _ ->
+                                val tmpToken = value2?.get("FCMToken").toString()
+                                if (tmpToken.isNotEmpty()) {
+                                    App.userPrefs.setString("partner_fcm_token", tmpToken)
+                                    Firebase.firestore.collection("user")
+                                        .document(currentUserEmail)
+                                        .update("partnerFCMToken", tmpToken)
+                                }
+                            }
+                    }
+                }
+        }
     }
 }
 
