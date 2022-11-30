@@ -14,7 +14,7 @@ object RetrofitInstance {
         Retrofit.Builder()
             .baseUrl(App.FCM_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(provideOkHttpClient(AppInterCeptor()))
+            .client(provideOkHttpClient(AppInterceptor()))
             .build()
     }
 
@@ -24,7 +24,7 @@ object RetrofitInstance {
 
     // client
     private fun provideOkHttpClient(
-        interceptor: AppInterCeptor
+        interceptor: AppInterceptor
     ): OkHttpClient = OkHttpClient.Builder().run {
         connectTimeout(30, TimeUnit.SECONDS)
         readTimeout(30, TimeUnit.SECONDS)
@@ -35,7 +35,8 @@ object RetrofitInstance {
 
     // add Header
     // Resources.getSystem().getString(R.string.fcm_key)
-    class AppInterCeptor : Interceptor {
+//     key=AAAADSbZkjo:APA91bEbm_UGjP1RUs0jM9ul6Hr0nQSuNyhrouhnMrYj3uwDjp4Q_CEO5bwfmWaWKaqx4YytXtQ6XnV4Sc6Fj8ULn2ifePzi2dEq3hE60EykeCJP5kfvZTbJmUEIetekEv23uzMTryF3
+    class AppInterceptor : Interceptor {
         @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response = with(chain) {
             val newRequest = request().newBuilder()
