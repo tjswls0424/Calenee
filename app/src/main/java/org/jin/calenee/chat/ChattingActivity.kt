@@ -111,6 +111,9 @@ class ChattingActivity : AppCompatActivity() {
         checkNetworkStatus()
         getNickname()
         getSavedChatData()
+
+        Log.d("fcm_test/my_token", App.userPrefs.getString("my_fcm_token"))
+        Toast.makeText(this, App.userPrefs.getString("my_fcm_token"), Toast.LENGTH_LONG).show()
     }
 
     private fun initRecycler() {
@@ -198,17 +201,6 @@ class ChattingActivity : AppCompatActivity() {
 //                    chatDataList.add(it)
                     saveChatData(it, currentTimeInMillis)
                 }
-
-                // bbi
-//                ChatViewModel(application).uploadChat("message")
-//                val myToken = App.userPrefs.getString("my_fcm_token")
-
-                val chatViewModel = ChatViewModel(application)
-                val partnerToken = App.userPrefs.getString("partner_fcm_token")
-                val data = ChatNotificationBody.ChatNotificationData("캘린이 채팅", message, nickname)
-                val body = ChatNotificationBody(partnerToken, data)
-
-                chatViewModel.sendNotification(body)
 
                 binding.messageEt.setText("")
                 initRecycler()
@@ -478,6 +470,7 @@ class ChattingActivity : AppCompatActivity() {
                                         viewType,
                                         data,
                                         snapshot.key.toString(),
+                                        data.senderEmail == currentUserEmail,
                                         isRealtime = true
                                     )
                                     initRecycler()
@@ -491,7 +484,7 @@ class ChattingActivity : AppCompatActivity() {
                                         ChatData.VIEW_TYPE_IMAGE,
                                         data,
                                         snapshot.key.toString(),
-                                        isMyChat,
+                                        data.senderEmail == currentUserEmail,
                                         true
                                     )
 
@@ -520,7 +513,7 @@ class ChattingActivity : AppCompatActivity() {
                                         ChatData.VIEW_TYPE_FILE,
                                         data,
                                         snapshot.key.toString(),
-                                        data?.senderEmail == currentUserEmail,
+                                        data.senderEmail == currentUserEmail,
                                         true
                                     )
                                 }
@@ -547,6 +540,23 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("fb_test_chat/cancelled", error.message)
                 }
             })
+    }
+
+    private fun sendNotification(message: String, nickname: String) {
+        val chatViewModel = ChatViewModel(application)
+        val myToken = App.userPrefs.getString("my_fcm_token")
+        val partnerToken = App.userPrefs.getString("partner_fcm_token")
+        val data = ChatNotificationBody.ChatNotificationData("캘린이", message, nickname)
+
+        // partner fcm token으로 보내면 내 device로 알림이 오고
+        // my token을 써야 상대로 감
+        // 이유는 모르겠음
+        val body = ChatNotificationBody(partnerToken, data)
+        val body2 = ChatNotificationBody(myToken, data)
+
+        Log.d("fcm_test/token1", "my: ${App.userPrefs.getString("my_fcm_token")}")
+        Log.d("fcm_test/token2", "partner: $partnerToken")
+        chatViewModel.sendNotification(body2)
     }
 
     private fun resultCallbackListener() {
@@ -829,7 +839,7 @@ class ChattingActivity : AppCompatActivity() {
                             else -> -1
                         }
 
-                        addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat)
+                        addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat, false)
                     }
                 }
 
@@ -857,6 +867,15 @@ class ChattingActivity : AppCompatActivity() {
                         data?.createdAt,
                     )
                 )
+
+                Log.d("fcm_test/if-statement1", "isMyChat: $isMyChat")
+                Log.d("fcm_test/if-statement2", "isRealtime: $isRealtime")
+                if (!isMyChat && isRealtime) {
+                    Log.d("fcm_test/send1", "send 1")
+                    sendNotification(data?.message.toString(), data?.senderNickname.toString())
+                    Log.d("fcm_test/send2", "send 2")
+
+                }
             }
 
             ChatData.VIEW_TYPE_IMAGE -> {
@@ -904,6 +923,8 @@ class ChattingActivity : AppCompatActivity() {
                                         chatData
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
+
+                                    if (!isMyChat && isRealtime) sendNotification("사진을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get image file")
@@ -957,6 +978,8 @@ class ChattingActivity : AppCompatActivity() {
                                         chatData
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
+
+                                    if (!isMyChat && isRealtime) sendNotification("동영상을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get video file")
@@ -1007,6 +1030,8 @@ class ChattingActivity : AppCompatActivity() {
                                         chatData
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
+
+                                    if (!isMyChat && isRealtime) sendNotification("파일을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get file")

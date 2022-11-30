@@ -20,20 +20,22 @@ import org.jin.calenee.chat.ChattingActivity
 
 class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-
         // putData 사용시
         if (remoteMessage.data.isNotEmpty()) {
-            Log.d("fcm_test", "Message data payload: ${remoteMessage.data}")
+            // 조건 안달면 내 device에도 알림 옴
+            if (remoteMessage.data["senderNickname"].toString() != App.userPrefs.getString("current_name")) {
+                Log.d("fcm_test", "Message data payload: ${remoteMessage.data}")
 
-            Log.d("fcm_test/data-title", remoteMessage.data["title"].toString())
-            Log.d("fcm_test/data-body", remoteMessage.data["message"].toString())
-            Log.d("fcm_test/data-senderNickname", remoteMessage.data["senderNickname"].toString())
+                Log.d("fcm_test/data-title", remoteMessage.data["title"].toString())
+                Log.d("fcm_test/data-body", remoteMessage.data["message"].toString())
+                Log.d("fcm_test/data-senderNickname", remoteMessage.data["senderNickname"].toString())
 
-            val title = remoteMessage.data["title"].toString()
-            val message = remoteMessage.data["message"].toString()
-            val senderNickname = remoteMessage.data["senderNickname"].toString()
+                val title = remoteMessage.data["title"].toString()
+                val message = remoteMessage.data["message"].toString()
+                val senderNickname = remoteMessage.data["senderNickname"].toString()
 
-            sendNotification(title, message, senderNickname)
+                sendNotification(title, message, senderNickname)
+            }
 
             // check if data needs to be processed by long running job
 //            if (true) {
@@ -43,18 +45,19 @@ class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
 //                // handle message within 10 sec
 //                handleNow()
 //            }
-        } else {
-            // from server
-            remoteMessage.notification?.let {
-                Log.d("fcm_test", "Message Notification Title: ${it.title}")
-                Log.d("fcm_test", "Message Notification Body: ${it.body}")
-
-                sendNotificationFromServer(
-                    remoteMessage.notification?.title.toString(),
-                    remoteMessage.notification?.body.toString(),
-                )
-            }
         }
+//        else {
+//            // from server
+//            remoteMessage.notification?.let {
+//                Log.d("fcm_test", "Message Notification Title: ${it.title}")
+//                Log.d("fcm_test", "Message Notification Body: ${it.body}")
+//
+//                sendNotificationFromServer(
+//                    remoteMessage.notification?.title.toString(),
+//                    remoteMessage.notification?.body.toString(),
+//                )
+//            }
+//        }
     }
 
     override fun onDeletedMessages() {
@@ -120,6 +123,7 @@ class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.getActivity(this, uniId, intent, PendingIntent.FLAG_IMMUTABLE)
 
         // message style
+        // setIcon() -> 나중에 user profile image로 수정
         val user = androidx.core.app.Person.Builder()
             .setName(senderNickname)
             .setIcon(IconCompat.createWithResource(this, R.drawable.calenee_face))
@@ -138,7 +142,6 @@ class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.mipmap.calenee_icon)
             .setColor(getColor(R.color.sub_color))
-            .setContentTitle(title)
             .setContentText(body)
             .setStyle(messageStyle)
             .setAutoCancel(true)
