@@ -36,7 +36,7 @@ class LoginActivity : AppCompatActivity() {
 
     private val googleSignInOptions: GoogleSignInOptions by lazy {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-//            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
     }
@@ -85,14 +85,43 @@ class LoginActivity : AppCompatActivity() {
                 firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
                     .get()
                     .addOnSuccessListener { doc ->
-                        Log.d("db_test/login-doc", doc.data.toString())
-                            if (doc.data?.get("coupleConnectionFlag") == true) {
-                                intent = if (doc.data?.get("profileInputFlag") == true) {
-                                    Intent(this@LoginActivity, MainActivity::class.java)
-                                } else {
-                                    Intent(this@LoginActivity, ConnectionInputActivity::class.java)
+                        Log.d("db_test/mine", doc.data.toString())
+                        if (doc.data?.get("coupleConnectionFlag") == true) {
+                            intent = if (doc.data?.get("profileInputFlag") == true) {
+                                App.userPrefs.apply {
+                                    setString("couple_chat_id", doc["coupleChatID"].toString())
+                                    setString(
+                                        "current_partner_email",
+                                        doc["partnerEmail"].toString()
+                                    )
+                                    setString("current_nickname", doc["nickname"].toString())
+                                    setString("current_birthday", doc["birthday"].toString())
                                 }
+
+                                Intent(this@LoginActivity, MainActivity::class.java)
+                            } else {
+                                Intent(this@LoginActivity, ConnectionInputActivity::class.java)
                             }
+
+                            firestore.collection("user")
+                                .document(App.userPrefs.getString("current_partner_email")).get()
+                                .addOnSuccessListener { doc ->
+                                    Log.d("db_test/partner", doc.data.toString())
+                                    App.userPrefs.apply {
+                                        setString(
+                                            "current_partner_nickname",
+                                            doc["nickname"].toString()
+                                        )
+                                        setString(
+                                            "current_partner_birthday",
+                                            doc["birthday"].toString()
+                                        )
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Log.d("db_test/partner-data-err", "${it.printStackTrace()}")
+                                }
+                        }
 
                         startActivity(intent)
                         finish()
@@ -142,8 +171,6 @@ class LoginActivity : AppCompatActivity() {
     private fun initViews() {
         tokenId?.let {
             // 로그인 된 상태
-            Log.d("login_test", "login status: true")
-
             val currentUser = firebaseAuth.currentUser
             App.userPrefs.apply {
                 setString("current_email", currentUser?.email.toString())
