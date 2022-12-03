@@ -26,14 +26,12 @@ import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.android.synthetic.main.activity_connection_input.*
 import kotlinx.coroutines.*
 import org.jin.calenee.MainActivity.Companion.slideRight
 import org.jin.calenee.database.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.*
 
 class ConnectionInputActivity : AppCompatActivity() {
     companion object {
@@ -62,7 +60,7 @@ class ConnectionInputActivity : AppCompatActivity() {
         firebaseAuth.currentUser?.email.toString()
     }
 
-    private lateinit var partnerEmail: String
+//    private lateinit var partnerEmail: String
 
     private val user = User()
 
@@ -232,13 +230,37 @@ class ConnectionInputActivity : AppCompatActivity() {
                         binding.loadingScreen.visibility = View.GONE
                         binding.progressBar.visibility = View.GONE
 
-                        Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
-                            startActivity(it)
-                            slideRight()
-                            finish()
-                        }
+                        saveCoupleInfo()
                     }
                 }
+            }
+    }
+
+    private fun saveCoupleInfo() {
+        // for SP
+        App.userPrefs.apply {
+            setString("current_nickname", profileViewModel.nickname.value.toString())
+            setString("current_birthday", profileViewModel.birthday.value.toString())
+        }
+
+        val coupleChatID = App.userPrefs.getString("couple_chat_id")
+        val partnerEmail = App.userPrefs.getString("current_partner_email")
+        val position = if (myEmail.first().code <= partnerEmail.first().code) 1 else 2
+
+        // for Firestore
+        firestore.collection("coupleInfo").document(coupleChatID)
+            .update(
+                "user${position}Nickname", profileViewModel.nickname.value.toString(),
+                "user${position}Birthday", profileViewModel.birthday.value.toString(),
+                "firstMetDate", profileViewModel.firstMetDate.value.toString()
+            ).addOnSuccessListener {
+                Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
+                    startActivity(it)
+                    slideRight()
+                    finish()
+                }
+            }.addOnFailureListener {
+                Snackbar.make(binding.root, "프로필 저장장에 실패했습니다 잠시후 다시 시도해주세요.", Snackbar.LENGTH_SHORT).show()
             }
     }
 

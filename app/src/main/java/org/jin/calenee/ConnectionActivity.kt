@@ -31,7 +31,6 @@ import org.jin.calenee.database.firestore.Couple
 import org.jin.calenee.database.firestore.CoupleConnection
 import org.jin.calenee.databinding.ActivityConnectionBinding
 import org.jin.calenee.login.LoginActivity
-import java.util.*
 
 class ConnectionActivity : AppCompatActivity() {
 
@@ -351,6 +350,7 @@ class ConnectionActivity : AppCompatActivity() {
                         setString("${myEmail}_couple_connection_flag", "true")
                         setString("${myEmail}_couple_input_flag", "false")
                         setString("couple_chat_id", coupleChatID)
+                        setString("current_partner_email", inviteCodeViewModel.partnerEmail.value.toString())
                     }
 
                     startActivity(it)
@@ -403,6 +403,7 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         // if connection btn clicked
+        // 유효한 invite code 중 내가 입력한 code와 일치하는 document가 있는지 확인
         fun isValidInviteCode(partnerInviteCode: String) {
             firestore.collection("connection")
                 .get()
@@ -457,6 +458,8 @@ class ConnectionActivity : AppCompatActivity() {
                                             setString("${myEmail}_couple_connection_flag", "true")
                                             setString("${myEmail}_couple_input_flag", "false")
                                             setString("couple_chat_id", coupleChatID)
+                                            setString("current_partner_email", ownerEmail)
+                                            setString("current_email", myEmail)
                                         }
 
                                         hashMapOf(
@@ -470,6 +473,24 @@ class ConnectionActivity : AppCompatActivity() {
                                                 .document(myEmail)
                                                 .set(it)
                                         }
+
+                                        // 상대가 수락 버튼을 눌러야 실행되는 파트이므로 여기서
+                                        // couple info를 위한 새 document 생성 : document(coupleChatID) 후
+                                        // couple connection을 위한 임시 document(docId) 삭제
+                                        val coupleInfoMap = hashMapOf<String, Any>()
+                                        if (myEmail.first().code <= ownerEmail.first().code) {
+                                            coupleInfoMap["user1Email"] = myEmail
+                                            coupleInfoMap["user2Email"] = ownerEmail
+                                        } else {
+                                            coupleInfoMap["user1Email"] = ownerEmail
+                                            coupleInfoMap["user2Email"] = myEmail
+                                        }
+
+                                        firestore.collection("coupleInfo").document(coupleChatID)
+                                            .set(coupleInfoMap)
+                                            .addOnSuccessListener {
+                                                firestore.collection("couple").document(docId).delete()
+                                            }
 
                                         Intent(
                                             this@ConnectionActivity,

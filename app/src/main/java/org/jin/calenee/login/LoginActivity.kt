@@ -185,6 +185,35 @@ class LoginActivity : AppCompatActivity() {
                     Log.d("db_test/login-doc", doc.data.toString())
                     if (doc.data?.get("coupleConnectionFlag") == true) {
                         intent = if (doc.data?.get("profileInputFlag") == true) {
+                            App.userPrefs.apply {
+                                setString("couple_chat_id", doc["coupleChatID"].toString())
+                                setString(
+                                    "current_partner_email",
+                                    doc["partnerEmail"].toString()
+                                )
+                                setString("current_nickname", doc["nickname"].toString())
+                                setString("current_birthday", doc["birthday"].toString())
+                            }
+
+                            firestore.collection("user")
+                                .document(App.userPrefs.getString("current_partner_email")).get()
+                                .addOnSuccessListener { doc ->
+                                    Log.d("db_test/partner", doc.data.toString())
+                                    App.userPrefs.apply {
+                                        setString(
+                                            "current_partner_nickname",
+                                            doc["nickname"].toString()
+                                        )
+                                        setString(
+                                            "current_partner_birthday",
+                                            doc["birthday"].toString()
+                                        )
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Log.d("db_test/partner-data-err", "${it.printStackTrace()}")
+                                }
+
                             Intent(this@LoginActivity, MainActivity::class.java)
                         } else {
                             Intent(this@LoginActivity, ConnectionInputActivity::class.java)
