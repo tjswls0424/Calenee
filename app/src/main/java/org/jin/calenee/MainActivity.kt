@@ -6,10 +6,12 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -17,6 +19,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.jin.calenee.chat.ChattingActivity
 import org.jin.calenee.databinding.ActivityMainBinding
+import org.jin.calenee.home.CoupleInfoViewModel
+import org.jin.calenee.home.HomeFragment
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
 import org.jin.calenee.util.NetworkStatusHelper
@@ -40,7 +44,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private lateinit var binding: ActivityMainBinding
+    private val binding: ActivityMainBinding by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
+
+    private val coupleInfoViewModel by lazy {
+        ViewModelProvider(this)[CoupleInfoViewModel::class.java]
+    }
 
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
@@ -49,63 +59,30 @@ class MainActivity : AppCompatActivity() {
         Firebase.firestore
     }
 
-
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-
         setContentView(binding.root)
 
-        supportFragmentManager.beginTransaction()
-            .add(binding.mainFrameLayout.id, HomeFragment()).commit()
-
-        // initialize couple document ID
-        // todo: 추후 login activity로 이동 (앱 재설치시 커플 연결 때 저장했던 ID local DB에 재저장)
-        firestore.collection("user").document(App.userPrefs.getString("current_email")).get()
-            .addOnSuccessListener {
-                App.userPrefs.setString("couple_chat_id", it["coupleChatID"].toString())
-                Log.d("pref_test", App.userPrefs.getString("couple_chat_id"))
-            }
-
+        coupleInfoObserver()
         listener()
+        initFragment()
         checkNetworkStatus()
     }
 
+    private fun initFragment() {
+        HomeFragment().apply {
+            supportFragmentManager.beginTransaction()
+                .add(binding.mainFrameLayout.id, this).commit()
+        }
+    }
+
     private fun listener() {
+        // top right menu
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
-                R.id.logoutMenu -> {
-                    val googleSignInOptions: GoogleSignInOptions by lazy {
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(getString(R.string.default_web_client_id))
-                            .requestEmail()
-                            .build()
-                    }
+                R.id.edit_couple_info -> {
 
-                    val googleSignInClient by lazy {
-                        GoogleSignIn.getClient(this, googleSignInOptions)
-                    }
-
-                    googleSignInClient.signOut().addOnCompleteListener {
-                        viewModel.signOut()
-                    }
-
-                    // set SP
-                    App.userPrefs.apply {
-                        setString("current_email", "")
-                        setString("current_name", "")
-                        setString("login_status", "false")
-                    }
-
-                    Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
-
-                    Intent(this, LoginActivity::class.java).apply {
-                        startActivity(this)
-                        slideLeft()
-                        finish()
-                    }
                 }
             }
 
@@ -131,9 +108,70 @@ class MainActivity : AppCompatActivity() {
                 slideUp()
             }
         }
+
+        // Firestore - collection for coupleInfo listener
+        firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
+            .addSnapshotListener { value, error ->
+                coupleInfoViewModel.updateValue(value?.get("user1Nickname").toString(), 1)
+                coupleInfoViewModel.updateValue(value?.get("user2Nickname").toString(), 2)
+                coupleInfoViewModel.updateDays(value?.get("firstMetDate").toString())
+
+                // refresh fragment
+                replaceFragment(HomeFragment())
+
+                val position = when {
+                    (value?.get("user1Email") == firebaseAuth.currentUser?.email) -> 1
+                    (value?.get("user2Email") == firebaseAuth.currentUser?.email) -> 2
+                    else -> 0
+                }
+
+                // save to SP
+                when (position) {
+                    1 -> {
+                        App.userPrefs.setString(
+                            "current_nickname",
+                            value?.get("user1Nickname").toString()
+                        )
+                        App.userPrefs.setString(
+                            "current_partner_nickname",
+                            value?.get("user2Nickname").toString()
+                        )
+//                        App.userPrefs.setString("current_birthday", value?.get("user1Birthday").toString())
+//                        App.userPrefs.setString("current_partner_birthday", value?.get("user2Birthday").toString())
+                    }
+
+                    2 -> {
+                        App.userPrefs.setString(
+                            "current_nickname",
+                            value?.get("user2Nickname").toString()
+                        )
+                        App.userPrefs.setString(
+                            "current_partner_nickname",
+                            value?.get("user1Nickname").toString()
+                        )
+//                        App.userPrefs.setString("current_birthday", value?.get("user2Birthday").toString())
+//                        App.userPrefs.setString("current_partner_birthday", value?.get("user1Birthday").toString())
+                    }
+                }
+
+                App.userPrefs.setString("firstMetDate", value?.get("firstMetDate").toString())
+            }
     }
 
-    private fun replaceFragment(fragment: Fragment) {
+    private fun coupleInfoObserver() {
+        coupleInfoViewModel.nickname1.observe(this) {
+            Log.d("observer_test/1", it)
+        }
+        coupleInfoViewModel.nickname2.observe(this) {
+            Log.d("observer_test/2", it)
+        }
+        coupleInfoViewModel.days.observe(this) {
+            Log.d("observer_test/days", it)
+        }
+    }
+
+    private fun replaceFragment(fragment: Fragment, bundle: Bundle? = null) {
+        fragment.arguments = bundle
         supportFragmentManager.beginTransaction().replace(binding.mainFrameLayout.id, fragment)
             .commit()
     }
@@ -145,9 +183,51 @@ class MainActivity : AppCompatActivity() {
                 binding.loadingScreenView.visibility = View.INVISIBLE
             } else {
                 binding.loadingScreenView.visibility = View.VISIBLE
-                Toast.makeText(this, "현재 인터넷이 연결되어 있지 않습니다. 인터넷을 연결해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "현재 인터넷이 연결되어 있지 않습니다. 인터넷을 연결해주세요.", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
+    }
+
+    private fun logout() {
+        val googleSignInOptions: GoogleSignInOptions by lazy {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        }
+
+        val googleSignInClient by lazy {
+            GoogleSignIn.getClient(this, googleSignInOptions)
+        }
+
+        googleSignInClient.signOut().addOnCompleteListener {
+            viewModel.signOut()
+        }
+
+        // set SP
+        App.userPrefs.apply {
+            setString("login_status", "false")
+            setString("current_email", "")
+            setString("current_nickname", "")
+            setString("current_birthday", "")
+            setString("current_partner_email", "")
+            setString("current_partner_nickname", "")
+            setString("current_nickname_birthday", "")
+        }
+
+        Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
+
+        Intent(this, LoginActivity::class.java).apply {
+            startActivity(this)
+            slideLeft()
+            finish()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_top_menu, menu)
+        return true
     }
 
     override fun onBackPressed() {}
