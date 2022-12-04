@@ -3,6 +3,9 @@ package org.jin.calenee.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class CoupleInfoViewModel : ViewModel() {
     private val _nickname1 = MutableLiveData<String>()
@@ -28,6 +31,11 @@ class CoupleInfoViewModel : ViewModel() {
     }
 
     fun updateDays(days: String) {
-        _days.value = days
+        val firstMetDate = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(days)
+        val currentDate = Calendar.getInstance().time
+        val diff = currentDate.time - firstMetDate!!.time
+        val resDays = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).plus(1).toString()
+
+        _days.value = "${resDays}일"
     }
 }
