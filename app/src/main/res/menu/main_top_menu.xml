@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/logoutMenu"
-        android:enabled="true"
-        android:title="로그아웃"
-        app:showAsAction="collapseActionView" />
+        android:id="@+id/edit_couple_info"
+        android:icon="@drawable/ic_note_edit"
+        android:title="edit"
+        app:showAsAction="ifRoom" />
 
 </menu>

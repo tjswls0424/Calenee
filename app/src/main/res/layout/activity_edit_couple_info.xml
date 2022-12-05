@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="coupleInfo"
+            type="org.jin.calenee.home.CoupleInfo" />
+
+        <variable
+            name="companion"
+            type="org.jin.calenee.home.EditCoupleInfoActivity.Companion" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".home.EditCoupleInfoActivity">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="30dp"
+            android:stretchColumns="1"
+            app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+            <TableRow
+                android:id="@+id/first_met_date_row"
+                style="@style/EditCoupleInfoRow"
+                android:layout_marginVertical="20dp">
+
+                <ImageView
+                    style="@style/EditCoupleInfoIcon"
+                    android:background="@drawable/ic_rings" />
+
+                <TextView
+                    android:id="@+id/first_met_date_text"
+                    style="@style/EditCoupleInfoText"
+                    android:text="처음 만난 날" />
+
+                <TextView
+                    android:id="@+id/first_met_date_tv"
+                    style="@style/EditCoupleInfoText"
+                    android:text="@{coupleInfo.firstMetDate}"
+                    tools:text="2021-12-12" />
+
+                <ImageView style="@style/EditCoupleInfoArrow" />
+            </TableRow>
+
+            <TableLayout
+                android:layout_marginVertical="20dp"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:id="@+id/user1_row"
+                    style="@style/EditCoupleInfoRow">
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_pink_heart" />
+
+                    <TextView
+                        android:id="@+id/user1_nickname_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:text="@{coupleInfo.user1Nickname}" />
+
+                    <ImageView
+                        android:id="@+id/user1_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag1 ? View.VISIBLE : View.INVISIBLE}" />
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/user1_birthday_row"
+                    style="@style/EditCoupleInfoRow">
+
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_birthday_cake" />
+
+                    <TextView
+                        android:id="@+id/user1_birthday_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:hint="생일"
+                        android:text="@{coupleInfo.user1Birthday}" />
+
+                    <ImageView
+                        android:id="@+id/user1_birthday_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag1 ? View.VISIBLE : View.INVISIBLE}" />
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/user1_message_row"
+                    style="@style/EditCoupleInfoRow">
+
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_love_letter" />
+
+                    <TextView
+                        android:id="@+id/user1_message_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:hint="오늘의 한마디"
+
+                        android:text="@{coupleInfo.user1Message}" />
+
+                    <ImageView
+                        android:id="@+id/user1_message_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag1 ? View.VISIBLE : View.INVISIBLE}" />
+                </TableRow>
+            </TableLayout>
+
+            <TableLayout
+                android:layout_marginVertical="20dp"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:id="@+id/user2_row"
+                    style="@style/EditCoupleInfoRow">
+
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_pink_heart" />
+
+                    <TextView
+                        android:id="@+id/user2_nickname_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:text="@{coupleInfo.user2Nickname}" />
+
+                    <ImageView
+                        android:id="@+id/user2_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag2 ? View.VISIBLE : View.INVISIBLE}" />
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/user2_birthday_row"
+                    style="@style/EditCoupleInfoRow">
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_birthday_cake" />
+
+                    <TextView
+                        android:id="@+id/user2_birthday_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:hint="생일"
+                        android:text="@{coupleInfo.user2Birthday}" />
+
+                    <ImageView
+                        android:id="@+id/user2_birthday_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag2 ? View.VISIBLE : View.INVISIBLE}" />
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/user2_message_row"
+                    style="@style/EditCoupleInfoRow">
+
+                    <ImageView
+                        style="@style/EditCoupleInfoIcon"
+                        android:background="@drawable/ic_love_letter" />
+
+                    <TextView
+                        android:id="@+id/user2_message_tv"
+                        style="@style/EditCoupleInfoText"
+                        android:hint="오늘의 한마디"
+                        android:text="@{coupleInfo.user2Message}" />
+
+                    <ImageView
+                        android:id="@+id/user2_message_row_edit_icon"
+                        style="@style/EditCoupleInfoArrow"
+                        android:visibility="@{companion.enableFlag2 ? View.VISIBLE : View.INVISIBLE}" />
+                </TableRow>
+            </TableLayout>
+        </TableLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

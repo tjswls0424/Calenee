@@ -20,6 +20,7 @@ import com.google.firebase.ktx.Firebase
 import org.jin.calenee.chat.ChattingActivity
 import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.home.CoupleInfoViewModel
+import org.jin.calenee.home.EditCoupleInfoActivity
 import org.jin.calenee.home.HomeFragment
 import org.jin.calenee.login.LoginActivity
 import org.jin.calenee.login.LoginActivity.Companion.viewModel
@@ -82,7 +83,14 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.edit_couple_info -> {
+                    val position =
+                        if (coupleInfoViewModel.nickname1.value == App.userPrefs.getString("current_nickname")) 1 else 2
 
+                    Intent(this, EditCoupleInfoActivity::class.java).apply {
+                        putExtra("coupleInfo", coupleInfoViewModel.getCoupleInfo())
+                        putExtra("position", position)
+                        startActivity(this)
+                    }
                 }
             }
 
@@ -112,8 +120,14 @@ class MainActivity : AppCompatActivity() {
         // Firestore - collection for coupleInfo listener
         firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
             .addSnapshotListener { value, error ->
-                coupleInfoViewModel.updateValue(value?.get("user1Nickname").toString(), 1)
-                coupleInfoViewModel.updateValue(value?.get("user2Nickname").toString(), 2)
+                coupleInfoViewModel.updateNickname(value?.get("user1Nickname").toString(), 1)
+                coupleInfoViewModel.updateBirthday(value?.get("user1Birthday").toString(), 1)
+                coupleInfoViewModel.updateMessage(value?.get("user1Message").toString(), 1)
+
+                coupleInfoViewModel.updateNickname(value?.get("user2Nickname").toString(), 2)
+                coupleInfoViewModel.updateBirthday(value?.get("user2Birthday").toString(), 2)
+                coupleInfoViewModel.updateMessage(value?.get("user2Message").toString(), 2)
+
                 coupleInfoViewModel.updateDays(value?.get("firstMetDate").toString())
 
                 // refresh fragment
@@ -126,35 +140,37 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // save to SP
-                when (position) {
-                    1 -> {
-                        App.userPrefs.setString(
-                            "current_nickname",
-                            value?.get("user1Nickname").toString()
-                        )
-                        App.userPrefs.setString(
-                            "current_partner_nickname",
-                            value?.get("user2Nickname").toString()
-                        )
-//                        App.userPrefs.setString("current_birthday", value?.get("user1Birthday").toString())
-//                        App.userPrefs.setString("current_partner_birthday", value?.get("user2Birthday").toString())
+                App.userPrefs.apply {
+                    when (position) {
+                        1 -> {
+                            setString("current_nickname", value?.get("user1Nickname").toString())
+                            setString("current_birthday", value?.get("user1Birthday").toString())
+                            setString(
+                                "current_partner_nickname",
+                                value?.get("user2Nickname").toString()
+                            )
+                            setString(
+                                "current_partner_birthday",
+                                value?.get("user2Birthday").toString()
+                            )
+                        }
+
+                        2 -> {
+                            setString("current_nickname", value?.get("user2Nickname").toString())
+                            setString("current_birthday", value?.get("user2Birthday").toString())
+                            setString(
+                                "current_partner_nickname",
+                                value?.get("user1Nickname").toString()
+                            )
+                            setString(
+                                "current_partner_birthday",
+                                value?.get("user1Birthday").toString()
+                            )
+                        }
                     }
 
-                    2 -> {
-                        App.userPrefs.setString(
-                            "current_nickname",
-                            value?.get("user2Nickname").toString()
-                        )
-                        App.userPrefs.setString(
-                            "current_partner_nickname",
-                            value?.get("user1Nickname").toString()
-                        )
-//                        App.userPrefs.setString("current_birthday", value?.get("user2Birthday").toString())
-//                        App.userPrefs.setString("current_partner_birthday", value?.get("user1Birthday").toString())
-                    }
+                    setString("firstMetDate", value?.get("firstMetDate").toString())
                 }
-
-                App.userPrefs.setString("firstMetDate", value?.get("firstMetDate").toString())
             }
     }
 

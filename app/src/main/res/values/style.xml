@@ -88,10 +88,10 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.1</item>
-<!--        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>-->
-<!--        <item name="android:background">@color/transparent</item>-->
-<!--        <item name="android:elevation">0dp</item>-->
-<!--        <item name="android:backgroundDimAmount">0</item>-->
+        <!--        <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>-->
+        <!--        <item name="android:background">@color/transparent</item>-->
+        <!--        <item name="android:elevation">0dp</item>-->
+        <!--        <item name="android:backgroundDimAmount">0</item>-->
     </style>
 
     <!-- chat menu item -->
@@ -99,7 +99,7 @@
         <item name="android:layout_width">50dp</item>
         <item name="android:layout_height">50dp</item>
         <item name="android:scaleType">centerInside</item>
-        <item name="android:layout_marginHorizontal" tools:targetApi="o">20dp</item>
+        <item name="android:layout_marginHorizontal">20dp</item>
         <item name="android:background">@drawable/chat_item_background</item>
         <item name="android:backgroundTint">@color/sub_color7</item>
     </style>
@@ -110,4 +110,32 @@
         <item name="android:textSize">12sp</item>
         <item name="android:paddingVertical">1dp</item>
     </style>
+
+    <!-- edit couple info -->
+    <style name="EditCoupleInfoIcon">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="EditCoupleInfoArrow">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">@drawable/ic_arrow_right_24</item>
+        <item name="android:backgroundTint">@color/light_grey3</item>
+    </style>
+
+    <style name="EditCoupleInfoText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:paddingHorizontal">10dp</item>
+    </style>
+
+    <style name="EditCoupleInfoRow">
+        <item name="android:paddingVertical">7dp</item>
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+    </style>
+
 </resources>
