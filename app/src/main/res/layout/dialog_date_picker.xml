@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="40dp">
+
+    <TextView
+        android:id="@+id/dialog_title_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="30dp"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="변경할 생년월일을 입력해주세요" />
+
+    <NumberPicker
+        android:id="@+id/year_np"
+        style="@style/EditCoupleInfoNumberPicker"
+        app:layout_constraintEnd_toStartOf="@id/month_np"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintStart_toStartOf="@id/dialog_title_tv"
+        tools:ignore="MissingConstraints" />
+
+    <NumberPicker
+        android:id="@+id/month_np"
+        style="@style/EditCoupleInfoNumberPicker"
+        app:layout_constraintEnd_toStartOf="@id/day_np"
+        app:layout_constraintStart_toEndOf="@id/year_np"
+        tools:ignore="MissingConstraints" />
+
+    <NumberPicker
+        android:id="@+id/day_np"
+        style="@style/EditCoupleInfoNumberPicker"
+        app:layout_constraintEnd_toEndOf="@id/dialog_title_tv"
+        app:layout_constraintStart_toEndOf="@id/month_np"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/cancel_btn"
+        style="@style/EditCoupleInfoNumberPickerButton"
+        android:text="@string/cancel"
+        app:layout_constraintEnd_toStartOf="@id/save_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/save_btn"
+        style="@style/EditCoupleInfoNumberPickerButton"
+        android:text="@string/save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cancel_btn"
+        tools:ignore="MissingConstraints" />
+</androidx.constraintlayout.widget.ConstraintLayout>

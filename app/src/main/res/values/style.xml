@@ -138,4 +138,25 @@
         <item name="android:foreground">?android:attr/selectableItemBackground</item>
     </style>
 
+    <!-- NumberPicker Dialog -->
+    <style name="EditCoupleInfoNumberPicker">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginHorizontal">20dp</item>
+        <item name="android:selectionDividerHeight">0.5dp</item>
+        <item name="layout_constraintHorizontal_weight">1</item>
+        <item name="layout_constraintBottom_toTopOf">@id/cancel_btn</item>
+        <item name="layout_constraintTop_toBottomOf">@id/dialog_title_tv</item>
+    </style>
+
+    <style name="EditCoupleInfoNumberPickerButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:layout_marginHorizontal">5dp</item>
+        <item name="android:backgroundTint">@color/light_grey2</item>
+        <item name="layout_constraintBottom_toBottomOf">parent</item>
+        <item name="layout_constraintHorizontal_weight">1</item>
+    </style>
 </resources>
