@@ -8,7 +8,7 @@
         <import type="android.view.View" />
 
         <variable
-            name="coupleInfo"
+            name="couple"
             type="org.jin.calenee.home.CoupleInfo" />
 
         <variable
@@ -51,7 +51,7 @@
                 <TextView
                     android:id="@+id/first_met_date_tv"
                     style="@style/EditCoupleInfoText"
-                    android:text="@{coupleInfo.firstMetDate}"
+                    android:text="@{couple.firstMetDate}"
                     tools:text="2021-12-12" />
 
                 <ImageView style="@style/EditCoupleInfoArrow" />
@@ -72,7 +72,7 @@
                     <TextView
                         android:id="@+id/user1_nickname_tv"
                         style="@style/EditCoupleInfoText"
-                        android:text="@{coupleInfo.user1Nickname}" />
+                        android:text="@{couple.user1Nickname}" />
 
                     <ImageView
                         android:id="@+id/user1_row_edit_icon"
@@ -93,7 +93,7 @@
                         android:id="@+id/user1_birthday_tv"
                         style="@style/EditCoupleInfoText"
                         android:hint="생일"
-                        android:text="@{coupleInfo.user1Birthday}" />
+                        android:text="@{couple.user1Birthday}" />
 
                     <ImageView
                         android:id="@+id/user1_birthday_row_edit_icon"
@@ -115,7 +115,7 @@
                         style="@style/EditCoupleInfoText"
                         android:hint="오늘의 한마디"
 
-                        android:text="@{coupleInfo.user1Message}" />
+                        android:text="@{couple.user1Message}" />
 
                     <ImageView
                         android:id="@+id/user1_message_row_edit_icon"
@@ -140,7 +140,7 @@
                     <TextView
                         android:id="@+id/user2_nickname_tv"
                         style="@style/EditCoupleInfoText"
-                        android:text="@{coupleInfo.user2Nickname}" />
+                        android:text="@{couple.user2Nickname}" />
 
                     <ImageView
                         android:id="@+id/user2_row_edit_icon"
@@ -161,7 +161,7 @@
                         android:id="@+id/user2_birthday_tv"
                         style="@style/EditCoupleInfoText"
                         android:hint="생일"
-                        android:text="@{coupleInfo.user2Birthday}" />
+                        android:text="@{couple.user2Birthday}" />
 
                     <ImageView
                         android:id="@+id/user2_birthday_row_edit_icon"
@@ -182,7 +182,7 @@
                         android:id="@+id/user2_message_tv"
                         style="@style/EditCoupleInfoText"
                         android:hint="오늘의 한마디"
-                        android:text="@{coupleInfo.user2Message}" />
+                        android:text="@{couple.user2Message}" />
 
                     <ImageView
                         android:id="@+id/user2_message_row_edit_icon"
