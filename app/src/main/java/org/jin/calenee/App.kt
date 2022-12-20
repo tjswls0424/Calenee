@@ -112,4 +112,24 @@ class UserPrefs(context: Context) {
     fun deleteString(key: String) {
         prefs.edit().remove(key).apply()
     }
+
+    fun updateUserNickname(nickname: String, isMine: Boolean) {
+        if (isMine) {
+            setString("current_nickname", nickname)
+        } else {
+            setString("current_partner_nickname", nickname)
+        }
+    }
+
+    fun updateUserBirthday(birthday: String, isMine: Boolean) {
+        if (isMine) {
+            setString("current_birthday", birthday)
+        } else {
+            setString("current_partner_birthday", birthday)
+        }
+    }
+
+    fun updateFirstMetDate(date: String) {
+        setString("firstMetDate", date)
+    }
 }

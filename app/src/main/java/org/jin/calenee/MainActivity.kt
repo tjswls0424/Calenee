@@ -140,36 +140,26 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // save to SP
-                App.userPrefs.apply {
+                with(App.userPrefs) {
                     when (position) {
                         1 -> {
-                            setString("current_nickname", value?.get("user1Nickname").toString())
-                            setString("current_birthday", value?.get("user1Birthday").toString())
-                            setString(
-                                "current_partner_nickname",
-                                value?.get("user2Nickname").toString()
-                            )
-                            setString(
-                                "current_partner_birthday",
-                                value?.get("user2Birthday").toString()
-                            )
+                            updateUserNickname(value?.get("user1Nickname").toString(), true)
+                            updateUserNickname(value?.get("user2Nickname").toString(), false)
+
+                            updateUserBirthday(value?.get("user1Birthday").toString(), true)
+                            updateUserBirthday(value?.get("user2Birthday").toString(), false)
                         }
 
                         2 -> {
-                            setString("current_nickname", value?.get("user2Nickname").toString())
-                            setString("current_birthday", value?.get("user2Birthday").toString())
-                            setString(
-                                "current_partner_nickname",
-                                value?.get("user1Nickname").toString()
-                            )
-                            setString(
-                                "current_partner_birthday",
-                                value?.get("user1Birthday").toString()
-                            )
+                            updateUserNickname(value?.get("user2Nickname").toString(), true)
+                            updateUserNickname(value?.get("user1Nickname").toString(), false)
+
+                            updateUserBirthday(value?.get("user2Birthday").toString(), true)
+                            updateUserBirthday(value?.get("user1Birthday").toString(), false)
                         }
                     }
 
-                    setString("firstMetDate", value?.get("firstMetDate").toString())
+                    updateFirstMetDate(value?.get("firstMetDate").toString())
                 }
             }
     }
