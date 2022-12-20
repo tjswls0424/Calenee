@@ -42,7 +42,7 @@
 
     <Button
         android:id="@+id/cancel_btn"
-        style="@style/EditCoupleInfoNumberPickerButton"
+        style="@style/EditCoupleInfoButton"
         android:text="@string/cancel"
         app:layout_constraintEnd_toStartOf="@id/save_btn"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,7 +50,7 @@
 
     <Button
         android:id="@+id/save_btn"
-        style="@style/EditCoupleInfoNumberPickerButton"
+        style="@style/EditCoupleInfoButton"
         android:text="@string/save"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/cancel_btn"
