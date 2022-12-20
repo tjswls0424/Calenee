@@ -5,11 +5,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.dialog_date_picker.view.*
+import kotlinx.android.synthetic.main.dialog_date_picker.view.dialog_title_tv
+import kotlinx.android.synthetic.main.dialog_date_picker.view.save_btn
+import kotlinx.android.synthetic.main.dialog_edit_text.view.*
 import org.jin.calenee.App
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityEditCoupleInfoBinding
@@ -82,52 +87,87 @@ class EditCoupleInfoActivity : AppCompatActivity() {
         binding.firstMetDateRow.setOnClickListener {
             try {
                 with(coupleInfo.firstMetDate.split("-")) {
-                    setDatePicker("변경할 처음 만난 날짜를 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt())
+                    setDatePicker(
+                        "변경할 처음 만난 날짜를 입력해주세요",
+                        get(0).toInt(),
+                        get(1).toInt(),
+                        get(2).toInt()
+                    )
                 }
             } catch (e: IndexOutOfBoundsException) {
                 with(tmpDate) {
-                    setDatePicker("변경할 처음 만난 날짜를 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt())
+                    setDatePicker(
+                        "변경할 처음 만난 날짜를 입력해주세요",
+                        get(0).toInt(),
+                        get(1).toInt(),
+                        get(2).toInt()
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
         }
+
+
 
         if (enableFlag1) {
             binding.user1Row.setOnClickListener {
-                Log.d("row_test", "user1Row")
+                setEditTextDialog("변경할 닉네임을 입력해주세요")
             }
             binding.user1BirthdayRow.setOnClickListener {
                 try {
                     with(coupleInfo.user1Birthday.split("-")) {
-                        setDatePicker("${coupleInfo.user1Nickname}님의 생일을 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt(), 1)
+                        setDatePicker(
+                            "${coupleInfo.user1Nickname}님의 생일을 입력해주세요",
+                            get(0).toInt(),
+                            get(1).toInt(),
+                            get(2).toInt(),
+                            1
+                        )
                     }
                 } catch (e: IndexOutOfBoundsException) {
-                    with (tmpDate) {
-                        setDatePicker("${coupleInfo.user1Nickname}님의 생일을 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt(), 1)
+                    with(tmpDate) {
+                        setDatePicker(
+                            "${coupleInfo.user1Nickname}님의 생일을 입력해주세요",
+                            get(0).toInt(),
+                            get(1).toInt(),
+                            get(2).toInt(),
+                            1
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
             binding.user1MessageRow.setOnClickListener {
-                Log.d("row_test", "user1MessageRow")
+                setEditTextDialog("오늘의 한마디를 입력해주세요", true)
             }
         }
 
         if (enableFlag2) {
             binding.user2Row.setOnClickListener {
-                Log.d("row_test", "user2Row")
+                setEditTextDialog("변경할 닉네임을 입력해주세요")
             }
             binding.user2BirthdayRow.setOnClickListener {
                 try {
                     with(coupleInfo.user2Birthday.split("-")) {
-                        setDatePicker("${coupleInfo.user2Nickname}님의 생일을 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt(), 2)
+                        setDatePicker(
+                            "${coupleInfo.user2Nickname}님의 생일을 입력해주세요",
+                            get(0).toInt(),
+                            get(1).toInt(),
+                            get(2).toInt(),
+                            2
+                        )
                     }
                 } catch (e: IndexOutOfBoundsException) {
-                    with (tmpDate) {
-                        setDatePicker("${coupleInfo.user2Nickname}님의 생일을 입력해주세요", get(0).toInt(), get(1).toInt(), get(2).toInt(), 2)
+                    with(tmpDate) {
+                        setDatePicker(
+                            "${coupleInfo.user2Nickname}님의 생일을 입력해주세요",
+                            get(0).toInt(),
+                            get(1).toInt(),
+                            get(2).toInt(),
+                            2
+                        )
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -135,7 +175,7 @@ class EditCoupleInfoActivity : AppCompatActivity() {
 
             }
             binding.user2MessageRow.setOnClickListener {
-                Log.d("row_test", "user2MessageRow")
+                setEditTextDialog("오늘의 한마디를 입력해주세요", true)
             }
         }
     }
@@ -194,13 +234,13 @@ class EditCoupleInfoActivity : AppCompatActivity() {
             }
 
             day_np.setOnValueChangedListener { picker, oldVal, newVal ->
+                // todo: 월별 일수 제한
                 if (month_np.value == 2) {
                     day_np.maxValue = 28
                 } else {
                     day_np.maxValue = 31
                 }
             }
-
 
             year_np.displayedValues = Array(yearSize) { i -> (i + yearMinValue).toString() + "년" }
             month_np.displayedValues = Array(12) { i -> (i + 1).toString() + "월" }
@@ -234,8 +274,77 @@ class EditCoupleInfoActivity : AppCompatActivity() {
         }
     }
 
+    private fun setEditTextDialog(title: String, subTextFlag: Boolean = false) {
+        val dialog = AlertDialog.Builder(this).create()
+        val edialog = LayoutInflater.from(this)
+        val mView = edialog.inflate(R.layout.dialog_edit_text, null)
+
+        mView.dialog_title_tv.text = title
+        dialog.setView(mView)
+        dialog.show()
+
+        with(mView) {
+            if (subTextFlag) {
+                dialog_sub_tv.visibility = View.VISIBLE
+                input_text_layout.hint = "오늘의 한마디"
+
+                if (position == 1) {
+                    if (coupleInfo.user1Message.isNotEmpty()) {
+                        input_text_layout.editText?.setText(coupleInfo.user1Message)
+                    }
+                } else {
+                    if (coupleInfo.user2Message.isNotEmpty()) {
+                        input_text_layout.editText?.setText(coupleInfo.user2Message)
+                    }
+                }
+            } else {
+                if (position == 1) {
+                    if (coupleInfo.user2Message.isNotEmpty()) {
+                        input_text_layout.editText?.setText(coupleInfo.user2Message)
+                    }
+                } else {
+                    if (coupleInfo.user2Nickname.isNotEmpty()) {
+                        input_text_layout.editText?.setText(coupleInfo.user2Nickname)
+                    }
+                }
+            }
+
+            input_text_layout.editText?.doOnTextChanged { text, start, before, count ->
+                when (position) {
+                    1 -> {
+                        if (subTextFlag) coupleInfo.user1Message = text.toString()
+                        else coupleInfo.user1Nickname = text.toString()
+                    }
+
+                    2 -> {
+                        if (subTextFlag) coupleInfo.user2Message = text.toString()
+                        else coupleInfo.user2Nickname = text.toString()
+                    }
+                }
+                Log.d("et_test", text.toString())
+            }
+
+            et_cancel_btn.setOnClickListener {
+                dialog.dismiss()
+                dialog.cancel()
+            }
+
+            et_save_btn.setOnClickListener {
+                if (subTextFlag) {
+                    updateData(MESSAGE, position)
+                } else {
+                    updateData(NICKNAME, position)
+                }
+
+                refreshView()
+                dialog.dismiss()
+            }
+        }
+    }
+
     private fun updateData(type: Int, position: Int = 0) {
-        val doc = Firebase.firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
+        val doc = Firebase.firestore.collection("coupleInfo")
+            .document(App.userPrefs.getString("couple_chat_id"))
         when (type) {
             DAYS -> {
                 doc.update("firstMetDate", coupleInfo.firstMetDate)
