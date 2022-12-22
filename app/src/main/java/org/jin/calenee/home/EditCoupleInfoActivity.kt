@@ -1,5 +1,6 @@
 package org.jin.calenee.home
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -22,6 +23,7 @@ import org.jin.calenee.databinding.DialogDatePickerBinding
 import java.lang.IndexOutOfBoundsException
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 const val DAYS = 1
 const val BIRTHDAY = 2
@@ -338,8 +340,23 @@ class EditCoupleInfoActivity : AppCompatActivity() {
 
                 refreshView()
                 dialog.dismiss()
+
+                Intent(this@EditCoupleInfoActivity, TodayMessagePositionActivity::class.java).apply {
+                    calculateDays()
+                    putExtra("coupleInfo", coupleInfo)
+                    startActivity(this)
+                }
             }
         }
+    }
+
+    private fun calculateDays() {
+        val firstMetDate = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(coupleInfo.firstMetDate)
+        val currentDate = Calendar.getInstance().time
+        val diff = currentDate.time - firstMetDate!!.time
+        val resDays = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).plus(1).toString()
+
+        coupleInfo.days = resDays + "일"
     }
 
     private fun updateData(type: Int, position: Int = 0) {

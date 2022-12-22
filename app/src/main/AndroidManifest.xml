@@ -26,9 +26,11 @@
         android:theme="@style/Theme.LightPurple"
         tools:replace="android:label">
         <activity
+            android:name=".home.TodayMessagePositionActivity"
+            android:exported="false" />
+        <activity
             android:name=".home.EditCoupleInfoActivity"
             android:exported="false" />
-
         <activity
             android:name=".chat.ChatVideoDetailsActivity"
             android:exported="false"
@@ -71,7 +73,6 @@
         <activity
             android:name=".MainActivity"
             android:theme="@style/Theme.LightPurple" /> <!-- FCM -->
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="org.jin.calenee.fileprovider"

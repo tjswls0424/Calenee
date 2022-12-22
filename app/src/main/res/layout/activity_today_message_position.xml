@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="coupleInfo"
+            type="org.jin.calenee.home.CoupleInfo" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".home.TodayMessagePositionActivity">
+
+        <TextView
+            android:id="@+id/text_view"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/light_grey2"
+            android:gravity="center"
+            android:text="메세지가 위치할 곳을 정해주세요"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/couple_info_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_view">
+
+            <LinearLayout
+                android:id="@+id/nickname_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="25dp"
+                android:layout_marginTop="15dp"
+                android:orientation="horizontal"
+                android:paddingTop="15dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/nickname1_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="@{coupleInfo.user1Nickname}"
+                    android:textSize="17sp"
+                    tools:text="현수" />
+
+                <ImageView
+                    android:id="@+id/heart_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/ic_pink_heart" />
+
+                <TextView
+                    android:id="@+id/nickname2_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="@{coupleInfo.user2Nickname}"
+                    android:textSize="17sp"
+                    tools:text="민지" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/couple_days_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{coupleInfo.days}"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@id/nickname_layout"
+                app:layout_constraintStart_toStartOf="@id/nickname_layout"
+                app:layout_constraintTop_toBottomOf="@id/nickname_layout"
+                tools:text="200일" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ToggleButton
+            android:id="@+id/position0_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="설정 안함"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/couple_info_layout"
+            app:layout_constraintTop_toBottomOf="@id/text_view"
+            app:layout_constraintBottom_toBottomOf="@id/couple_info_layout"
+            android:textOn="설정 안함" />
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/toggle_flow"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="50dp"
+            app:constraint_referenced_ids="position1_tb, position2_tb ,position3_tb, position4_tb, position5_tb, position6_tb, position7_tb, position8_tb, position9_tb"
+            app:flow_horizontalStyle="spread"
+            app:flow_maxElementsWrap="3"
+            app:flow_verticalStyle="spread_inside"
+            app:flow_wrapMode="aligned"
+            app:layout_constraintBottom_toTopOf="@id/text_view2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/couple_info_layout" />
+
+        <ToggleButton
+            android:id="@+id/position1_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="1"
+            android:textOn="1" />
+
+        <ToggleButton
+            android:id="@+id/position2_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="2"
+            android:textOn="2" />
+
+        <ToggleButton
+            android:id="@+id/position3_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="3"
+            android:textOn="3" />
+
+        <ToggleButton
+            android:id="@+id/position4_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="4"
+            android:textOn="4" />
+
+        <ToggleButton
+            android:id="@+id/position5_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="5"
+            android:textOn="5" />
+
+        <ToggleButton
+            android:id="@+id/position6_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="6"
+            android:textOn="6" />
+
+        <ToggleButton
+            android:id="@+id/position7_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="7"
+            android:textOn="7" />
+
+        <ToggleButton
+            android:id="@+id/position8_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="8"
+            android:textOn="8" />
+
+        <ToggleButton
+            android:id="@+id/position9_tb"
+            style="@style/TodayMessagePositionToggleButton"
+            android:textOff="9"
+            android:textOn="9" />
+
+        <TextView
+            android:id="@+id/text_view2"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/light_grey2"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
