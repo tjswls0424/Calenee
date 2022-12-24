@@ -169,12 +169,12 @@
                 android:textColor="@color/black" />
 
             <Button
-                android:id="@+id/next_btn"
+                android:id="@+id/save_btn"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:backgroundTint="@color/light_grey2"
-                android:text="@string/next"
+                android:text="@string/save"
                 android:textColor="@color/black" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
