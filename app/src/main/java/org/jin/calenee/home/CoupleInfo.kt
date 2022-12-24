@@ -11,4 +11,5 @@ data class CoupleInfo(
     var user2Message: String = "",
     var firstMetDate: String = "",
     var days: String = "0일",
+    var position: Int = 0,
 ) : Serializable

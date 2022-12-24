@@ -36,7 +36,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
     private lateinit var pickerBinding: DialogDatePickerBinding
 
     private lateinit var coupleInfo: CoupleInfo
-    private var position: Int = 0
 
     companion object {
         var enableFlag1 = false
@@ -56,7 +55,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
     private fun initData() {
         with(intent) {
             coupleInfo = getSerializableExtra("coupleInfo") as CoupleInfo
-            position = getIntExtra("position", 0)
         }
 
         with(binding) {
@@ -67,7 +65,7 @@ class EditCoupleInfoActivity : AppCompatActivity() {
         makeViewEditable()
     }
 
-    private fun makeViewEditable() = when (position) {
+    private fun makeViewEditable() = when (coupleInfo.position) {
         1 -> enableFlag1 = true
         2 -> enableFlag2 = true
 
@@ -124,7 +122,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
                             get(0).toInt(),
                             get(1).toInt(),
                             get(2).toInt(),
-                            1
                         )
                     }
                 } catch (e: IndexOutOfBoundsException) {
@@ -134,7 +131,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
                             get(0).toInt(),
                             get(1).toInt(),
                             get(2).toInt(),
-                            1
                         )
                     }
                 } catch (e: Exception) {
@@ -158,7 +154,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
                             get(0).toInt(),
                             get(1).toInt(),
                             get(2).toInt(),
-                            2
                         )
                     }
                 } catch (e: IndexOutOfBoundsException) {
@@ -168,7 +163,6 @@ class EditCoupleInfoActivity : AppCompatActivity() {
                             get(0).toInt(),
                             get(1).toInt(),
                             get(2).toInt(),
-                            2
                         )
                     }
                 } catch (e: Exception) {
@@ -255,14 +249,14 @@ class EditCoupleInfoActivity : AppCompatActivity() {
             save_btn.setOnClickListener {
 //                val result = "${year_np.value-month_np.value-day_np.value}"
                 val result = "${year_np.value}-${month_np.value}-${day_np.value}"
-                when (position) {
+                when (coupleInfo.position) {
                     1 -> {
                         coupleInfo.user1Birthday = result
-                        updateData(BIRTHDAY, position)
+                        updateData(BIRTHDAY, coupleInfo.position)
                     }
                     2 -> {
                         coupleInfo.user2Birthday = result
-                        updateData(BIRTHDAY, position)
+                        updateData(BIRTHDAY, coupleInfo.position)
                     }
                     else -> {
                         coupleInfo.firstMetDate = result
@@ -287,10 +281,11 @@ class EditCoupleInfoActivity : AppCompatActivity() {
 
         with(mView) {
             if (subTextFlag) {
+                // EditText Dialog for today message
                 dialog_sub_tv.visibility = View.VISIBLE
                 input_text_layout.hint = "오늘의 한마디"
 
-                if (position == 1) {
+                if (coupleInfo.position == 1) {
                     if (coupleInfo.user1Message.isNotEmpty()) {
                         input_text_layout.editText?.setText(coupleInfo.user1Message)
                     }
@@ -300,9 +295,10 @@ class EditCoupleInfoActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                if (position == 1) {
-                    if (coupleInfo.user2Message.isNotEmpty()) {
-                        input_text_layout.editText?.setText(coupleInfo.user2Message)
+                // EditText Dialog for nickname
+                if (coupleInfo.position == 1) {
+                    if (coupleInfo.user1Nickname.isNotEmpty()) {
+                        input_text_layout.editText?.setText(coupleInfo.user1Nickname)
                     }
                 } else {
                     if (coupleInfo.user2Nickname.isNotEmpty()) {
@@ -312,7 +308,7 @@ class EditCoupleInfoActivity : AppCompatActivity() {
             }
 
             input_text_layout.editText?.doOnTextChanged { text, start, before, count ->
-                when (position) {
+                when (coupleInfo.position) {
                     1 -> {
                         if (subTextFlag) coupleInfo.user1Message = text.toString()
                         else coupleInfo.user1Nickname = text.toString()
@@ -333,19 +329,21 @@ class EditCoupleInfoActivity : AppCompatActivity() {
 
             et_save_btn.setOnClickListener {
                 if (subTextFlag) {
-                    updateData(MESSAGE, position)
+                    // today message
+                    updateData(MESSAGE, coupleInfo.position)
+
+                    Intent(this@EditCoupleInfoActivity, TodayMessagePositionActivity::class.java).apply {
+                        calculateDays()
+                        putExtra("coupleInfo", coupleInfo)
+                        startActivity(this)
+                    }
                 } else {
-                    updateData(NICKNAME, position)
+                    // nickname
+                    updateData(NICKNAME, coupleInfo.position)
                 }
 
                 refreshView()
                 dialog.dismiss()
-
-                Intent(this@EditCoupleInfoActivity, TodayMessagePositionActivity::class.java).apply {
-                    calculateDays()
-                    putExtra("coupleInfo", coupleInfo)
-                    startActivity(this)
-                }
             }
         }
     }
@@ -368,23 +366,29 @@ class EditCoupleInfoActivity : AppCompatActivity() {
             }
 
             BIRTHDAY -> {
-                when (position) {
-                    1 -> doc.update("user${position}Birthday", coupleInfo.user1Birthday)
-                    2 -> doc.update("user${position}Birthday", coupleInfo.user2Birthday)
+                when (coupleInfo.position) {
+                    1 -> doc.update("user${coupleInfo.position}Birthday", coupleInfo.user1Birthday)
+                    2 -> doc.update("user${coupleInfo.position}Birthday", coupleInfo.user2Birthday)
                 }
             }
 
             NICKNAME -> {
-                when (position) {
-                    1 -> doc.update("user${position}Nickname", coupleInfo.user1Nickname)
-                    2 -> doc.update("user${position}Nickname", coupleInfo.user2Nickname)
+                when (coupleInfo.position) {
+                    1 -> doc.update("user${coupleInfo.position}Nickname", coupleInfo.user1Nickname)
+                    2 -> doc.update("user${coupleInfo.position}Nickname", coupleInfo.user2Nickname)
                 }
             }
 
             MESSAGE -> {
-                when (position) {
-                    1 -> doc.update("user${position}Message", coupleInfo.user1Message)
-                    2 -> doc.update("user${position}Message", coupleInfo.user2Message)
+                when (coupleInfo.position) {
+                    1 -> {
+                        doc.update("user${coupleInfo.position}Message", coupleInfo.user1Message)
+                        doc.update("user${coupleInfo.position}MessagePosition", 0)
+                    }
+                    2 -> {
+                        doc.update("user${coupleInfo.position}Message", coupleInfo.user2Message)
+                        doc.update("user${coupleInfo.position}MessagePosition", 0)
+                    }
                 }
             }
         }

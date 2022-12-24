@@ -83,12 +83,13 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.edit_couple_info -> {
-                    val position =
-                        if (coupleInfoViewModel.nickname1.value == App.userPrefs.getString("current_nickname")) 1 else 2
+                    val coupleInfo = coupleInfoViewModel.getCoupleInfo().apply {
+                        position =
+                            if (coupleInfoViewModel.nickname1.value == App.userPrefs.getString("current_nickname")) 1 else 2
+                    }
 
                     Intent(this, EditCoupleInfoActivity::class.java).apply {
-                        putExtra("coupleInfo", coupleInfoViewModel.getCoupleInfo())
-                        putExtra("position", position)
+                        putExtra("coupleInfo", coupleInfo)
                         startActivity(this)
                     }
                 }
