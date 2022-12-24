@@ -1,5 +1,6 @@
 package org.jin.calenee.home
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import org.jin.calenee.databinding.ActivityTodayMessagePositionBinding
@@ -11,6 +12,7 @@ class TodayMessagePositionActivity : AppCompatActivity() {
     }
 
     private lateinit var coupleInfo: CoupleInfo
+    private var messagePosition: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,64 +25,65 @@ class TodayMessagePositionActivity : AppCompatActivity() {
     }
 
     private fun listener() {
-        with(binding) {
-            position0Tb.setOnClickListener {
-                unCheckedAll()
-                position0Tb.isChecked = true
+        binding.cancelBtn.setOnClickListener {
+            onBackPressed()
+        }
+        binding.nextBtn.setOnClickListener {
+            Intent(this, TodayMessageTextInfoActivity::class.java).apply {
+                putExtra("coupleInfo", coupleInfo)
+                putExtra("messagePosition", messagePosition)
+                startActivity(this)
             }
-            position1Tb.setOnClickListener {
-                unCheckedAll()
-                position1Tb.isChecked = true
-            }
-            position2Tb.setOnClickListener {
-                unCheckedAll()
-                position2Tb.isChecked = true
-            }
-            position3Tb.setOnClickListener {
-                unCheckedAll()
-                position3Tb.isChecked = true
-            }
-            position4Tb.setOnClickListener {
-                unCheckedAll()
-                position4Tb.isChecked = true
-            }
-            position5Tb.setOnClickListener {
-                unCheckedAll()
-                position5Tb.isChecked = true
-            }
-            position6Tb.setOnClickListener {
-                unCheckedAll()
-                position6Tb.isChecked = true
-            }
-            position7Tb.setOnClickListener {
-                unCheckedAll()
-                position7Tb.isChecked = true
-            }
-            position8Tb.setOnClickListener {
-                unCheckedAll()
-                position8Tb.isChecked = true
-            }
-            position9Tb.setOnClickListener {
-                unCheckedAll()
-                position9Tb.isChecked = true
-            }
+        }
 
+        with(binding) {
+            positionBtn0.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 0
+                positionBtn0.isChecked = true
+            }
+            positionBtn1.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 1
+                positionBtn1.isChecked = true
+            }
+            positionBtn2.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 2
+                positionBtn2.isChecked = true
+            }
+            positionBtn3.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 3
+                positionBtn3.isChecked = true
+            }
+            positionBtn4.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 4
+                positionBtn4.isChecked = true
+            }
+            positionBtn5.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 5
+                positionBtn5.isChecked = true
+            }
+            positionBtn6.setOnClickListener {
+                unCheckedAll()
+                messagePosition = 6
+                positionBtn6.isChecked = true
+            }
         }
     }
 
     private fun unCheckedAll() {
         with(binding) {
-            position0Tb.isChecked = false
-            position1Tb.isChecked = false
-            position2Tb.isChecked = false
-            position3Tb.isChecked = false
-            position4Tb.isChecked = false
-            position5Tb.isChecked = false
-            position6Tb.isChecked = false
-            position7Tb.isChecked = false
-            position8Tb.isChecked = false
-            position9Tb.isChecked = false
+            positionBtn0.isChecked = false
+            positionBtn1.isChecked = false
+            positionBtn2.isChecked = false
+            positionBtn3.isChecked = false
+            positionBtn4.isChecked = false
+            positionBtn5.isChecked = false
+            positionBtn6.isChecked = false
         }
     }
-
 }

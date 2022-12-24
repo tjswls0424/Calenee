@@ -37,7 +37,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="25dp"
-                android:layout_marginTop="15dp"
                 android:orientation="horizontal"
                 android:paddingTop="15dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -85,90 +84,98 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ToggleButton
-            android:id="@+id/position0_tb"
+            android:id="@+id/position_btn0"
             style="@style/TodayMessagePositionToggleButton"
+            android:layout_marginHorizontal="30dp"
             android:textOff="설정 안함"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/couple_info_layout"
-            app:layout_constraintTop_toBottomOf="@id/text_view"
+            android:textOn="설정 안함"
+            android:checked="true"
             app:layout_constraintBottom_toBottomOf="@id/couple_info_layout"
-            android:textOn="설정 안함" />
+            app:layout_constraintEnd_toStartOf="@id/couple_info_layout"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <androidx.constraintlayout.helper.widget.Flow
-            android:id="@+id/toggle_flow"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginVertical="50dp"
-            app:constraint_referenced_ids="position1_tb, position2_tb ,position3_tb, position4_tb, position5_tb, position6_tb, position7_tb, position8_tb, position9_tb"
-            app:flow_horizontalStyle="spread"
-            app:flow_maxElementsWrap="3"
-            app:flow_verticalStyle="spread_inside"
-            app:flow_wrapMode="aligned"
-            app:layout_constraintBottom_toTopOf="@id/text_view2"
+            android:layout_marginHorizontal="30dp"
+            app:layout_constraintBottom_toTopOf="@id/btn_layout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/couple_info_layout" />
+            app:layout_constraintTop_toBottomOf="@id/couple_info_layout">
 
-        <ToggleButton
-            android:id="@+id/position1_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="1"
-            android:textOn="1" />
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/toggle_flow"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="50dp"
+                app:constraint_referenced_ids="position_btn1, position_btn2 ,position_btn3, position_btn4, position_btn5, position_btn6"
+                app:flow_firstVerticalStyle="spread_inside"
+                app:flow_maxElementsWrap="1"
+                app:flow_verticalGap="30dp"
+                app:flow_verticalStyle="spread_inside"
+                app:flow_wrapMode="aligned" />
 
-        <ToggleButton
-            android:id="@+id/position2_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="2"
-            android:textOn="2" />
+            <ToggleButton
+                android:id="@+id/position_btn1"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/first"
+                android:textOn="@string/first" />
 
-        <ToggleButton
-            android:id="@+id/position3_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="3"
-            android:textOn="3" />
+            <ToggleButton
+                android:id="@+id/position_btn2"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/second"
+                android:textOn="@string/second" />
 
-        <ToggleButton
-            android:id="@+id/position4_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="4"
-            android:textOn="4" />
+            <ToggleButton
+                android:id="@+id/position_btn3"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/third"
+                android:textOn="@string/third" />
 
-        <ToggleButton
-            android:id="@+id/position5_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="5"
-            android:textOn="5" />
+            <ToggleButton
+                android:id="@+id/position_btn4"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/fourth"
+                android:textOn="@string/fourth" />
 
-        <ToggleButton
-            android:id="@+id/position6_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="6"
-            android:textOn="6" />
+            <ToggleButton
+                android:id="@+id/position_btn5"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/fifth"
+                android:textOn="@string/fifth" />
 
-        <ToggleButton
-            android:id="@+id/position7_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="7"
-            android:textOn="7" />
+            <ToggleButton
+                android:id="@+id/position_btn6"
+                style="@style/TodayMessagePositionToggleButton"
+                android:textOff="@string/sixth"
+                android:textOn="@string/sixth" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ToggleButton
-            android:id="@+id/position8_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="8"
-            android:textOn="8" />
-
-        <ToggleButton
-            android:id="@+id/position9_tb"
-            style="@style/TodayMessagePositionToggleButton"
-            android:textOff="9"
-            android:textOn="9" />
-
-        <TextView
-            android:id="@+id/text_view2"
+        <LinearLayout
+            android:id="@+id/btn_layout"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/light_grey2"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <Button
+                android:id="@+id/cancel_btn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:backgroundTint="@color/light_grey2"
+                android:text="@string/cancel"
+                android:textColor="@color/black" />
+
+            <Button
+                android:id="@+id/next_btn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:backgroundTint="@color/light_grey2"
+                android:text="@string/next"
+                android:textColor="@color/black" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
