@@ -66,13 +66,27 @@
     <string name="save">저장</string>
     <string name="cancel">취소</string>
     <string name="next">다음</string>
+    <string name="previous">이전</string>
     <string name="share">다른 앱으로 공유</string>
     <string name="details">상세정보</string>
 
+    <!-- today message -->
     <string name="first">첫 번째</string>
     <string name="second">두 번째</string>
     <string name="third">세 번째</string>
     <string name="fourth">네 번째</string>
     <string name="fifth">다섯 번째</string>
     <string name="sixth">여섯 번째</string>
+
+    <string name="alignment">정렬</string>
+    <string name="text_size">글자 크기</string>
+    <string name="text_size_small">작게</string>
+    <string name="text_size_medium">보통</string>
+    <string name="text_size_large">크게</string>
+    <string name="sample_text">글자가 이 크기로 표시됩니다.123456789!@#%&amp;*()_+-=</string>
+    <string name="text_color">글자 색</string>
+    <string name="text_color_white">흰색</string>
+    <string name="text_color_grey">회색</string>
+    <string name="text_color_black">검은색</string>
+
 </resources>

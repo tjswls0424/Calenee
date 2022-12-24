@@ -26,6 +26,9 @@
         android:theme="@style/Theme.LightPurple"
         tools:replace="android:label">
         <activity
+            android:name=".home.TodayMessageTextInfoActivity"
+            android:exported="false" />
+        <activity
             android:name=".home.TodayMessagePositionActivity"
             android:exported="false" />
         <activity

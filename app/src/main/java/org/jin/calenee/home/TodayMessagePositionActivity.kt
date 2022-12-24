@@ -3,6 +3,7 @@ package org.jin.calenee.home
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import org.jin.calenee.databinding.ActivityTodayMessagePositionBinding
 
 class TodayMessagePositionActivity : AppCompatActivity() {
@@ -28,12 +29,20 @@ class TodayMessagePositionActivity : AppCompatActivity() {
         binding.cancelBtn.setOnClickListener {
             onBackPressed()
         }
-        binding.nextBtn.setOnClickListener {
-            Intent(this, TodayMessageTextInfoActivity::class.java).apply {
-                putExtra("coupleInfo", coupleInfo)
-                putExtra("messagePosition", messagePosition)
-                startActivity(this)
+        binding.saveBtn.setOnClickListener {
+            val intent = if (messagePosition == 0) {
+                Toast.makeText(this, "저장 되었습니다", Toast.LENGTH_SHORT).show()
+                Intent(this, EditCoupleInfoActivity::class.java).apply {
+                    putExtra("coupleInfo", coupleInfo)
+                }
+            } else {
+                Intent(this, TodayMessageTextInfoActivity::class.java).apply {
+                    putExtra("coupleInfo", coupleInfo)
+                    putExtra("messagePosition", messagePosition)
+                }
             }
+
+            startActivity(intent)
         }
 
         with(binding) {

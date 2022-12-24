@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".home.TodayMessageTextInfoActivity">
+
+    <TextView
+        android:id="@+id/title_tv"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/light_grey2"
+        android:gravity="center"
+        android:text="메세지의 스타일을 정해주세요"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingHorizontal="40dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_tv">
+
+        <TextView
+            android:id="@+id/text_alignment_tv"
+            style="@style/TodayMessageSubText"
+            android:text="@string/alignment"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/text_alignment_toggle_group"
+            style="@style/TodayMessageToggleGroup"
+            app:checkedButton="@id/align_left_btn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_alignment_tv">
+
+            <Button
+                android:id="@+id/align_left_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                app:icon="@drawable/ic_baseline_format_align_left_24" />
+
+            <Button
+                android:id="@+id/align_center_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                app:icon="@drawable/ic_baseline_format_align_center_24" />
+
+            <Button
+                android:id="@+id/align_right_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                app:icon="@drawable/ic_baseline_format_align_right_24" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <TextView
+            android:id="@+id/text_size_tv"
+            style="@style/TodayMessageSubText"
+            android:text="@string/text_size"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_alignment_toggle_group" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/text_size_toggle_group"
+            style="@style/TodayMessageToggleGroup"
+            app:checkedButton="@id/size_small_btn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_size_tv">
+
+            <Button
+                android:id="@+id/size_small_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_size_small" />
+
+            <Button
+                android:id="@+id/size_medium_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_size_medium" />
+
+            <Button
+                android:id="@+id/size_large_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_size_large" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <TextView
+            android:id="@+id/text_size_sample_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:text="@string/sample_text"
+            android:textColor="@color/light_grey3"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@id/text_size_toggle_group"
+            app:layout_constraintTop_toBottomOf="@id/text_size_toggle_group" />
+
+        <TextView
+            android:id="@+id/text_color_tv"
+            style="@style/TodayMessageSubText"
+            android:paddingTop="10dp"
+            android:text="@string/text_color"
+            app:layout_constraintStart_toStartOf="@id/text_color_toggle_group"
+            app:layout_constraintTop_toBottomOf="@id/text_size_toggle_group" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/text_color_toggle_group"
+            style="@style/TodayMessageToggleGroup"
+            app:checkedButton="@id/text_white_btn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_color_tv">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/text_white_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_color_white"
+                app:icon="@color/light_grey"
+                app:iconTint="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/text_grey_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_color_grey"
+                app:icon="@color/light_grey"
+                app:iconTint="@color/light_grey" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/text_black_btn"
+                style="@style/TodayMessageTextAlignmentToggleButton"
+                android:text="@string/text_color_black"
+                app:icon="@color/black"
+                app:iconTint="@color/black" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <Button
+            android:id="@+id/previous_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:backgroundTint="@color/light_grey2"
+            android:text="@string/previous"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/save_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:backgroundTint="@color/light_grey2"
+            android:text="@string/save"
+            android:textColor="@color/black" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

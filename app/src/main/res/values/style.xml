@@ -169,4 +169,29 @@
         <item name="android:background">@drawable/today_message_position_button_background</item>
     </style>
 
+    <!-- toggle button for today message text alignment -->
+    <style name="TodayMessageTextAlignmentToggleButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="iconSize">16dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TodayMessageToggleGroup">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="selectionRequired">true</item>
+        <item name="singleSelection">true</item>
+    </style>
+
+    <style name="TodayMessageSubText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginTop">60dp</item>
+    </style>
+
+
+
 </resources>
