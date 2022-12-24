@@ -33,6 +33,8 @@ class TodayMessagePositionActivity : AppCompatActivity() {
             val intent = if (messagePosition == 0) {
                 Toast.makeText(this, "저장 되었습니다", Toast.LENGTH_SHORT).show()
                 Intent(this, EditCoupleInfoActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     putExtra("coupleInfo", coupleInfo)
                 }
             } else {

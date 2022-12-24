@@ -6,6 +6,7 @@ import android.os.Bundle
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.jin.calenee.App
+import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.R
 import org.jin.calenee.databinding.ActivityTodayMessageTextInfoBinding
 
@@ -45,7 +46,11 @@ class TodayMessageTextInfoActivity : AppCompatActivity() {
                     EditCoupleInfoActivity::class.java
                 ).apply {
                     putExtra("coupleInfo", coupleInfo)
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(this)
+                    slideLeft()
+                    finish()
                 }
             }
 
