@@ -9,11 +9,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.home_bottom_sheet_layout.view.*
 import org.jin.calenee.App
 import org.jin.calenee.MainActivity
 import org.jin.calenee.R
@@ -57,6 +61,28 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             false
         ).apply {
             viewModel = coupleInfoViewModel
+        }
+
+        binding.root.setOnLongClickListener {
+            val bottomSheetDialog = BottomSheetDialog(mContext)
+            val bottomSheetView = LayoutInflater.from(mContext).inflate(R.layout.home_bottom_sheet_layout, null) as LinearLayout
+
+            bottomSheetView.main_background_btn.setOnClickListener {
+                Toast.makeText(mContext, "1", Toast.LENGTH_SHORT).show()
+            }
+            bottomSheetView.black_background_btn.setOnClickListener {
+                Toast.makeText(mContext, "2", Toast.LENGTH_SHORT).show()
+
+            }
+            bottomSheetView.white_background_btn.setOnClickListener {
+                Toast.makeText(mContext, "3", Toast.LENGTH_SHORT).show()
+
+            }
+
+            bottomSheetDialog.setContentView(bottomSheetView)
+            bottomSheetDialog.show()
+
+            true
         }
 
         initTodayMessageInfo()

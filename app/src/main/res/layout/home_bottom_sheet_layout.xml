@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/main_background_btn"
+        style="@style/HomeBottomSheetDialog"
+        android:text="배경 이미지 변경" />
+
+    <TextView
+        android:id="@+id/black_background_btn"
+        style="@style/HomeBottomSheetDialog"
+        android:text="검은 배경 적용" />
+
+    <TextView
+        android:id="@+id/white_background_btn"
+        style="@style/HomeBottomSheetDialog"
+        android:text="흰 배경 적용" />
+
+</LinearLayout>
