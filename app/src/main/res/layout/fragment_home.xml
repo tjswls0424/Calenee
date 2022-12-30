@@ -5,9 +5,21 @@
 
     <data>
 
+        <import type="android.view.View" />
+
+        <import type="android.graphics.Color" />
+
+        <import type="android.view.Gravity" />
+
+        <import type="android.util.ArrayMap" />
+
         <variable
             name="viewModel"
             type="org.jin.calenee.home.CoupleInfoViewModel" />
+
+        <variable
+            name="todayMessage"
+            type="ArrayMap&lt;Integer, org.jin.calenee.home.HomeFragment.TodayMessageInfo>" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -65,5 +77,82 @@
             app:layout_constraintStart_toStartOf="@id/nickname_layout"
             app:layout_constraintTop_toBottomOf="@id/nickname_layout"
             tools:text="200일" />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/couple_days_tv">
+
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/toggle_flow"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="50dp"
+                app:constraint_referenced_ids="today_message1, today_message2 ,today_message3, today_message4, today_message5, today_message6"
+                app:flow_firstVerticalStyle="spread_inside"
+                app:flow_maxElementsWrap="1"
+                app:flow_verticalGap="30dp"
+                app:flow_verticalStyle="spread_inside"
+                app:flow_wrapMode="aligned" />
+
+            <TextView
+                android:id="@+id/today_message1"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[1].messageAlignment}"
+                android:text="@{todayMessage[1].message}"
+                android:textColor="@{Color.parseColor(todayMessage[1].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[1].messageSize}"
+                android:visibility="@{todayMessage[1].messagePosition == 1 ? View.VISIBLE : View.INVISIBLE}" />
+
+            <TextView
+                android:id="@+id/today_message2"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[2].messageAlignment}"
+                android:text="@{todayMessage[2].message}"
+                android:textColor="@{Color.parseColor(todayMessage[2].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[2].messageSize}"
+                android:visibility="@{todayMessage[2].messagePosition == 2 ? View.VISIBLE : View.INVISIBLE}" />
+
+            <TextView
+                android:id="@+id/today_message3"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[3].messageAlignment}"
+                android:text="@{todayMessage[3].message}"
+                android:textColor="@{Color.parseColor(todayMessage[3].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[3].messageSize}"
+                android:visibility="@{todayMessage[3].messagePosition == 3 ? View.VISIBLE : View.INVISIBLE}" />
+
+            <TextView
+                android:id="@+id/today_message4"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[4].messageAlignment}"
+                android:text="@{todayMessage[4].message}"
+                android:textColor="@{Color.parseColor(todayMessage[4].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[4].messageSize}"
+                android:visibility="@{todayMessage[4].messagePosition == 4 ? View.VISIBLE : View.INVISIBLE}" />
+
+            <TextView
+                android:id="@+id/today_message5"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[5].messageAlignment}"
+                android:text="@{todayMessage[5].message}"
+                android:textColor="@{Color.parseColor(todayMessage[5].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[5].messageSize}"
+                android:visibility="@{todayMessage[5].messagePosition == 5 ? View.VISIBLE : View.INVISIBLE}" />
+
+            <TextView
+                android:id="@+id/today_message6"
+                style="@style/TodayMessagePositionTextView"
+                android:gravity="@{todayMessage[6].messageAlignment}"
+                android:text="@{todayMessage[6].message}"
+                android:textColor="@{Color.parseColor(todayMessage[6].messageColor)}"
+                android:textSize="@{@dimen/text_size * todayMessage[6].messageSize}"
+                android:visibility="@{todayMessage[6].messagePosition == 6 ? View.VISIBLE : View.INVISIBLE}" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -3,6 +3,7 @@ package org.jin.calenee.home
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.TypedValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.jin.calenee.App
@@ -39,7 +40,8 @@ class TodayMessageTextInfoActivity : AppCompatActivity() {
             }
 
             saveBtn.setOnClickListener {
-                updateData()
+                updateData() // to Firestore
+                saveData() // to SP
 
                 Intent(
                     this@TodayMessageTextInfoActivity,
@@ -69,15 +71,15 @@ class TodayMessageTextInfoActivity : AppCompatActivity() {
                 if (isChecked) {
                     messageSize = when (checkedId) {
                         R.id.size_small_btn -> {
-                            textSizeSampleTv.textSize = 12f
+                            textSizeSampleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
                             0
                         }
                         R.id.size_medium_btn -> {
-                            textSizeSampleTv.textSize = 14f
+                            textSizeSampleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                             1
                         }
                         R.id.size_large_btn -> {
-                            textSizeSampleTv.textSize = 16f
+                            textSizeSampleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                             2
                         }
                         else -> 0
@@ -99,13 +101,29 @@ class TodayMessageTextInfoActivity : AppCompatActivity() {
         }
     }
 
+    // to Firestore
     private fun updateData() {
         Firebase.firestore.collection("coupleInfo")
             .document(App.userPrefs.getString("couple_chat_id")).apply {
+                when (coupleInfo.position) {
+                    1 -> update("user${coupleInfo.position}Message", coupleInfo.user1Message)
+                    2 -> update("user${coupleInfo.position}Message", coupleInfo.user2Message)
+                }
+
                 update("user${coupleInfo.position}MessagePosition", messagePosition)
                 update("user${coupleInfo.position}MessageAlignment", messageAlignment)
                 update("user${coupleInfo.position}MessageSize", messageSize)
                 update("user${coupleInfo.position}MessageColor", messageColor)
             }
+    }
+
+    // to SP
+    private fun saveData() {
+        with(App.userPrefs) {
+            when (coupleInfo.position) {
+                1 -> updateTodayMessageInfo(coupleInfo.position, coupleInfo.user1Message, messagePosition, messageAlignment, messageSize, messageColor)
+                2 -> updateTodayMessageInfo(coupleInfo.position, coupleInfo.user2Message, messagePosition, messageAlignment, messageSize, messageColor)
+            }
+        }
     }
 }

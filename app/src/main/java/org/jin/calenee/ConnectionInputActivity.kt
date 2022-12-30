@@ -252,8 +252,12 @@ class ConnectionInputActivity : AppCompatActivity() {
             .update(
                 "user${position}Nickname", profileViewModel.nickname.value.toString(),
                 "user${position}Birthday", profileViewModel.birthday.value.toString(),
+                "firstMetDate", profileViewModel.firstMetDate.value.toString(),
                 "user${position}Message", "",
-                "firstMetDate", profileViewModel.firstMetDate.value.toString()
+                "user${position}MessagePosition", 0,
+                "user${position}MessageAlignment", 0,
+                "user${position}MessageSize", 0,
+                "user${position}MessageColor", 0,
             ).addOnSuccessListener {
                 Intent(this@ConnectionInputActivity, MainActivity::class.java).also {
                     startActivity(it)

@@ -132,4 +132,12 @@ class UserPrefs(context: Context) {
     fun updateFirstMetDate(date: String) {
         setString("firstMetDate", date)
     }
+
+    fun updateTodayMessageInfo(position: Int, message: String, messagePosition: Int, alignment: Int, textSize: Int, textColor: Int) {
+        setString("user${position}Message", message)
+        setString("user${position}MessagePosition", messagePosition.toString())
+        setString("user${position}MessageAlignment", alignment.toString())
+        setString("user${position}MessageSize", textSize.toString())
+        setString("user${position}MessageColor", textColor.toString())
+    }
 }
