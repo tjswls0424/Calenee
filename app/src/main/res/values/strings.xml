@@ -90,5 +90,9 @@
     <string name="text_color_black">검은색</string>
 
     <dimen name="text_size">1sp</dimen>
+    
+    <string name="pick_image_from_album">앨범에서 사진 선택</string>
+    <string name="set_black_background">검은 배경 적용</string>
+    <string name="set_white_background">흰 배경 적용</string>
 
 </resources>

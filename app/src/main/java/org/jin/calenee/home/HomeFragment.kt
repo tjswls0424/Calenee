@@ -1,16 +1,15 @@
 package org.jin.calenee.home
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.util.ArrayMap
 import android.util.Log
-import android.view.Gravity
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -23,6 +22,10 @@ import org.jin.calenee.MainActivity
 import org.jin.calenee.R
 import org.jin.calenee.databinding.FragmentHomeBinding
 
+const val CUSTOM_BACKGROUND = 0
+const val BLACK_BACKGROUND = 1
+const val WHITE_BACKGROUND = 2
+
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var mContext: Context
@@ -31,6 +34,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private val firestore by lazy {
         Firebase.firestore
+    }
+
+    private val coupleInfoDoc by lazy {
+        firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
     }
 
     override fun onAttach(context: Context) {
@@ -63,20 +70,40 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             viewModel = coupleInfoViewModel
         }
 
+        listener()
+        initTodayMessageInfo()
+        getTodayMessageData()
+        updateHomeBackground()
+
+        return binding.root
+    }
+
+    private fun listener() {
         binding.root.setOnLongClickListener {
             val bottomSheetDialog = BottomSheetDialog(mContext)
-            val bottomSheetView = LayoutInflater.from(mContext).inflate(R.layout.home_bottom_sheet_layout, null) as LinearLayout
+            val bottomSheetView = LayoutInflater.from(mContext)
+                .inflate(R.layout.home_bottom_sheet_layout, null) as LinearLayout
 
-            bottomSheetView.main_background_btn.setOnClickListener {
+            bottomSheetView.pick_image_btn.setOnClickListener {
+                // 0
+                coupleInfoDoc.update("home_background", CUSTOM_BACKGROUND)
+
                 Toast.makeText(mContext, "1", Toast.LENGTH_SHORT).show()
+                bottomSheetDialog.dismiss()
             }
             bottomSheetView.black_background_btn.setOnClickListener {
+                // 1
+                coupleInfoDoc.update("home_background", BLACK_BACKGROUND)
                 Toast.makeText(mContext, "2", Toast.LENGTH_SHORT).show()
 
+                bottomSheetDialog.dismiss()
             }
             bottomSheetView.white_background_btn.setOnClickListener {
-                Toast.makeText(mContext, "3", Toast.LENGTH_SHORT).show()
+                // 2
+                coupleInfoDoc.update("home_background", WHITE_BACKGROUND)
 
+                Toast.makeText(mContext, "3", Toast.LENGTH_SHORT).show()
+                bottomSheetDialog.dismiss()
             }
 
             bottomSheetDialog.setContentView(bottomSheetView)
@@ -84,11 +111,67 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
             true
         }
+    }
 
-        initTodayMessageInfo()
-        getTodayMessageData()
+    private fun updateHomeBackground() {
+        coupleInfoDoc.addSnapshotListener { value, error ->
+            value?.data?.get("home_background")?.let {
+                if (activity != null) {
+                    when (it.toString().toInt()) {
+                        0 -> {
+                            setCoupleInfoTextColor(WHITE_BACKGROUND)
+                            setStatusBarColor(true)
+                        }
+                        1 -> {
+                            setCoupleInfoTextColor(BLACK_BACKGROUND)
+                            setStatusBarColor(false)
+                        }
+                        2 -> {
+                            setCoupleInfoTextColor(WHITE_BACKGROUND)
+                            setStatusBarColor(true)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-        return binding.root
+    private fun setCoupleInfoTextColor(color: Int) {
+        when (color) {
+            CUSTOM_BACKGROUND -> {
+
+            }
+
+            BLACK_BACKGROUND -> {
+                binding.parentLayout.setBackgroundColor(Color.BLACK)
+                binding.nickname1Tv.setTextColor(Color.WHITE)
+                binding.nickname2Tv.setTextColor(Color.WHITE)
+                binding.coupleDaysTv.setTextColor(Color.WHITE)
+            }
+
+            WHITE_BACKGROUND -> {
+                binding.parentLayout.setBackgroundColor(Color.WHITE)
+                binding.nickname1Tv.setTextColor(Color.BLACK)
+                binding.nickname2Tv.setTextColor(Color.BLACK)
+                binding.coupleDaysTv.setTextColor(Color.BLACK)
+            }
+        }
+    }
+
+    private fun setStatusBarColor(lightMode: Boolean = true) {
+        if (lightMode) {
+            requireActivity().window.statusBarColor = Color.WHITE
+            WindowInsetsControllerCompat(
+                requireActivity().window,
+                binding.root
+            ).isAppearanceLightStatusBars = true
+        } else {
+            requireActivity().window.statusBarColor = Color.BLACK
+            WindowInsetsControllerCompat(
+                requireActivity().window,
+                binding.root
+            ).isAppearanceLightStatusBars = false
+        }
     }
 
     private fun initTodayMessageInfo() {
