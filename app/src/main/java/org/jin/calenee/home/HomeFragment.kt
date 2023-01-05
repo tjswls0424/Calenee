@@ -1,7 +1,14 @@
 package org.jin.calenee.home
 
+import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Bundle
 import android.util.ArrayMap
 import android.util.Log
@@ -9,18 +16,28 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.home_bottom_sheet_layout.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jin.calenee.App
 import org.jin.calenee.MainActivity
 import org.jin.calenee.R
 import org.jin.calenee.databinding.FragmentHomeBinding
+import java.io.File
 
 const val CUSTOM_BACKGROUND = 0
 const val BLACK_BACKGROUND = 1
@@ -30,10 +47,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var mContext: Context
     private lateinit var coupleInfoViewModel: CoupleInfoViewModel
+    private lateinit var pickImageResult: ActivityResultLauncher<Intent>
+    private lateinit var mActivity: Activity
+
+    private var bitmap: Bitmap? = null
     private var coupleInfoMap: ArrayMap<Int, TodayMessageInfo> = ArrayMap(10)
 
     private val firestore by lazy {
         Firebase.firestore
+    }
+    private val storageRef by lazy {
+        FirebaseStorage.getInstance().reference
     }
 
     private val coupleInfoDoc by lazy {
@@ -42,6 +66,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+
+        mActivity = requireActivity()
         if (context is MainActivity) {
             mContext = context
         }
@@ -53,7 +79,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         coupleInfoViewModel =
             ViewModelProvider(activity as ViewModelStoreOwner)[CoupleInfoViewModel::class.java]
 
+        bitmap = getHomeBackground()
+
         syncTodayMessageData()
+        resultCallbackListener()
     }
 
     override fun onCreateView(
@@ -86,23 +115,23 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
             bottomSheetView.pick_image_btn.setOnClickListener {
                 // 0
-                coupleInfoDoc.update("home_background", CUSTOM_BACKGROUND)
+                coupleInfoDoc.update("homeBackground", CUSTOM_BACKGROUND)
+                Intent().apply {
+                    action = Intent.ACTION_PICK
+                    type = "image/*"
+                    pickImageResult.launch(Intent.createChooser(this, null))
+                }
 
-                Toast.makeText(mContext, "1", Toast.LENGTH_SHORT).show()
                 bottomSheetDialog.dismiss()
             }
             bottomSheetView.black_background_btn.setOnClickListener {
                 // 1
-                coupleInfoDoc.update("home_background", BLACK_BACKGROUND)
-                Toast.makeText(mContext, "2", Toast.LENGTH_SHORT).show()
-
+                coupleInfoDoc.update("homeBackground", BLACK_BACKGROUND)
                 bottomSheetDialog.dismiss()
             }
             bottomSheetView.white_background_btn.setOnClickListener {
                 // 2
-                coupleInfoDoc.update("home_background", WHITE_BACKGROUND)
-
-                Toast.makeText(mContext, "3", Toast.LENGTH_SHORT).show()
+                coupleInfoDoc.update("homeBackground", WHITE_BACKGROUND)
                 bottomSheetDialog.dismiss()
             }
 
@@ -113,23 +142,89 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    private fun resultCallbackListener() {
+        pickImageResult =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    val filePath = "home/" + App.userPrefs.getString("couple_chat_id")
+                    val fileName = "home_background.jpg"
+
+                    // save image to Storage(Firebase)
+                    val fileRef = storageRef.child(filePath + File.separator + fileName)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        result.data?.data?.let { uri ->
+                            fileRef.putFile(uri)
+                                .addOnSuccessListener {
+                                    saveImage(fileName, uri)
+                                    coupleInfoDoc.update("homeBackgroundPath", fileRef.path)
+                                }
+                                .addOnFailureListener {
+                                    coupleInfoDoc.update("homeBackgroundPath", "")
+                                }
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun saveImage(fileName: String, uri: Uri) {
+        try {
+            val fo = activity?.openFileOutput(fileName, Context.MODE_PRIVATE)
+            val bitmap = ImageDecoder.decodeBitmap(
+                ImageDecoder.createSource(
+                    mActivity.contentResolver,
+                    uri
+                )
+            )
+            fo.use {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun getHomeBackground(): Bitmap? {
+        val fileName = "home_background.jpg"
+        return BitmapFactory.decodeStream(mActivity.openFileInput(fileName)) ?: null
+    }
+
     private fun updateHomeBackground() {
-        coupleInfoDoc.addSnapshotListener { value, error ->
-            value?.data?.get("home_background")?.let {
-                if (activity != null) {
-                    when (it.toString().toInt()) {
-                        0 -> {
-                            setCoupleInfoTextColor(WHITE_BACKGROUND)
-                            setStatusBarColor(true)
+        coupleInfoDoc.addSnapshotListener(MetadataChanges.INCLUDE) { value, error ->
+            value?.data?.get("homeBackground")?.let {
+                when (it.toString().toInt()) {
+                    0 -> {
+                        setCoupleInfoTextColor(WHITE_BACKGROUND)
+                        setStatusBarColor(true)
+
+                        value.data?.get("homeBackgroundPath")?.let { path ->
+                            if (path != "") {
+                                if (bitmap != null) {
+                                    // less blinking
+                                    Glide.with(mActivity)
+                                        .load(bitmap)
+                                        .transition(DrawableTransitionOptions.withCrossFade())
+                                        .into(binding.homeBackgroundIv)
+                                } else {
+                                    getHomeBackground()?.let { bitmap ->
+                                        Glide.with(this)
+                                            .load(bitmap)
+                                            .transition(DrawableTransitionOptions.withCrossFade())
+                                            .into(binding.homeBackgroundIv)
+                                    }
+                                }
+                            }
                         }
-                        1 -> {
-                            setCoupleInfoTextColor(BLACK_BACKGROUND)
-                            setStatusBarColor(false)
-                        }
-                        2 -> {
-                            setCoupleInfoTextColor(WHITE_BACKGROUND)
-                            setStatusBarColor(true)
-                        }
+                    }
+                    1 -> {
+                        coupleInfoDoc.update("homeBackgroundPath", "")
+                        setCoupleInfoTextColor(BLACK_BACKGROUND)
+                        setStatusBarColor(false)
+                    }
+                    2 -> {
+                        coupleInfoDoc.update("homeBackgroundPath", "")
+                        setCoupleInfoTextColor(WHITE_BACKGROUND)
+                        setStatusBarColor(true)
                     }
                 }
             }
@@ -160,15 +255,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun setStatusBarColor(lightMode: Boolean = true) {
         if (lightMode) {
-            requireActivity().window.statusBarColor = Color.WHITE
+            mActivity.window.statusBarColor = Color.WHITE
             WindowInsetsControllerCompat(
-                requireActivity().window,
+                mActivity.window,
                 binding.root
             ).isAppearanceLightStatusBars = true
         } else {
-            requireActivity().window.statusBarColor = Color.BLACK
+            mActivity.window.statusBarColor = Color.BLACK
             WindowInsetsControllerCompat(
-                requireActivity().window,
+                mActivity.window,
                 binding.root
             ).isAppearanceLightStatusBars = false
         }
@@ -182,33 +277,32 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun syncTodayMessageData() {
         try {
-            firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
-                .addSnapshotListener { value, error ->
-                    value?.data?.apply {
-                        Log.d("msg_test", this.toString())
-                        get("user1MessagePosition").let {
-                            App.userPrefs.updateTodayMessageInfo(
-                                1,
-                                get("user1Message").toString(),
-                                get("user1MessagePosition").toString().toInt(),
-                                get("user1MessageAlignment").toString().toInt(),
-                                get("user1MessageSize").toString().toInt(),
-                                get("user1MessageColor").toString().toInt()
-                            )
-                        }
+            coupleInfoDoc.addSnapshotListener { value, error ->
+                value?.data?.apply {
+                    Log.d("msg_test", this.toString())
+                    get("user1MessagePosition").let {
+                        App.userPrefs.updateTodayMessageInfo(
+                            1,
+                            get("user1Message").toString(),
+                            get("user1MessagePosition").toString().toInt(),
+                            get("user1MessageAlignment").toString().toInt(),
+                            get("user1MessageSize").toString().toInt(),
+                            get("user1MessageColor").toString().toInt()
+                        )
+                    }
 
-                        get("user2MessagePosition").let {
-                            App.userPrefs.updateTodayMessageInfo(
-                                2,
-                                get("user2Message").toString(),
-                                get("user2MessagePosition").toString().toInt(),
-                                get("user2MessageAlignment").toString().toInt(),
-                                get("user2MessageSize").toString().toInt(),
-                                get("user2MessageColor").toString().toInt(),
-                            )
-                        }
+                    get("user2MessagePosition").let {
+                        App.userPrefs.updateTodayMessageInfo(
+                            2,
+                            get("user2Message").toString(),
+                            get("user2MessagePosition").toString().toInt(),
+                            get("user2MessageAlignment").toString().toInt(),
+                            get("user2MessageSize").toString().toInt(),
+                            get("user2MessageColor").toString().toInt(),
+                        )
                     }
                 }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
