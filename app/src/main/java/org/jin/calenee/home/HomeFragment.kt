@@ -8,24 +8,24 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.ImageDecoder
-import android.net.Uri
+import android.graphics.drawable.ColorDrawable
+import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.ArrayMap
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -40,8 +40,8 @@ import org.jin.calenee.databinding.FragmentHomeBinding
 import java.io.File
 
 const val CUSTOM_BACKGROUND = 0
-const val BLACK_BACKGROUND = 1
-const val WHITE_BACKGROUND = 2
+const val BLACK = 1
+const val WHITE = 2
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var binding: FragmentHomeBinding
@@ -51,6 +51,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var mActivity: Activity
 
     private var bitmap: Bitmap? = null
+    private var previousBitmap: Bitmap? = null
     private var coupleInfoMap: ArrayMap<Int, TodayMessageInfo> = ArrayMap(10)
 
     private val firestore by lazy {
@@ -64,6 +65,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
     }
 
+    private var homeBackgroundName: String = "" // SP
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
@@ -73,13 +76,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         coupleInfoViewModel =
             ViewModelProvider(activity as ViewModelStoreOwner)[CoupleInfoViewModel::class.java]
 
-        bitmap = getHomeBackground()
+
+        with(App.userPrefs.getString("home_background_name")) {
+            if (this.isNotEmpty()) {
+                homeBackgroundName = this
+            }
+        }
+
+        getHomeBackground() // 초기 bitmap 설정
+        updateHomeBackground()
 
         syncTodayMessageData()
         resultCallbackListener()
@@ -102,7 +117,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         listener()
         initTodayMessageInfo()
         getTodayMessageData()
-        updateHomeBackground()
 
         return binding.root
     }
@@ -113,26 +127,39 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             val bottomSheetView = LayoutInflater.from(mContext)
                 .inflate(R.layout.home_bottom_sheet_layout, null) as LinearLayout
 
-            bottomSheetView.pick_image_btn.setOnClickListener {
-                // 0
-                coupleInfoDoc.update("homeBackground", CUSTOM_BACKGROUND)
-                Intent().apply {
-                    action = Intent.ACTION_PICK
-                    type = "image/*"
-                    pickImageResult.launch(Intent.createChooser(this, null))
+            with(bottomSheetView) {
+                pick_image_btn.setOnClickListener {
+                    // 0
+                    Intent().apply {
+                        action = Intent.ACTION_PICK
+                        type = "image/*"
+                        pickImageResult.launch(Intent.createChooser(this, null))
+                    }
+
+                    bottomSheetDialog.dismiss()
                 }
 
-                bottomSheetDialog.dismiss()
-            }
-            bottomSheetView.black_background_btn.setOnClickListener {
-                // 1
-                coupleInfoDoc.update("homeBackground", BLACK_BACKGROUND)
-                bottomSheetDialog.dismiss()
-            }
-            bottomSheetView.white_background_btn.setOnClickListener {
-                // 2
-                coupleInfoDoc.update("homeBackground", WHITE_BACKGROUND)
-                bottomSheetDialog.dismiss()
+                black_background_btn.setOnClickListener {
+                    // 1
+                    coupleInfoDoc.update("homeBackground", BLACK)
+                    bottomSheetDialog.dismiss()
+                }
+
+                white_background_btn.setOnClickListener {
+                    // 2
+                    coupleInfoDoc.update("homeBackground", WHITE)
+                    bottomSheetDialog.dismiss()
+                }
+
+                black_text_btn.setOnClickListener {
+                    coupleInfoDoc.update("homeTextColor", BLACK)
+                    bottomSheetDialog.dismiss()
+                }
+
+                white_text_btn.setOnClickListener {
+                    coupleInfoDoc.update("homeTextColor", WHITE)
+                    bottomSheetDialog.dismiss()
+                }
             }
 
             bottomSheetDialog.setContentView(bottomSheetView)
@@ -147,15 +174,29 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_OK) {
                     val filePath = "home/" + App.userPrefs.getString("couple_chat_id")
-                    val fileName = "home_background.jpg"
+                    val fileName =
+                        "home_background_" + Calendar.getInstance().timeInMillis.toString() + ".jpg"
 
                     // save image to Storage(Firebase)
-                    val fileRef = storageRef.child(filePath + File.separator + fileName)
+                    val fileRef =
+                        storageRef.child(filePath + File.separator + fileName)
                     CoroutineScope(Dispatchers.IO).launch {
                         result.data?.data?.let { uri ->
                             fileRef.putFile(uri)
                                 .addOnSuccessListener {
-                                    saveImage(fileName, uri)
+                                    val tmpBitmap = ImageDecoder.decodeBitmap(
+                                        ImageDecoder.createSource(
+                                            mActivity.contentResolver,
+                                            uri
+                                        )
+                                    )
+
+                                    saveImage(fileName, tmpBitmap)
+                                    bitmap = tmpBitmap
+                                    previousBitmap = tmpBitmap
+                                    setBackgroundImage()
+
+                                    coupleInfoDoc.update("homeBackground", CUSTOM_BACKGROUND)
                                     coupleInfoDoc.update("homeBackgroundPath", fileRef.path)
                                 }
                                 .addOnFailureListener {
@@ -167,84 +208,169 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
     }
 
-    private fun saveImage(fileName: String, uri: Uri) {
+    private fun saveImage(fileName: String, bitmap: Bitmap) {
         try {
-            val fo = activity?.openFileOutput(fileName, Context.MODE_PRIVATE)
-            val bitmap = ImageDecoder.decodeBitmap(
-                ImageDecoder.createSource(
-                    mActivity.contentResolver,
-                    uri
-                )
-            )
+            val fo = mActivity.openFileOutput(fileName, Context.MODE_PRIVATE)
             fo.use {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
             }
+
+            App.userPrefs.setString("home_background_name", fileName)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun getHomeBackground(): Bitmap? {
-        val fileName = "home_background.jpg"
-        return BitmapFactory.decodeStream(mActivity.openFileInput(fileName)) ?: null
+    private fun deleteImage(fileName: String) {
+        mActivity.deleteFile(fileName)
+    }
+
+    private fun getHomeBackground() {
+        try {
+            with(BitmapFactory.decodeStream(mActivity.openFileInput(homeBackgroundName))) {
+                bitmap = this
+                previousBitmap = this
+            }
+        } catch (e: Exception) {
+            Log.d("home_test", "5")
+            e.printStackTrace()
+
+            bitmap = null
+            previousBitmap = null
+        }
     }
 
     private fun updateHomeBackground() {
-        coupleInfoDoc.addSnapshotListener(MetadataChanges.INCLUDE) { value, error ->
-            value?.data?.get("homeBackground")?.let {
-                when (it.toString().toInt()) {
-                    0 -> {
-                        setCoupleInfoTextColor(WHITE_BACKGROUND)
-                        setStatusBarColor(true)
+        coupleInfoDoc.addSnapshotListener { snapshot, error ->
+            // snapshot.metadata.hasPendingWrites()
+            if (snapshot != null) {
+                snapshot.data?.get("homeBackground")?.let {
+                    when (it.toString().toInt()) {
+                        CUSTOM_BACKGROUND -> {
+//                            setHomeBackgroundStyle(WHITE)
+                            setStatusBarColor(true)
 
-                        value.data?.get("homeBackgroundPath")?.let { path ->
-                            if (path != "") {
-                                if (bitmap != null) {
-                                    // less blinking
-                                    Glide.with(mActivity)
-                                        .load(bitmap)
-                                        .transition(DrawableTransitionOptions.withCrossFade())
-                                        .into(binding.homeBackgroundIv)
-                                } else {
-                                    getHomeBackground()?.let { bitmap ->
-                                        Glide.with(this)
-                                            .load(bitmap)
-                                            .transition(DrawableTransitionOptions.withCrossFade())
-                                            .into(binding.homeBackgroundIv)
+                            snapshot.data?.get("homeBackgroundPath")?.let { path ->
+                                if (path != "") {
+//                                    val name2 = storageRef.child(path.toString()).name
+                                    val name = path.toString().split("/").last()
+                                    if (homeBackgroundName == name) {
+                                        setBackgroundImage()
+                                    } else {
+                                        val tmpFile = File(mContext.cacheDir, name)
+                                        CoroutineScope(Dispatchers.IO).launch {
+//                                        FirebaseStorage.getInstance().getReference(path.toString())
+                                            storageRef.child(path.toString())
+                                                .getFile(tmpFile)
+                                                .addOnSuccessListener {
+                                                    App.userPrefs.setString(
+                                                        "home_background_name",
+                                                        tmpFile.name
+                                                    )
+                                                    homeBackgroundName = tmpFile.name
+
+                                                    try {
+                                                        val tmpBitmap =
+                                                            BitmapFactory.decodeFile(tmpFile.path)
+                                                        bitmap = tmpBitmap
+                                                        setBackgroundImage()
+                                                        saveImage(tmpFile.name, tmpBitmap)
+
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                    }
+                                                }
+                                                .addOnFailureListener {
+                                                    it.printStackTrace()
+                                                }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    1 -> {
-                        coupleInfoDoc.update("homeBackgroundPath", "")
-                        setCoupleInfoTextColor(BLACK_BACKGROUND)
-                        setStatusBarColor(false)
-                    }
-                    2 -> {
-                        coupleInfoDoc.update("homeBackgroundPath", "")
-                        setCoupleInfoTextColor(WHITE_BACKGROUND)
-                        setStatusBarColor(true)
+                        BLACK -> {
+                            coupleInfoDoc.update("homeBackgroundPath", "")
+                            deleteImage(homeBackgroundName)
+                            setHomeBackgroundStyle(BLACK)
+                            setStatusBarColor(false)
+                        }
+                        WHITE -> {
+                            coupleInfoDoc.update("homeBackgroundPath", "")
+                            deleteImage(homeBackgroundName)
+                            setHomeBackgroundStyle(WHITE)
+                            setStatusBarColor(true)
+                        }
+                        else -> {}
                     }
                 }
+
+                snapshot?.data?.get("homeTextColor")?.let {
+                    with(binding) {
+                        when (it.toString().toInt()) {
+                            BLACK -> {
+                                nickname1Tv.setTextColor(Color.BLACK)
+                                nickname2Tv.setTextColor(Color.BLACK)
+                                coupleDaysTv.setTextColor(Color.BLACK)
+                            }
+
+                            WHITE -> {
+                                nickname1Tv.setTextColor(Color.WHITE)
+                                nickname2Tv.setTextColor(Color.WHITE)
+                                coupleDaysTv.setTextColor(Color.WHITE)
+                            }
+                        }
+                    }
+                }
+            } else {
+                Log.d("home_test/err", error.toString())
             }
         }
     }
 
-    private fun setCoupleInfoTextColor(color: Int) {
-        when (color) {
-            CUSTOM_BACKGROUND -> {
+    private fun getProgress() = CircularProgressDrawable(mContext).apply {
+        strokeWidth = 5f
+        centerRadius = 30f
+        start()
+    }
+
+    private fun setBackgroundImage() {
+//        val thumbnailDrawable = BitmapDrawable(mContext.resources, bitmap)
+        if (bitmap != null) {
+            Log.d("home_test", "(2-1) set background image 1")
+            // for less blinking
+            Glide.with(mContext)
+                .load(bitmap)
+                .placeholder(getProgress())
+                .error(ColorDrawable(Color.WHITE))
+                .fallback(ColorDrawable(Color.WHITE))
+                .thumbnail(Glide.with(mContext).asDrawable().load(bitmap).centerCrop())
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .into(binding.homeBackgroundIv)
+        } else {
+            Log.d("home_test", "(2-2) set background image 2")
+            getHomeBackground().let { bitmap ->
+                Glide.with(mActivity)
+                    .load(bitmap)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .into(binding.homeBackgroundIv)
 
             }
+        }
+    }
 
-            BLACK_BACKGROUND -> {
+    private fun setHomeBackgroundStyle(color: Int) {
+        when (color) {
+            CUSTOM_BACKGROUND -> {
+            }
+
+            BLACK -> {
                 binding.parentLayout.setBackgroundColor(Color.BLACK)
                 binding.nickname1Tv.setTextColor(Color.WHITE)
                 binding.nickname2Tv.setTextColor(Color.WHITE)
                 binding.coupleDaysTv.setTextColor(Color.WHITE)
             }
 
-            WHITE_BACKGROUND -> {
+            WHITE -> {
                 binding.parentLayout.setBackgroundColor(Color.WHITE)
                 binding.nickname1Tv.setTextColor(Color.BLACK)
                 binding.nickname2Tv.setTextColor(Color.BLACK)

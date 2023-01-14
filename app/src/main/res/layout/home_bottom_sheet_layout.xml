@@ -19,5 +19,13 @@
         android:id="@+id/white_background_btn"
         style="@style/HomeBottomSheetDialog"
         android:text="@string/set_white_background" />
+    <TextView
+        android:id="@+id/white_text_btn"
+        style="@style/HomeBottomSheetDialog"
+        android:text="@string/set_black_text" />
+    <TextView
+        android:id="@+id/black_text_btn"
+        style="@style/HomeBottomSheetDialog"
+        android:text="@string/set_white_text" />
 
 </LinearLayout>
