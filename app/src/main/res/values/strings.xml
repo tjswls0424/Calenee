@@ -94,5 +94,7 @@
     <string name="pick_image_from_album">앨범에서 사진 선택</string>
     <string name="set_black_background">검은 배경 적용</string>
     <string name="set_white_background">흰 배경 적용</string>
+    <string name="set_white_text">흰 텍스트 적용</string>
+    <string name="set_black_text">검은 텍스트 적용</string>
 
 </resources>
