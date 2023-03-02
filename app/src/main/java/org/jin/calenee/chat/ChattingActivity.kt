@@ -52,6 +52,8 @@ import org.jin.calenee.util.NetworkStatusHelper
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.pow
+import kotlin.math.round
 import kotlin.time.Duration.Companion.milliseconds
 
 const val DATE_TIME = 0
@@ -168,9 +170,7 @@ class ChattingActivity : AppCompatActivity() {
             }
 
             if (binding.bottomSheetView.visibility == View.GONE) {
-                // gone -> visible
-
-                Log.d("k_test", "visible")
+                // bottom sheet view : gone -> visible
                 param.apply {
                     setMargins(0, 0, 0, binding.bottomSheetView.minimumHeight)
                     binding.scrollView.layoutParams = this
@@ -181,11 +181,8 @@ class ChattingActivity : AppCompatActivity() {
                     progress = 0.0f
                     playAnimation()
                 }
-
             } else {
                 // visible -> gone
-                Log.d("k_test", "gone")
-
                 setLottieInitialState()
                 param.setMargins(0, 0, 0, binding.bottomLayout.height)
                 binding.scrollView.layoutParams = param
@@ -550,7 +547,6 @@ class ChattingActivity : AppCompatActivity() {
 
         // partner fcm token으로 보내면 내 device로 알림이 오고
         // my token을 써야 상대로 감
-        // 이유는 모르겠음
         val body = ChatNotificationBody(partnerToken, data)
         val body2 = ChatNotificationBody(myToken, data)
 
@@ -566,8 +562,6 @@ class ChattingActivity : AppCompatActivity() {
                     // mimeType: image, video, txt, audio(m4a)
                     // mimeType 조건문 세팅해서 나머지는 "지원하지 않는 파일 형식입니다." Toast
                     // 파일을 열 수 있는 앱이 없습니다.
-
-                    val uri = result.data?.data!!
 
                     result.data?.data?.let { returnUri ->
                         applicationContext.contentResolver.query(returnUri, null, null, null, null)
@@ -650,6 +644,9 @@ class ChattingActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val uploadTask = imageRef.putBytes(baos.toByteArray(), metadata)
+                .addOnProgressListener {
+                    showFileTransferProgress(it.bytesTransferred)
+                }
                 .addOnSuccessListener { taskSnapshot ->
                     Log.d("img_test/success", "success")
 
@@ -689,6 +686,9 @@ class ChattingActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             videoRef.putFile(videoUri, metadata)
+                .addOnProgressListener {
+                    showFileTransferProgress(it.bytesTransferred)
+                }
                 .addOnSuccessListener { taskSnapshot ->
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
                         child("dataType").setValue("video")
@@ -739,6 +739,9 @@ class ChattingActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             fileRef.putFile(fileUri, metadata)
+                .addOnProgressListener {
+                    showFileTransferProgress(it.bytesTransferred)
+                }
                 .addOnSuccessListener {
                     Log.d("uri_test/size2", it.metadata?.sizeBytes.toString())
 
@@ -754,6 +757,25 @@ class ChattingActivity : AppCompatActivity() {
                     }
                 }
         }
+    }
+
+    private fun showFileTransferProgress(fileSizeBytes: Long) {
+        var fileSizeNum = 0.0
+        var fileSizeUnit = "KB"
+        if (fileSizeBytes != 0L) {
+            if (fileSizeBytes.floorDiv(1024).toString().length <= 3) {
+                fileSizeNum = fileSizeBytes.div(1024.0)
+                fileSizeUnit = "KB"
+            } else if (fileSizeBytes.floorDiv(1024).toString().length <= 6) {
+                fileSizeNum = fileSizeBytes.div(1024.0.pow(2))
+                fileSizeUnit = "MB"
+            } else {
+                fileSizeNum = fileSizeBytes.toDouble()
+                fileSizeUnit = "B"
+            }
+        }
+
+        Snackbar.make(binding.scrollView, "${round(fileSizeNum*100)/100}$fileSizeUnit", Snackbar.LENGTH_LONG).show()
     }
 
     private fun getDurationText(duration: String): String {
