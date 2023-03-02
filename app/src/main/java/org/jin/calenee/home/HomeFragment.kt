@@ -336,7 +336,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun setBackgroundImage() {
 //        val thumbnailDrawable = BitmapDrawable(mContext.resources, bitmap)
         if (bitmap != null) {
-            Log.d("home_test", "(2-1) set background image 1")
             // for less blinking
             Glide.with(mContext)
                 .load(bitmap)
@@ -347,7 +346,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(binding.homeBackgroundIv)
         } else {
-            Log.d("home_test", "(2-2) set background image 2")
             getHomeBackground().let { bitmap ->
                 Glide.with(mActivity)
                     .load(bitmap)

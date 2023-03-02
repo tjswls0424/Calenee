@@ -380,16 +380,20 @@ class EditCoupleInfoActivity : AppCompatActivity() {
             }
 
             MESSAGE -> {
-                when (coupleInfo.position) {
-                    1 -> {
-                        doc.update("user${coupleInfo.position}Message", coupleInfo.user1Message)
-                        doc.update("user${coupleInfo.position}MessagePosition", 0)
-                    }
-                    2 -> {
-                        doc.update("user${coupleInfo.position}Message", coupleInfo.user2Message)
-                        doc.update("user${coupleInfo.position}MessagePosition", 0)
-                    }
-                }
+//                when (coupleInfo.position) {
+//                    1 -> {
+////                        doc.update("user${coupleInfo.position}Message", coupleInfo.user1Message)
+////                        doc.update("user${coupleInfo.position}MessagePosition", 0)
+////
+////                        App.userPrefs.setString("user${coupleInfo.position}Message", coupleInfo.user1Message)
+//                    }
+//                    2 -> {
+////                        doc.update("user${coupleInfo.position}Message", coupleInfo.user2Message)
+////                        doc.update("user${coupleInfo.position}MessagePosition", 0)
+////
+////                        App.userPrefs.setString("user${coupleInfo.position}Message", coupleInfo.user2Message)
+//                    }
+//                }
             }
         }
     }

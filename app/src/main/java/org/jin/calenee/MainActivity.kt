@@ -60,6 +60,10 @@ class MainActivity : AppCompatActivity() {
         Firebase.firestore
     }
 
+    private val coupleInfoDoc by lazy {
+        firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
+    }
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,50 +123,50 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Firestore - collection for coupleInfo listener
-        firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
-            .addSnapshotListener { value, error ->
-                coupleInfoViewModel.updateNickname(value?.get("user1Nickname").toString(), 1)
-                coupleInfoViewModel.updateBirthday(value?.get("user1Birthday").toString(), 1)
-                coupleInfoViewModel.updateMessage(value?.get("user1Message").toString(), 1)
+        coupleInfoDoc.addSnapshotListener { value, error ->
+            with(coupleInfoViewModel) {
+                updateNickname(value?.get("user1Nickname").toString(), 1)
+                updateBirthday(value?.get("user1Birthday").toString(), 1)
+                updateMessage(value?.get("user1Message").toString(), 1)
+                updateNickname(value?.get("user2Nickname").toString(), 2)
+                updateBirthday(value?.get("user2Birthday").toString(), 2)
+                updateMessage(value?.get("user2Message").toString(), 2)
+                updateDays(value?.get("firstMetDate").toString())
+            }
 
-                coupleInfoViewModel.updateNickname(value?.get("user2Nickname").toString(), 2)
-                coupleInfoViewModel.updateBirthday(value?.get("user2Birthday").toString(), 2)
-                coupleInfoViewModel.updateMessage(value?.get("user2Message").toString(), 2)
+            // refresh fragment
+            replaceFragment(HomeFragment())
+            Log.d("home_test", "refresh fragment")
 
-                coupleInfoViewModel.updateDays(value?.get("firstMetDate").toString())
+            val position = when {
+                (value?.get("user1Email") == firebaseAuth.currentUser?.email) -> 1
+                (value?.get("user2Email") == firebaseAuth.currentUser?.email) -> 2
+                else -> 0
+            }
 
-                // refresh fragment
-                replaceFragment(HomeFragment())
+            // save to SP
+            with(App.userPrefs) {
+                when (position) {
+                    1 -> {
+                        updateUserNickname(value?.get("user1Nickname").toString(), true)
+                        updateUserNickname(value?.get("user2Nickname").toString(), false)
 
-                val position = when {
-                    (value?.get("user1Email") == firebaseAuth.currentUser?.email) -> 1
-                    (value?.get("user2Email") == firebaseAuth.currentUser?.email) -> 2
-                    else -> 0
-                }
-
-                // save to SP
-                with(App.userPrefs) {
-                    when (position) {
-                        1 -> {
-                            updateUserNickname(value?.get("user1Nickname").toString(), true)
-                            updateUserNickname(value?.get("user2Nickname").toString(), false)
-
-                            updateUserBirthday(value?.get("user1Birthday").toString(), true)
-                            updateUserBirthday(value?.get("user2Birthday").toString(), false)
-                        }
-
-                        2 -> {
-                            updateUserNickname(value?.get("user2Nickname").toString(), true)
-                            updateUserNickname(value?.get("user1Nickname").toString(), false)
-
-                            updateUserBirthday(value?.get("user2Birthday").toString(), true)
-                            updateUserBirthday(value?.get("user1Birthday").toString(), false)
-                        }
+                        updateUserBirthday(value?.get("user1Birthday").toString(), true)
+                        updateUserBirthday(value?.get("user2Birthday").toString(), false)
                     }
 
-                    updateFirstMetDate(value?.get("firstMetDate").toString())
+                    2 -> {
+                        updateUserNickname(value?.get("user2Nickname").toString(), true)
+                        updateUserNickname(value?.get("user1Nickname").toString(), false)
+
+                        updateUserBirthday(value?.get("user2Birthday").toString(), true)
+                        updateUserBirthday(value?.get("user1Birthday").toString(), false)
+                    }
                 }
+
+                updateFirstMetDate(value?.get("firstMetDate").toString())
             }
+        }
     }
 
     private fun coupleInfoObserver() {
