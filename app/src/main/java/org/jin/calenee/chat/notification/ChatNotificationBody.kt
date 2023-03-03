@@ -1,12 +1,9 @@
 package org.jin.calenee.chat.notification
 
+import com.google.gson.annotations.SerializedName
+
 data class ChatNotificationBody(
-    val to: String,
-    val data: ChatNotificationData,
-) {
-    class ChatNotificationData(
-        val title: String = "",
-        val message: String = "",
-        val senderNickname: String = "",
-    )
-}
+    @SerializedName("to") val to: String,
+    @SerializedName("priority") val priority: String,
+    @SerializedName("data") val data: NotificationData,
+)

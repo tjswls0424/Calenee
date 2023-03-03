@@ -44,8 +44,7 @@ import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
 import kotlinx.coroutines.*
 import org.jin.calenee.App
-import org.jin.calenee.chat.notification.ChatNotificationBody
-import org.jin.calenee.chat.notification.ChatViewModel
+import org.jin.calenee.chat.notification.*
 import org.jin.calenee.databinding.ActivityChattingBinding
 import org.jin.calenee.dialog.CaptureDialog
 import org.jin.calenee.util.NetworkStatusHelper
@@ -313,7 +312,6 @@ class ChattingActivity : AppCompatActivity() {
                     }
                 } catch (e: Exception) {
                     Log.d("position_test/err", e.stackTraceToString())
-                    Log.d("position_test/err", e.message.toString())
                 }
             }
 
@@ -393,7 +391,6 @@ class ChattingActivity : AppCompatActivity() {
                     }
                 } catch (e: Exception) {
                     Log.d("position_test/err", e.stackTraceToString())
-                    Log.d("position_test/err", e.message.toString())
                 }
             }
         })
@@ -525,34 +522,28 @@ class ChattingActivity : AppCompatActivity() {
                     Log.d("fb_test_chat/changed", snapshot.value.toString())
                 }
 
-                override fun onChildRemoved(snapshot: DataSnapshot) {
-                    Log.d("fb_test_chat/removed", snapshot.value.toString())
-                }
+                override fun onChildRemoved(snapshot: DataSnapshot) {}
 
-                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                    Log.d("fb_test_chat/moved", snapshot.value.toString())
-                }
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("fb_test_chat/cancelled", error.message)
-                }
+                override fun onCancelled(error: DatabaseError) {}
             })
     }
 
     private fun sendNotification(message: String, nickname: String) {
         val chatViewModel = ChatViewModel(application)
-        val myToken = App.userPrefs.getString("my_fcm_token")
         val partnerToken = App.userPrefs.getString("partner_fcm_token")
-        val data = ChatNotificationBody.ChatNotificationData("캘린이", message, nickname)
+        val messageData = ChatNotificationBody(
+            partnerToken,
+            "high",
+            NotificationData(
+                nickname,
+                message,
+                partnerToken
+            )
+        )
 
-        // partner fcm token으로 보내면 내 device로 알림이 오고
-        // my token을 써야 상대로 감
-        val body = ChatNotificationBody(partnerToken, data)
-        val body2 = ChatNotificationBody(myToken, data)
-
-        Log.d("fcm_test/token1", "my: ${App.userPrefs.getString("my_fcm_token")}")
-        Log.d("fcm_test/token2", "partner: $partnerToken")
-        chatViewModel.sendNotification(body2)
+        chatViewModel.sendNotification(messageData)
     }
 
     private fun resultCallbackListener() {
@@ -892,7 +883,7 @@ class ChattingActivity : AppCompatActivity() {
 
                 Log.d("fcm_test/if-statement1", "isMyChat: $isMyChat")
                 Log.d("fcm_test/if-statement2", "isRealtime: $isRealtime")
-                if (!isMyChat && isRealtime) {
+                if (isMyChat && isRealtime) {
                     Log.d("fcm_test/send1", "send 1")
                     sendNotification(data?.message.toString(), data?.senderNickname.toString())
                     Log.d("fcm_test/send2", "send 2")
@@ -946,7 +937,7 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (!isMyChat && isRealtime) sendNotification("사진을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification("사진을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get image file")
@@ -1001,7 +992,7 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (!isMyChat && isRealtime) sendNotification("동영상을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification("동영상을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get video file")
@@ -1053,7 +1044,7 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (!isMyChat && isRealtime) sendNotification("파일을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification("파일을 보냈습니다.", data?.senderNickname.toString())
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get file")
