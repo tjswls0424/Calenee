@@ -1,8 +1,5 @@
 <resources>
-    <!--    <string name="default_web_client_id">56486367802-fnbm2rdvqq7uuj4g9503dtkj26mu61np.apps.googleusercontent.com</string>-->
     <string name="default_notification_channel_id" translatable="false">채팅</string>
-    <string name="fcm_key" translatable="false">AAAADSbZkjo:APA91bEbm_UGjP1RUs0jM9ul6Hr0nQSuNyhrouhnMrYj3uwDjp4Q_CEO5bwfmWaWKaqx4YytXtQ6XnV4Sc6Fj8ULn2ifePzi2dEq3hE60EykeCJP5kfvZTbJmUEIetekEv23uzMTryF3</string>
-
 
     <string name="app_name_eng">Calenee</string>
     <string name="app_name_kor">캘린이</string>

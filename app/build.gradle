@@ -10,6 +10,9 @@ androidExtensions {
     experimental = true
 }
 
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
 android {
     compileSdkVersion 32
 
@@ -22,9 +25,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField ("String", "API_KEY_FCM", properties['api.key.fcm'])
     }
 
     buildTypes {
+
         debug {
             debuggable true
             minifyEnabled true

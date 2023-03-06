@@ -4,6 +4,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jin.calenee.App
+import org.jin.calenee.BuildConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
@@ -35,14 +36,13 @@ object RetrofitInstance {
 
     // add Header
     // Resources.getSystem().getString(R.string.fcm_key)
-//     key=AAAADSbZkjo:APA91bEbm_UGjP1RUs0jM9ul6Hr0nQSuNyhrouhnMrYj3uwDjp4Q_CEO5bwfmWaWKaqx4YytXtQ6XnV4Sc6Fj8ULn2ifePzi2dEq3hE60EykeCJP5kfvZTbJmUEIetekEv23uzMTryF3
     class AppInterceptor : Interceptor {
         @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response = with(chain) {
             val newRequest = request().newBuilder()
                 .addHeader(
                     "Authorization",
-                    "key=AAAADSbZkjo:APA91bEbm_UGjP1RUs0jM9ul6Hr0nQSuNyhrouhnMrYj3uwDjp4Q_CEO5bwfmWaWKaqx4YytXtQ6XnV4Sc6Fj8ULn2ifePzi2dEq3hE60EykeCJP5kfvZTbJmUEIetekEv23uzMTryF3"
+                    "key=${BuildConfig.API_KEY_FCM}"
                 )
                 .addHeader("Content-Type", "application/json")
                 .build()
