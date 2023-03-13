@@ -12,8 +12,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -22,8 +20,6 @@ import org.jin.calenee.databinding.ActivityMainBinding
 import org.jin.calenee.home.CoupleInfoViewModel
 import org.jin.calenee.home.EditCoupleInfoActivity
 import org.jin.calenee.home.HomeFragment
-import org.jin.calenee.login.LoginActivity
-import org.jin.calenee.login.LoginActivity.Companion.viewModel
 import org.jin.calenee.util.NetworkStatusHelper
 
 class MainActivity : AppCompatActivity() {
@@ -197,42 +193,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "현재 인터넷이 연결되어 있지 않습니다. 인터넷을 연결해주세요.", Toast.LENGTH_SHORT)
                     .show()
             }
-        }
-    }
-
-    private fun logout() {
-        val googleSignInOptions: GoogleSignInOptions by lazy {
-            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-        }
-
-        val googleSignInClient by lazy {
-            GoogleSignIn.getClient(this, googleSignInOptions)
-        }
-
-        googleSignInClient.signOut().addOnCompleteListener {
-            viewModel.signOut()
-        }
-
-        // set SP
-        App.userPrefs.apply {
-            setString("login_status", "false")
-            setString("current_email", "")
-            setString("current_nickname", "")
-            setString("current_birthday", "")
-            setString("current_partner_email", "")
-            setString("current_partner_nickname", "")
-            setString("current_nickname_birthday", "")
-        }
-
-        Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
-
-        Intent(this, LoginActivity::class.java).apply {
-            startActivity(this)
-            slideLeft()
-            finish()
         }
     }
 

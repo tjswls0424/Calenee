@@ -1,59 +1,106 @@
 package org.jin.calenee
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import org.jin.calenee.MainActivity.Companion.slideLeft
+import org.jin.calenee.databinding.FragmentMenuBinding
+import org.jin.calenee.login.LoginActivity
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [TodoFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class MenuFragment : Fragment(R.layout.fragment_menu) {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var mContext: Context
+    private lateinit var mActivity: Activity
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+    private val binding: FragmentMenuBinding by lazy {
+        FragmentMenuBinding.inflate(layoutInflater)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        mActivity = context as MainActivity
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_menu, container, false)
+    ): View {
+        setMyEmail()
+        listener()
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment TodoFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            MenuFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    private fun listener() {
+        binding.logoutBtn.setOnClickListener {
+            showDialog()
+        }
+    }
+
+    private fun setMyEmail() {
+        binding.myAccountTv.text = App.userPrefs.getString("current_email")
+    }
+
+    private fun showDialog() {
+        AlertDialog.Builder(mActivity).apply {
+            setMessage("로그아웃 하시겠습니까?")
+            setPositiveButton("확인") { _, _ ->
+                logout()
             }
+            setNegativeButton("취소") { dialog, _ ->
+                dialog.dismiss()
+            }
+        }.show()
+    }
+
+    private fun logout() {
+        val googleSignInOptions: GoogleSignInOptions by lazy {
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        }
+
+        val googleSignInClient by lazy {
+            GoogleSignIn.getClient(mActivity, googleSignInOptions)
+        }
+
+        googleSignInClient.signOut().addOnCompleteListener {
+            LoginActivity.viewModel.signOut()
+        }
+
+        // set SP
+        App.userPrefs.apply {
+            setString("login_status", "false")
+            setString("current_email", "")
+            setString("current_nickname", "")
+            setString("current_birthday", "")
+            setString("current_partner_email", "")
+            setString("current_partner_nickname", "")
+            setString("current_partner_birthday", "")
+        }
+
+        Toast.makeText(mActivity, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
+
+        Intent(mActivity, LoginActivity::class.java).apply {
+            startActivity(this)
+            mActivity.slideLeft()
+            finishFragment()
+        }
+    }
+
+    private fun finishFragment() {
+        activity?.supportFragmentManager
+            ?.beginTransaction()
+            ?.remove(this@MenuFragment)
+            ?.commit()
     }
 }

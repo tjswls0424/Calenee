@@ -210,5 +210,33 @@
         <item name="android:padding">20dp</item>
     </style>
 
+    <style name="MenuTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingVertical">3dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@color/light_grey3</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="MenuContents">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="MenuLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">20dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="MenuDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/light_grey2</item>
+    </style>
 
 </resources>
