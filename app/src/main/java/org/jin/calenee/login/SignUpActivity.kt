@@ -116,22 +116,22 @@ class SignUpActivity : AppCompatActivity() {
     // sign up
     private fun createAccount(email: String, pw: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
-            .addOnCompleteListener { task ->
-                if (translateFlag) {
-                    englishKoreanTranslator.translate(task.exception?.message.toString())
-                        .addOnSuccessListener { translatedText ->
-                            if (task.isSuccessful) {
-                                // add user info to db
-                                App.userPrefs.apply {
-                                    setString("${email}_name", name)
-                                    setString("${email}_pw", pw)
-                                }
+            .addOnSuccessListener {
+                App.commonPrefs.apply {
+                    setString("${email}_name", name)
+                    setString("${email}_pw", pw)
+                }
 
-                                Log.d("login_test1", "sign in success, now login with this email")
-                                Toast.makeText(this, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
-                                finish()
-                            } else if (!task.exception?.message.isNullOrEmpty()) {
-                                Log.d("login_test2", "exception1: sign up [${task.exception?.message}]")
+                Log.d("login_test1", "sign in success, now login with this email")
+                Toast.makeText(this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .addOnFailureListener { task ->
+                if (translateFlag) {
+                    englishKoreanTranslator.translate(task.message.toString())
+                        .addOnSuccessListener { translatedText ->
+                            if (!task.message.isNullOrEmpty()) {
+                                Log.d("login_test2", "exception1: sign up [${task.message}]")
                                 Log.d("login_test3", translatedText)
 
                                 Snackbar.make(
