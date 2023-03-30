@@ -32,6 +32,7 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.home_bottom_sheet_layout.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.jin.calenee.App
 import org.jin.calenee.MainActivity
@@ -52,7 +53,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private var bitmap: Bitmap? = null
     private var previousBitmap: Bitmap? = null
-    private var coupleInfoMap: ArrayMap<Int, TodayMessageInfo> = ArrayMap(10)
+    private var coupleInfoMap: ArrayMap<Int, TodayMessageInfo> = ArrayMap(6)
+    private var homeBackgroundName: String = "" // SP
 
     private val firestore by lazy {
         Firebase.firestore
@@ -65,8 +67,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         firestore.collection("coupleInfo").document(App.userPrefs.getString("couple_chat_id"))
     }
 
-    private var homeBackgroundName: String = "" // SP
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
@@ -76,16 +76,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-//        super.onViewCreated(view, savedInstanceState)
-//    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         coupleInfoViewModel =
             ViewModelProvider(activity as ViewModelStoreOwner)[CoupleInfoViewModel::class.java]
-
 
         with(App.userPrefs.getString("home_background_name")) {
             if (this.isNotEmpty()) {
@@ -95,7 +90,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         getHomeBackground() // 초기 bitmap 설정
         updateHomeBackground()
-
         syncTodayMessageData()
         resultCallbackListener()
     }
@@ -105,7 +99,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
-        binding = DataBindingUtil.inflate<FragmentHomeBinding?>(
+        binding = DataBindingUtil.inflate<FragmentHomeBinding>(
             inflater,
             R.layout.fragment_home,
             container,
@@ -304,7 +298,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     }
                 }
 
-                snapshot?.data?.get("homeTextColor")?.let {
+                snapshot.data?.get("homeTextColor")?.let {
                     with(binding) {
                         when (it.toString().toInt()) {
                             BLACK -> {
@@ -394,8 +388,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun initTodayMessageInfo() {
-        for (i in 0..9) {
-            coupleInfoMap[i] = TodayMessageInfo()
+        for (i in 1..6) {
+            coupleInfoMap.put(i, TodayMessageInfo())
         }
     }
 
@@ -404,7 +398,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             coupleInfoDoc.addSnapshotListener { value, error ->
                 value?.data?.apply {
                     Log.d("msg_test", this.toString())
-                    get("user1MessagePosition").let {
+                    get("user1MessagePosition")?.let {
                         App.userPrefs.updateTodayMessageInfo(
                             1,
                             get("user1Message").toString(),
@@ -415,7 +409,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         )
                     }
 
-                    get("user2MessagePosition").let {
+                    get("user2MessagePosition")?.let {
                         App.userPrefs.updateTodayMessageInfo(
                             2,
                             get("user2Message").toString(),
@@ -435,66 +429,90 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun getTodayMessageData() {
         with(App.userPrefs) {
             try {
-                if (getString("user1MessagePosition").isNotEmpty()) {
-                    TodayMessageInfo(
-                        getString("user1Message"),
-                        getString("user1MessagePosition").toInt(),
-                    ).apply {
-                        messageAlignment = when (getString("user1MessageAlignment").toInt()) {
-                            0 -> Gravity.START
-                            1 -> Gravity.CENTER
-                            2 -> Gravity.END
-                            else -> Gravity.START
-                        }
+                CoroutineScope(Dispatchers.Main).launch {
+                    val user1Deferred = async {
+                        if (getString("user1MessagePosition").isNotEmpty()) {
+                            return@async TodayMessageInfo(
+                                message = getString("user1Message"),
+                                messagePosition = getString("user1MessagePosition").toInt()
+                            ).apply {
+                                messageAlignment =
+                                    when (getString("user1MessageAlignment").toInt()) {
+                                        0 -> Gravity.START
+                                        1 -> Gravity.CENTER
+                                        2 -> Gravity.END
+                                        else -> Gravity.START
+                                    }
 
-                        messageSize = when (getString("user1MessageSize").toInt()) {
-                            0 -> 12
-                            1 -> 15
-                            2 -> 18
-                            else -> 12
-                        }
+                                messageSize = when (getString("user1MessageSize").toInt()) {
+                                    0 -> 12
+                                    1 -> 15
+                                    2 -> 18
+                                    else -> 12
+                                }
 
-                        messageColor = when (getString("user1MessageColor").toInt()) {
-                            0 -> "#FFFFFFFF"
-                            1 -> "#535353"
-                            2 -> "#FF000000"
-                            else -> "#FFFFFFFF"
+                                messageColor = if (getString("user1MessageColor").isNotEmpty()) {
+                                    when (getString("user1MessageColor").toInt()) {
+                                        0 -> "#ffffff"
+                                        1 -> "#535353"
+                                        2 -> "#000000"
+                                        else -> "#ffffff"
+                                    }
+                                } else {
+                                    "#535353"
+                                }
+                            }
+                        } else {
+                            TodayMessageInfo()
                         }
-
-                        coupleInfoMap[this.messagePosition] = this
-                        binding.todayMessage = coupleInfoMap
                     }
-                }
 
-                if (getString("user2MessagePosition").isNotEmpty()) {
-                    TodayMessageInfo(
-                        getString("user2Message"),
-                        getString("user2MessagePosition").toInt(),
-                    ).apply {
-                        messageAlignment = when (getString("user2MessageAlignment").toInt()) {
-                            0 -> Gravity.START
-                            1 -> Gravity.CENTER
-                            2 -> Gravity.END
-                            else -> Gravity.START
+                    val user2Deferred = async {
+                        if (getString("user2MessagePosition").isNotEmpty()) {
+                            return@async TodayMessageInfo(
+                                message = getString("user2Message"),
+                                messagePosition = getString("user2MessagePosition").toInt()
+                            ).apply {
+                                messageAlignment =
+                                    when (getString("user2MessageAlignment").toInt()) {
+                                        0 -> Gravity.START
+                                        1 -> Gravity.CENTER
+                                        2 -> Gravity.END
+                                        else -> Gravity.START
+                                    }
+
+                                messageSize = when (getString("user2MessageSize").toInt()) {
+                                    0 -> 12
+                                    1 -> 15
+                                    2 -> 18
+                                    else -> 12
+                                }
+
+                                messageColor = if (getString("user2MessageColor").isNotEmpty()) {
+                                    when (getString("user2MessageColor").toInt()) {
+                                        0 -> "#ffffff"
+                                        1 -> "#535353"
+                                        2 -> "#000000"
+                                        else -> "#535353"
+                                    }
+                                } else {
+                                    "#535353"
+                                }
+                            }
+                        } else {
+                            TodayMessageInfo()
                         }
-
-                        messageSize = when (getString("user2MessageSize").toInt()) {
-                            0 -> 12
-                            1 -> 15
-                            2 -> 18
-                            else -> 12
-                        }
-
-                        messageColor = when (getString("user2MessageColor").toInt()) {
-                            0 -> "#FFFFFF"
-                            1 -> "#535353"
-                            2 -> "#000000"
-                            else -> "#FFFFFF"
-                        }
-
-                        coupleInfoMap[this.messagePosition] = this
-                        binding.todayMessage = coupleInfoMap
                     }
+
+                    user1Deferred.await().also { user1 ->
+                        coupleInfoMap[user1.messagePosition] = user1
+                    }
+
+                    user2Deferred.await().also { user2 ->
+                        coupleInfoMap[user2.messagePosition] = user2
+                    }
+
+                    binding.todayMessage = coupleInfoMap
                 }
             } catch (e: Exception) {
                 Log.d("err_test", e.printStackTrace().toString())
@@ -508,6 +526,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val messagePosition: Int = 0,
         var messageAlignment: Int = Gravity.START,
         var messageSize: Int = 12,
-        var messageColor: String = "#FF535353",
+        var messageColor: String = "#535353",
     )
 }
