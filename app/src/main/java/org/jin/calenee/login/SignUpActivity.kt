@@ -117,7 +117,7 @@ class SignUpActivity : AppCompatActivity() {
     private fun createAccount(email: String, pw: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, pw)
             .addOnSuccessListener {
-                App.commonPrefs.apply {
+                App.userPrefs.apply {
                     setString("${email}_name", name)
                     setString("${email}_pw", pw)
                 }
