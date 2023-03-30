@@ -13,15 +13,22 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import org.jin.calenee.*
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
+import org.jin.calenee.data.SyncData
+import org.jin.calenee.data.firestore.CoupleInfoSync
+import org.jin.calenee.data.firestore.UserSync
 import org.jin.calenee.databinding.ActivityCaleneeLoginBinding
 
+private const val TAG = "CaleneeLoginActivity:"
 class CaleneeLoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCaleneeLoginBinding
 
+    private val signInJob = Job()
     private var email: String = ""
     private var pw: String = ""
 
@@ -50,7 +57,6 @@ class CaleneeLoginActivity : AppCompatActivity() {
         binding.loginBtn.setOnClickListener {
             if (checkInputCondition()) {
                 signIn(email, pw)
-                Log.d("login_test", "email: $email, pw: $pw")
             }
         }
 
@@ -107,47 +113,112 @@ class CaleneeLoginActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun syncUserData() {
+        withContext(Dispatchers.Main) {
+            val deferredUser = async(Dispatchers.IO) {
+                val userDoc = Firebase.firestore.collection("user")
+                    .document(email)
+                    .get()
+                    .await()
+
+                return@async if (userDoc.exists()) {
+                    userDoc.toObject(UserSync::class.java) as UserSync
+                } else {
+                    UserSync()
+                }
+            }
+
+            // userPrefs의 couple_chat_id를 알아야 함
+            val deferredCoupleInfo = async(Dispatchers.IO) {
+                deferredUser.await().coupleChatID
+                val coupleInfoDoc = Firebase.firestore.collection("coupleInfo")
+                    .document(deferredUser.await().coupleChatID)
+                    .get()
+                    .await()
+
+                return@async if (coupleInfoDoc.exists()) {
+                    coupleInfoDoc.toObject(CoupleInfoSync::class.java) as CoupleInfoSync
+                } else {
+                    CoupleInfoSync()
+                }
+            }
+
+            with(SyncData()) {
+                syncUserData(deferredUser.await(), email)
+                syncCoupleInfoData(deferredCoupleInfo.await())
+                handleLoadingState(false)
+            }
+        }
+    }
+
     private fun signIn(email: String, pw: String) {
         handleLoadingState(true)
 
         firebaseAuth.signInWithEmailAndPassword(email, pw)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    App.userPrefs.apply {
-                        setString("current_email", email)
-                        setString("current_name", this.getString("${email}_name", email))
-                        setString("login_status", "true")
-                    }
+            .addOnSuccessListener {
+                App.userPrefs.apply {
+                    setString("login_status", "true")
+                    setString("current_email", email)
+//                    setString("current_name", this.getString("${email}_name", email))
+                }
 
-                    handleLoadingState(false)
+                val intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
 
-                    var intent = Intent(this@CaleneeLoginActivity, ConnectionActivity::class.java)
-                    firestore.collection("user").document(firebaseAuth.currentUser?.email.toString())
-                        .get()
-                        .addOnSuccessListener { doc ->
-                            Log.d("db_test/login-doc", doc.data.toString())
-                            if (doc.data?.get("coupleConnectionFlag") == true) {
-                                intent = if (doc.data?.get("profileInputFlag") == true) {
-                                    Intent(this@CaleneeLoginActivity, MainActivity::class.java)
+                firestore.collection("user")
+                    .document(firebaseAuth.currentUser?.email.toString())
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        CoroutineScope(Dispatchers.Main + signInJob).launch {
+                            doc.data?.let { data ->
+                                Log.d("${TAG}login-doc1", data.toString())
+                                if (data["coupleConnectionFlag"] == true) {
+                                    val deferred = async {
+                                        return@async if (data["profileInputFlag"] == true) {
+                                            syncUserData()
+
+                                            Intent(
+                                                this@CaleneeLoginActivity,
+                                                MainActivity::class.java
+                                            )
+                                        } else {
+                                            Intent(
+                                                this@CaleneeLoginActivity,
+                                                ConnectionInputActivity::class.java
+                                            )
+                                        }
+                                    }
+
+                                    startActivity(deferred.await())
+                                    finish()
                                 } else {
-                                    Intent(this@CaleneeLoginActivity, ConnectionInputActivity::class.java)
+                                    Log.d("${TAG}login-doc2", "coupleConnectionFlag is not true")
+                                    startActivity(intent)
+                                }
+                            } ?: kotlin.run {
+                                launch(Dispatchers.Main) {
+                                    Log.d("${TAG}login-doc3", "doc is null")
+                                    signInJob.cancel()
+
+                                    startActivity(intent)
+                                    finish()
                                 }
                             }
-
-                            startActivity(intent)
-                            finish()
                         }
-                        .addOnFailureListener {
-                            Log.d("db_test/login-err", "${it.printStackTrace()}")
-                        }
-                } else {
-                    // error
-                    handleLoadingState(false)
+                    }
+                    .addOnFailureListener {
+                        handleLoadingState(false)
 
-                    Log.d("login_test/normal-err", task.exception?.message.toString())
-                    Snackbar.make(binding.root, "이메일 또는 패스워드가 올바르지 않습니다.", Snackbar.LENGTH_SHORT)
-                        .show()
-                }
+                        Log.d("${TAG}login_test/normal-err", it.stackTraceToString())
+                        Snackbar.make(
+                            binding.root,
+                            "이메일 또는 패스워드가 올바르지 않습니다.",
+                            Snackbar.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+            }
+            .addOnFailureListener {
+                Log.d("${TAG}login_test/signIn-err", it.stackTraceToString())
             }
     }
 
@@ -156,11 +227,11 @@ class CaleneeLoginActivity : AppCompatActivity() {
         if (flag) {
             progressBar.isVisible = true
             loadingScreen.isVisible = true
-            Log.d("login_test", "loading")
+            Log.d("${TAG}login_test", "loading")
         } else {
             progressBar.isGone = true
             loadingScreen.isGone = true
-            Log.d("login_test", "loading stop")
+            Log.d("${TAG}login_test", "loading stop")
         }
     }
 
