@@ -22,10 +22,10 @@
     <TextView
         android:id="@+id/white_text_btn"
         style="@style/HomeBottomSheetDialog"
-        android:text="@string/set_black_text" />
+        android:text="@string/set_white_text" />
     <TextView
         android:id="@+id/black_text_btn"
         style="@style/HomeBottomSheetDialog"
-        android:text="@string/set_white_text" />
+        android:text="@string/set_black_text" />
 
 </LinearLayout>
