@@ -1,4 +1,4 @@
-package org.jin.calenee.database.firestore
+package org.jin.calenee.data.firestore
 
 data class CoupleConnection(
     var ownerInviteCode: String = "",
