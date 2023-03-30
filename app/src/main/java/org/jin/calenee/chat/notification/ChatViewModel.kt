@@ -8,13 +8,13 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: FirebaseRepository = FirebaseRepository()
-    val myResponse = repository.myResponse
+    val result = repository.myResponse
 
-    // send push message
+    // send push notification
     fun sendNotification(notification: ChatNotificationBody) {
         viewModelScope.launch {
             repository.sendNotification(notification)
-            Log.d("fcm_test/response from server 2:", myResponse.value.toString())
+            Log.d("fcm_test/response from server 2:", result.value.toString())
         }
     }
 }

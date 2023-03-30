@@ -133,7 +133,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/ibm_plex_sans_kr_regular"
-            android:text="@string/confirm"
+            android:text="@string/ok"
             android:textSize="17sp"
             app:layout_constraintTop_toBottomOf="@+id/linearlayout2" />
     </androidx.constraintlayout.widget.ConstraintLayout>
