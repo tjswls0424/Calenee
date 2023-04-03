@@ -28,7 +28,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.*
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.database.firestore.User
+import org.jin.calenee.data.firestore.User
 import org.jin.calenee.databinding.ActivityConnectionInputBinding
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -265,7 +265,7 @@ class ConnectionInputActivity : AppCompatActivity() {
                     finish()
                 }
             }.addOnFailureListener {
-                Snackbar.make(binding.root, "프로필 저장장에 실패했습니다 잠시후 다시 시도해주세요.", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "프로필 저장에 실패했습니다 잠시후 다시 시도해주세요.", Snackbar.LENGTH_SHORT).show()
             }
     }
 

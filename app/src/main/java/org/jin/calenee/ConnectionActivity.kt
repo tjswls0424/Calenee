@@ -27,8 +27,8 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import org.jin.calenee.MainActivity.Companion.slideLeft
 import org.jin.calenee.MainActivity.Companion.slideRight
-import org.jin.calenee.database.firestore.Couple
-import org.jin.calenee.database.firestore.CoupleConnection
+import org.jin.calenee.data.firestore.Couple
+import org.jin.calenee.data.firestore.CoupleConnection
 import org.jin.calenee.databinding.ActivityConnectionBinding
 import org.jin.calenee.login.LoginActivity
 
@@ -125,6 +125,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun listener() {
+        // logout
         binding.logoutBtn.setOnClickListener {
             val googleSignInOptions: GoogleSignInOptions by lazy {
                 GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -158,6 +159,7 @@ class ConnectionActivity : AppCompatActivity() {
             }
         }
 
+        // refresh my invite code
         binding.refreshInviteCodeBtn.setOnClickListener {
             setMyInviteCode()
         }
@@ -195,8 +197,6 @@ class ConnectionActivity : AppCompatActivity() {
                     }
 
                     partnerInviteCodeInput = "$text"
-
-                    Log.d("text_test/inviteCode", partnerInviteCodeInput)
                 }
             })
 
