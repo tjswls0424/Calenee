@@ -65,14 +65,18 @@ class CoupleInfoViewModel : ViewModel() {
     }
 
     fun updateDays(days: String) {
-        _firstMetDate.value = days
+        try {
+            _firstMetDate.value = days
 
-        val firstMetDate = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(days)
-        val currentDate = Calendar.getInstance().time
-        val diff = currentDate.time - firstMetDate!!.time
-        val resDays = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).plus(1).toString()
+            val firstMetDate = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).parse(days)
+            val currentDate = Calendar.getInstance().time
+            val diff = currentDate.time - firstMetDate!!.time
+            val resDays = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).plus(1).toString()
 
-        _days.value = "${resDays}일"
+            _days.value = "${resDays}일"
+        } catch (e: Exception) {
+            _days.value = ""
+        }
     }
 
     fun getCoupleInfo(): CoupleInfo {
