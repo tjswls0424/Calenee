@@ -81,8 +81,6 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
 
     private suspend fun logout() {
         withContext(Dispatchers.Main) {
-//            App.userPrefs.setString("login_status", "false")
-
             val email = firebaseAuth.currentUser?.email.toString()
             launch(Dispatchers.IO) {
                 if (email.endsWith("@gmail.com")) {
@@ -101,12 +99,11 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
                     try {
                         googleSignInClient.signOut()
                             .addOnSuccessListener {
-//                                App.userPrefs.clearUserData(email)
                                 LoginActivity.viewModel.signOut()
 
                                 mainScope.launch {
                                     val res = withContext(Dispatchers.Main) {
-                                        App.userPrefs.clearUserData(firebaseAuth.currentUser?.email.toString()) ////////
+                                        App.userPrefs.clearUserData(firebaseAuth.currentUser?.email.toString())
                                         true
                                     }
 
@@ -116,8 +113,6 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
                                 }
                             }
                             .addOnFailureListener {
-                                Log.d("context_test", "2-fail")
-
                                 Snackbar.make(
                                     binding.root,
                                     "로그아웃에 실패했습니다. 잠시후 재시도해주세요.",
@@ -130,12 +125,19 @@ class MenuFragment : Fragment(R.layout.fragment_menu) {
                     }
                 } else {
                     // calenee login
-//                    App.userPrefs.clearUserData(firebaseAuth.currentUser?.email.toString())
-//                    App.userPrefs.clearUserData(email)
-
                     LoginActivity.viewModel.signOut()
                     firebaseAuth.signOut()
-                    moveToLoginActivity()
+
+                    mainScope.launch {
+                        val res = withContext(Dispatchers.Main) {
+                            App.userPrefs.clearUserData(firebaseAuth.currentUser?.email.toString())
+                            true
+                        }
+
+                        if (res) {
+                            moveToLoginActivity()
+                        }
+                    }
                 }
             }
         }
