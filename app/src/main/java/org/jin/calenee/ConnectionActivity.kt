@@ -75,7 +75,7 @@ class ConnectionActivity : AppCompatActivity() {
 
     private var partnerInviteCodeInput = ""
 
-    // 분 수정 (1 -> 10)
+    // 10m
     private val mCountDown: CountDownTimer = object : CountDownTimer(1000 * 60 * 10, 1000 * 60) {
         override fun onTick(millisUntilFinished: Long) {
             //update the UI with the new count
@@ -257,14 +257,16 @@ class ConnectionActivity : AppCompatActivity() {
             }
         }
 
-        inviteCodeViewModel.expirationFlag.observe(this) {
-            WriteData().updateExpirationFlag(true)
+        inviteCodeViewModel.expirationFlag.observe(this) { flag ->
+            WriteData().updateExpirationFlag(flag)
 
-            if (it) Snackbar.make(
-                binding.root,
-                "내 초대코드가 만료되었습니다. 하단의 재발급 버튼을 눌러 초대코드를 재발급 해주세요.",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            if (flag) {
+                Snackbar.make(
+                    binding.root,
+                    getString(R.string.expired_invite_code_message),
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            }
         }
 
         // owner's point of view
@@ -300,7 +302,7 @@ class ConnectionActivity : AppCompatActivity() {
         val myEmail = firebaseAuth.currentUser?.email.toString()
 
         return AlertDialog.Builder(
-            this,
+            this@ConnectionActivity,
             android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth
         ).apply {
             setTitle("커플 연결 요청")
@@ -350,7 +352,10 @@ class ConnectionActivity : AppCompatActivity() {
                         setString("${myEmail}_couple_connection_flag", "true")
                         setString("${myEmail}_couple_input_flag", "false")
                         setString("couple_chat_id", coupleChatID)
-                        setString("current_partner_email", inviteCodeViewModel.partnerEmail.value.toString())
+                        setString(
+                            "current_partner_email",
+                            inviteCodeViewModel.partnerEmail.value.toString()
+                        )
                     }
 
                     startActivity(it)
@@ -397,9 +402,15 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         fun updateExpirationFlag(flag: Boolean) {
+            val tmpMap = mutableMapOf<String, Any>("codeExpirationFlag" to flag)
+            if (flag) {
+                // invite code expired
+                tmpMap["ownerInviteCode"] = ""
+            }
+
             firestore.collection("connection")
                 .document(firebaseAuth.currentUser?.email.toString())
-                .update("codeExpirationFlag", flag)
+                .update(tmpMap)
         }
 
         // if connection btn clicked
@@ -538,7 +549,6 @@ class ConnectionActivity : AppCompatActivity() {
                 .document(firebaseAuth.currentUser?.email.toString())
                 .delete()
         }
-
     }
 }
 
