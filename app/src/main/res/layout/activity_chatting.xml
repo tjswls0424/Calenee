@@ -1,146 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/parent_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".chat.ChattingActivity">
+<layout>
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll_view"
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="android.view.animation.Animation" />
+
+        <import type="android.R.string" />
+
+        <variable
+            name="progress"
+            type="String" />
+
+        <variable
+            name="progressVisibility"
+            type="Boolean" />
+
+        <variable
+            name="progressData"
+            type="org.jin.calenee.chat.ChatProgressData" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/parent_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"
-        android:fillViewport="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        tools:context=".chat.ChattingActivity">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/chat_recycler_view"
+        <TextView
+            android:id="@+id/progress_view"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_marginBottom="10dp"
+            android:alpha="0.5"
+            android:background="@drawable/lightpurple_round_edge_rectangle"
+            android:gravity="center"
+            android:paddingHorizontal="40dp"
+            android:text="@{@string/chat_progress(progressData.progress, progressData.progressUnit, progressData.total, progressData.totalUnit)}"
+            android:textSize="15sp"
+            android:translationZ="1dp"
+            android:visibility="@{progressData.visibility ? View.VISIBLE : View.INVISIBLE, default = invisible }"
+            app:layout_constraintBottom_toTopOf="@id/bottom_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ScrollView
+            android:id="@+id/scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="?attr/actionBarSize"
+            android:fillViewport="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress_view">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/chat_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:paddingVertical="10dp"
+                android:scrollbars="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        </ScrollView>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bottom_layout"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/chatting_message"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/scroll_view">
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/lottie_add_close_btn"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/message_et"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:lottie_autoPlay="false"
+                app:lottie_loop="false"
+                app:lottie_rawRes="@raw/add_close"
+                app:lottie_speed="1.5" />
+
+            <EditText
+                android:id="@+id/message_et"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:backgroundTint="@color/chatting_message"
+                android:hint="@string/enter_msg"
+                android:inputType="textMultiLine"
+                android:maxEms="5"
+                android:maxLength="1000"
+                android:maxLines="5"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/send_btn"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_round_send_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/message_et"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/bottom_sheet_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:background="@color/white"
-            android:paddingVertical="10dp"
-            android:scrollbars="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-    </androidx.core.widget.NestedScrollView>
+            android:background="@color/chatting_message"
+            android:minHeight="300dp"
+            android:orientation="horizontal"
+            android:paddingVertical="15dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/bottom_layout">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/bottom_layout"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/chatting_message"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/scroll_view">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/lottie_add_close_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/message_et"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:lottie_autoPlay="false"
-            app:lottie_loop="false"
-            app:lottie_rawRes="@raw/add_close"
-            app:lottie_speed="2.5" />
+                <ImageButton
+                    android:id="@+id/camera_btn"
+                    style="@style/ChatMenu"
+                    android:src="@drawable/ic_camera_24"
+                    android:text="@string/camera" />
 
-        <EditText
-            android:id="@+id/message_et"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginStart="50dp"
-            android:layout_marginEnd="50dp"
-            android:backgroundTint="@color/chatting_message"
-            android:hint="@string/enter_msg"
-            android:inputType="textMultiLine"
-            android:maxEms="5"
-            android:maxLength="1000"
-            android:maxLines="5"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/camera" />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/send_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@drawable/ic_round_send_24"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/message_et"
-            app:layout_constraintTop_toTopOf="parent" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/album_btn"
+                    style="@style/ChatMenu"
+                    android:src="@drawable/ic_photo_48"
+                    android:text="@string/album" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/album" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/file_btn"
+                    style="@style/ChatMenu"
+                    android:src="@drawable/ic_file_clip_24"
+                    android:text="@string/file" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/file" />
+            </LinearLayout>
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <LinearLayout
-        android:id="@+id/bottom_sheet_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/chatting_message"
-        android:minHeight="300dp"
-        android:orientation="horizontal"
-        android:paddingVertical="15dp"
-        android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@+id/bottom_layout">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/camera_btn"
-                style="@style/ChatMenu"
-                android:src="@drawable/ic_camera_24"
-                android:text="@string/camera" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/camera" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/album_btn"
-                style="@style/ChatMenu"
-                android:src="@drawable/ic_photo_48"
-                android:text="@string/album" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/album" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/file_btn"
-                style="@style/ChatMenu"
-                android:src="@drawable/ic_file_clip_24"
-                android:text="@string/file" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/file" />
-        </LinearLayout>
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

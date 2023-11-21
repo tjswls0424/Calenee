@@ -1,5 +1,6 @@
 package org.jin.calenee.chat
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
@@ -23,6 +24,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
 import android.widget.Toast
@@ -32,6 +34,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
@@ -40,10 +43,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
-import com.gun0912.tedpermission.PermissionListener
-import com.gun0912.tedpermission.normal.TedPermission
 import kotlinx.coroutines.*
 import org.jin.calenee.App
+import org.jin.calenee.MainActivity
 import org.jin.calenee.chat.notification.*
 import org.jin.calenee.databinding.ActivityChattingBinding
 import org.jin.calenee.dialog.CaptureDialog
@@ -51,6 +53,7 @@ import org.jin.calenee.util.NetworkStatusHelper
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Singleton
 import kotlin.math.pow
 import kotlin.math.round
 import kotlin.time.Duration.Companion.milliseconds
@@ -59,10 +62,12 @@ const val DATE_TIME = 0
 const val TIME = 1
 const val DATE = 2
 
-const val CAMERA = 10
-const val ALBUM = 11
-const val CAPTURE_VIDEO = 12
+const val CAPTURE_IMAGE = 11
+const val ALBUM = 12
+const val RECORD_VIDEO = 13
+const val FILES = 14
 
+// Firebase Realtime Database > Chat bubble-related fields according to chat type
 const val CHAT_TEXT_COUNT = 5
 const val CHAT_IMAGE_COUNT = 8
 const val CHAT_VIDEO_COUNT = 9
@@ -82,13 +87,11 @@ class ChattingActivity : AppCompatActivity() {
     private val chatDB by lazy {
         FirebaseDatabase.getInstance().getReference("chat")
     }
-    private val chatAdapter by lazy {
-        ChatAdapter(applicationContext)
-    }
-
     private val storageRef by lazy {
         FirebaseStorage.getInstance().reference
     }
+
+    private val chatAdapter = ChatAdapter()
 
     private lateinit var pickFilesResult: ActivityResultLauncher<Intent>
 
@@ -101,20 +104,31 @@ class ChattingActivity : AppCompatActivity() {
     private lateinit var currentImagePath: String
     private lateinit var currentVideoPath: String
 
-    @RequiresApi(Build.VERSION_CODES.S)
+    override fun onStop() {
+        super.onStop()
+        App.userPrefs.setString("isChatActive", "false")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        App.userPrefs.setString("isChatActive", "true")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(binding.root)
+
         listener()
         firebaseListener()
         resultCallbackListener()
-        checkNetworkStatus()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            checkNetworkStatus()
+        }
+
         getNickname()
         getSavedChatData()
-
-        Log.d("fcm_test/my_token", App.userPrefs.getString("my_fcm_token"))
-        Toast.makeText(this, App.userPrefs.getString("my_fcm_token"), Toast.LENGTH_LONG).show()
     }
 
     private fun initRecycler() {
@@ -126,8 +140,8 @@ class ChattingActivity : AppCompatActivity() {
         }
 
         chatAdapter.apply {
-            binding.chatRecyclerView.adapter = this
             data = chatDataList
+            binding.chatRecyclerView.adapter = this
         }
     }
 
@@ -200,55 +214,46 @@ class ChattingActivity : AppCompatActivity() {
 
                 binding.messageEt.setText("")
                 initRecycler()
+
+                // todo: 최근 보내진 메세지에 focus? text는 잘되고, image video file 전송할 때도 설정
+                lifecycleScope.launch {
+//                    val position = chatAdapter.itemCount - 1
+                    delay(1500)
+                    binding.chatRecyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
             }
         }
 
         binding.cameraBtn.setOnClickListener {
-            if (checkPermission(CAMERA)) {
-                CaptureDialog(this).apply {
-                    setOnClickedListener { captureType ->
-                        when (captureType) {
-                            ChatData.VIEW_TYPE_IMAGE -> {
-                                startCapture()
-                            }
-                            ChatData.VIEW_TYPE_VIDEO -> {
-                                checkPermission(CAPTURE_VIDEO)
-                            }
-                            else -> {
-                                Snackbar.make(
-                                    binding.root,
-                                    "카메라를 실행할 수 없습니다. 잠시 후 다시 시도해주세요.",
-                                    Snackbar.LENGTH_SHORT
-                                ).show()
-                            }
+            CaptureDialog(this).apply {
+                setOnClickedListener { captureType ->
+                    when (captureType) {
+                        ChatData.VIEW_TYPE_IMAGE -> {
+                            checkPermissions(CAPTURE_IMAGE)
+                        }
+
+                        ChatData.VIEW_TYPE_VIDEO -> {
+                            checkPermissions(RECORD_VIDEO)
+                        }
+
+                        else -> {
+                            Snackbar.make(
+                                binding.root,
+                                "카메라를 실행할 수 없습니다. 잠시 후 다시 시도해주세요.",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
                         }
                     }
-                }.show()
-
-                Log.d("cam_test", "success")
-            } else {
-                Log.d("cam_test", "fail")
-            }
+                }
+            }.show()
         }
 
         binding.albumBtn.setOnClickListener {
-            Intent().apply {
-                action = Intent.ACTION_PICK
-                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                type = "video/* image/*"
-                startActivityForResult(Intent.createChooser(this, null), ALBUM)
-            }
+            checkPermissions(ALBUM)
         }
 
         binding.fileBtn.setOnClickListener {
-            // + extraMimeType
-            if (checkPermission(ALBUM)) {
-                Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "*/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    pickFilesResult.launch(this)
-                }
-            }
+            checkPermissions(FILES)
         }
 
         binding.messageEt.addTextChangedListener(object : TextWatcher {
@@ -264,9 +269,6 @@ class ChattingActivity : AppCompatActivity() {
         // recycler view item click listener
         chatAdapter.setOnItemClickListener(object : ChatAdapter.OnItemClickListener {
             override fun onItemClick(v: View, data: ChatData, position: Int) {
-                Log.d("position_test", position.toString())
-                Log.d("position_test", data.toString())
-
                 try {
                     when (data.dataType) {
                         "image" -> {
@@ -360,8 +362,7 @@ class ChattingActivity : AppCompatActivity() {
                                                 binding.root,
                                                 "저장되었습니다.",
                                                 Snackbar.LENGTH_SHORT
-                                            )
-                                                .show()
+                                            ).show()
                                         }
 
                                         "공유" -> {
@@ -597,10 +598,9 @@ class ChattingActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { doc ->
                 nickname = doc.data?.get("nickname").toString()
-                Log.d("db_test/nickname1", nickname)
             }
             .addOnFailureListener {
-                Log.d("db_test/login-err", "${it.printStackTrace()}")
+                it.printStackTrace()
             }
     }
 
@@ -613,7 +613,6 @@ class ChattingActivity : AppCompatActivity() {
                 child("message").setValue(data.message)
                 child("createdAt").setValue(data.time)
                 child("mimeType").setValue(data.mimeType)
-//                child("read").setValue(false)
             }
     }
 
@@ -633,13 +632,28 @@ class ChattingActivity : AppCompatActivity() {
             .setCustomMetadata("resolution", "${bitmap.width}x${bitmap.height}")
             .build()
 
+        var cnt = 0
         CoroutineScope(Dispatchers.IO).launch {
-            val uploadTask = imageRef.putBytes(baos.toByteArray(), metadata)
+            imageRef.putBytes(baos.toByteArray(), metadata)
                 .addOnProgressListener {
-                    showFileTransferProgress(it.bytesTransferred)
+                    // fixme
+                    val (convertedByteTransferred, transferredUnit) = getConvertedSizeAndUnit(it.bytesTransferred)
+                    val (convertedTotalByte, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData = ChatProgressData(
+                        convertedByteTransferred,
+                        transferredUnit,
+                        convertedTotalByte,
+                        totalUnit,
+                        true
+                    )
+
+                    fileTransferProgressView(progressData, cnt++) // fade in > keep progress view
                 }
-                .addOnSuccessListener { taskSnapshot ->
-                    Log.d("img_test/success", "success")
+                .addOnSuccessListener {
+                    val (totalSize, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData =
+                        ChatProgressData(totalSize, totalUnit, totalSize, totalUnit, false)
+                    fileTransferProgressView(progressData) // fade out animation
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
                         child("dataType").setValue("image")
@@ -675,12 +689,29 @@ class ChattingActivity : AppCompatActivity() {
             .setCustomMetadata("resolution", "${mp.videoWidth}x${mp.videoHeight}")
             .build()
 
+        var cnt = 0
         CoroutineScope(Dispatchers.IO).launch {
             videoRef.putFile(videoUri, metadata)
                 .addOnProgressListener {
-                    showFileTransferProgress(it.bytesTransferred)
+                    // fixme
+                    val (convertedByteTransferred, transferredUnit) = getConvertedSizeAndUnit(it.bytesTransferred)
+                    val (convertedTotalByte, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData = ChatProgressData(
+                        convertedByteTransferred,
+                        transferredUnit,
+                        convertedTotalByte,
+                        totalUnit,
+                        true
+                    )
+
+                    fileTransferProgressView(progressData, cnt++) // fade in > keep progress view
                 }
-                .addOnSuccessListener { taskSnapshot ->
+                .addOnSuccessListener {
+                    val (totalSize, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData =
+                        ChatProgressData(totalSize, totalUnit, totalSize, totalUnit, false)
+                    fileTransferProgressView(progressData) // fade out animation
+
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
                         child("dataType").setValue("video")
                         child("mimeType").setValue(mimeType ?: "video")
@@ -696,8 +727,7 @@ class ChattingActivity : AppCompatActivity() {
                     clearFileCache(videoFile)
                 }
                 .addOnFailureListener {
-                    Log.d("vid_test", "fail to upload video1: ${it.printStackTrace()}")
-                    Log.d("vid_test", "fail to upload video2: ${it.message}")
+                    it.printStackTrace()
                 }
         }
     }
@@ -716,10 +746,6 @@ class ChattingActivity : AppCompatActivity() {
         val expirationDateText =
             SimpleDateFormat("yyyy.MM.dd HH:mm:s", Locale.KOREA).format(expirationDate)
 
-        Log.d("uri_test/extension", extension.toString())
-        Log.d("uri_test/mimeType", mimeType.toString())
-        Log.d("uri_test/expirationDate", expirationDateText)
-
         val fileRef =
             storageRef.child("chat/${App.userPrefs.getString("couple_chat_id")}/files/$dateTime.$extension")
         val metadata = StorageMetadata.Builder()
@@ -728,13 +754,28 @@ class ChattingActivity : AppCompatActivity() {
             .setCustomMetadata("fileName", fileName)
             .build()
 
+        var cnt = 0
         CoroutineScope(Dispatchers.IO).launch {
             fileRef.putFile(fileUri, metadata)
                 .addOnProgressListener {
-                    showFileTransferProgress(it.bytesTransferred)
+                    // fixme
+                    val (convertedByteTransferred, transferredUnit) = getConvertedSizeAndUnit(it.bytesTransferred)
+                    val (convertedTotalByte, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData = ChatProgressData(
+                        convertedByteTransferred,
+                        transferredUnit,
+                        convertedTotalByte,
+                        totalUnit,
+                        true
+                    )
+
+                    fileTransferProgressView(progressData, cnt++) // fade in > keep progress view
                 }
                 .addOnSuccessListener {
-                    Log.d("uri_test/size2", it.metadata?.sizeBytes.toString())
+                    val (totalSize, totalUnit) = getConvertedSizeAndUnit(it.totalByteCount)
+                    val progressData =
+                        ChatProgressData(totalSize, totalUnit, totalSize, totalUnit, false)
+                    fileTransferProgressView(progressData) // fade out animation
 
                     chatDB.child(App.userPrefs.getString("couple_chat_id")).child(dateTime).apply {
                         child("dataType").setValue("file")
@@ -750,7 +791,24 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun showFileTransferProgress(fileSizeBytes: Long) {
+    private fun fileTransferProgressView(
+        progressData: ChatProgressData = ChatProgressData(),
+        cnt: Int = -1
+    ) {
+        val anim = if (progressData.visibility) {
+            AnimationUtils.loadAnimation(this, android.R.anim.fade_in)
+        } else {
+            AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
+        }
+
+        if (cnt <= 0 || !progressData.visibility) {
+            binding.progressView.startAnimation(anim) // progress data + view visibility
+        }
+
+        binding.progressData = progressData
+    }
+
+    private fun getConvertedSizeAndUnit(fileSizeBytes: Long): Pair<Double, String> {
         var fileSizeNum = 0.0
         var fileSizeUnit = "KB"
         if (fileSizeBytes != 0L) {
@@ -766,7 +824,7 @@ class ChattingActivity : AppCompatActivity() {
             }
         }
 
-        Snackbar.make(binding.scrollView, "${round(fileSizeNum*100)/100}$fileSizeUnit", Snackbar.LENGTH_LONG).show()
+        return round(fileSizeNum) to fileSizeUnit
     }
 
     private fun getDurationText(duration: String): String {
@@ -846,13 +904,20 @@ class ChattingActivity : AppCompatActivity() {
                             "text" -> {
                                 if (isMyChat) ChatData.VIEW_TYPE_RIGHT_TEXT else ChatData.VIEW_TYPE_LEFT_TEXT
                             }
+
                             "image" -> ChatData.VIEW_TYPE_IMAGE
                             "video" -> ChatData.VIEW_TYPE_VIDEO
                             "file" -> ChatData.VIEW_TYPE_FILE
                             else -> -1
                         }
 
-                        addChatDataList(viewType, data, dataSnapshot.key.toString(), isMyChat, false)
+                        addChatDataList(
+                            viewType,
+                            data,
+                            dataSnapshot.key.toString(),
+                            isMyChat,
+                            false
+                        )
                     }
                 }
 
@@ -863,6 +928,7 @@ class ChattingActivity : AppCompatActivity() {
             }
     }
 
+    @Singleton
     private fun addChatDataList(
         viewType: Int,
         data: SavedChatData?,
@@ -937,7 +1003,10 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (isMyChat && isRealtime) sendNotification("사진을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification(
+                                        "사진을 보냈습니다.",
+                                        data?.senderNickname.toString()
+                                    )
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get image file")
@@ -992,7 +1061,10 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (isMyChat && isRealtime) sendNotification("동영상을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification(
+                                        "동영상을 보냈습니다.",
+                                        data?.senderNickname.toString()
+                                    )
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get video file")
@@ -1044,7 +1116,10 @@ class ChattingActivity : AppCompatActivity() {
                                     notifyItemChanged(tmpMediaMap[key] ?: tmpChatData.tmpIndex)
                                     App.userPrefs.setString("chat_last_msg_time", key)
 
-                                    if (isMyChat && isRealtime) sendNotification("파일을 보냈습니다.", data?.senderNickname.toString())
+                                    if (isMyChat && isRealtime) sendNotification(
+                                        "파일을 보냈습니다.",
+                                        data?.senderNickname.toString()
+                                    )
                                 }
                                 .addOnFailureListener {
                                     Log.d("fb_test", "fail to get file")
@@ -1088,79 +1163,110 @@ class ChattingActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkPermission(type: Int): Boolean {
-//        val tedPermission = TedPermission.create()
+    private fun checkPermissions(type: Int) {
+        val permissions = mutableListOf<String>().apply {
+            when (type) {
+                CAPTURE_IMAGE -> {
+                    add(Manifest.permission.CAMERA)
+                }
 
-        return when (type) {
-            CAMERA -> {
-                TedPermission.create().apply {
-                    setPermissionListener(object : PermissionListener {
-                        override fun onPermissionGranted() {
-//                        startCapture()
-                        }
+                RECORD_VIDEO -> {
+                    add(Manifest.permission.CAMERA)
+                    add(Manifest.permission.RECORD_AUDIO)
+                }
 
-                        override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
-                    })
-                    setRationaleMessage("카메라 사진 권한 필요")
-                    setDeniedMessage("카메라 권한이 거절되었습니다. 설정에서 권한을 허용해주세요.")
-                    setPermissions(
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        android.Manifest.permission.CAMERA
-                    )
-                }.check()
+                ALBUM -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        add(Manifest.permission.READ_MEDIA_IMAGES)
+                        add(Manifest.permission.READ_MEDIA_VIDEO)
+                    } else {
+                        add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
+                }
 
-                true
+                FILES -> {
+                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                        add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    } else {
+                        add(Manifest.permission.READ_MEDIA_IMAGES)
+                        add(Manifest.permission.READ_MEDIA_VIDEO)
+                    }
+                }
             }
+        }
 
-            ALBUM -> {
-                true
-            }
+        requestPermissions(permissions.toTypedArray(), type)
+    }
 
-            CAPTURE_VIDEO -> {
-                TedPermission.create().apply {
-                    setPermissionListener(object : PermissionListener {
-                        override fun onPermissionGranted() {
-                            startRecordVideo()
-                        }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        val denied = grantResults.count { it == PackageManager.PERMISSION_DENIED }
+        if (denied > 0) {
+            Snackbar.make(
+                binding.root,
+                "필수 권한이 거부되었습니다.\n[설정] > [권한] 에서 권한을 허용해주세요.",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        } else {
+            when (requestCode) {
+                CAPTURE_IMAGE -> {
+                    startCapture()
+                }
 
-                        override fun onPermissionDenied(deniedPermissions: MutableList<String>?) {}
-                    })
-                    setRationaleMessage("오디오 녹화 권한 필요")
-                    setPermissions(android.Manifest.permission.RECORD_AUDIO)
-                    setDeniedMessage("설정에서 권한을 허용해주세요.")
-                }.check()
+                RECORD_VIDEO -> {
+                    startRecordVideo()
+                }
 
-                true
-            }
+                ALBUM -> {
+                    Intent().apply {
+                        action = Intent.ACTION_PICK
+                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                        type = "video/* image/*"
+                        startActivityForResult(Intent.createChooser(this, null), ALBUM)
+                    }
+                }
 
-            else -> {
-                false
+                FILES -> {
+                    Intent(Intent.ACTION_GET_CONTENT).apply {
+                        type = "*/*"
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        pickFilesResult.launch(this)
+                    }
+                }
             }
         }
     }
 
     private fun startCapture() {
-        if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-            Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
-                intent.resolveActivity(packageManager)?.also {
-                    val photofile: File? = try {
-                        createImageFile()
-                    } catch (e: IOException) {
-                        null
-                    }
+        kotlin.runCatching {
+            if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+                Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
+                    intent.resolveActivity(packageManager)?.also {
+                        val photofile: File? = try {
+                            createImageFile()
+                        } catch (e: IOException) {
+                            null
+                        }
 
-                    photofile?.also {
-                        val photoUri = FileProvider.getUriForFile(
-                            this,
-                            "org.jin.calenee.fileprovider",
-                            it
-                        )
+                        photofile?.also {
+                            val photoUri = FileProvider.getUriForFile(
+                                this,
+                                "org.jin.calenee.fileprovider",
+                                it
+                            )
 
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                        startActivityForResult(intent, CAMERA)
+                            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                            startActivityForResult(intent, CAPTURE_IMAGE)
+                        }
                     }
                 }
             }
+        }.onFailure {
+            Toast.makeText(this@ChattingActivity, "카메라를 실행할 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1185,7 +1291,7 @@ class ChattingActivity : AppCompatActivity() {
                             MediaStore.EXTRA_OUTPUT,
                             videoUri
                         ) // it will be written to specified path
-                        startActivityForResult(intent, CAPTURE_VIDEO)
+                        startActivityForResult(intent, RECORD_VIDEO)
                     }
                 }
             }
@@ -1232,7 +1338,7 @@ class ChattingActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             when (requestCode) {
-                CAMERA -> {
+                CAPTURE_IMAGE -> {
                     // for thumbnail
 //                    val bitmap = data?.extras?.get("data") as Bitmap
 
@@ -1251,7 +1357,7 @@ class ChattingActivity : AppCompatActivity() {
                     saveImageData(bitmap, uri)
                 }
 
-                CAPTURE_VIDEO -> {
+                RECORD_VIDEO -> {
                     val videoUri =
                         FileProvider.getUriForFile(
                             this,
@@ -1315,6 +1421,10 @@ class ChattingActivity : AppCompatActivity() {
             binding.bottomSheetView.visibility = View.GONE
         } else {
             super.onBackPressed()
+            Intent(this, MainActivity::class.java).run {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(this)
+            }
         }
     }
 }

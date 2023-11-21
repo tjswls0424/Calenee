@@ -19,16 +19,24 @@ import org.jin.calenee.R
 import org.jin.calenee.chat.ChattingActivity
 
 class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
-    // 앱이 동작 중인 상황에만 호출됨
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        if (remoteMessage.data["receiverToken"].toString() == App.userPrefs.getString("my_fcm_token")) {
-            Log.d("fcm_test", "Message data payload: ${remoteMessage.data}")
+        if (App.userPrefs.getString("isChatActive") != "true") {
+            // "false" or null -> send Notification
+            if (remoteMessage.data["receiverToken"].toString() == App.userPrefs.getString("my_fcm_token")) {
+                println("fcm_test/onMessageReceived: receiverToken == My FCM token, so will send Notification !")
 
-            val message = remoteMessage.data["message"].toString()
-            val senderNickname = remoteMessage.data["senderNickname"].toString()
+                Log.d("fcm_test", "!! Message data payload: ${remoteMessage.data}")
 
-            sendNotification(message, senderNickname)
+                val message = remoteMessage.data["message"].toString()
+                val senderNickname = remoteMessage.data["senderNickname"].toString()
+
+                sendNotification(message, senderNickname)
+            } else {
+                println("fcm_test/onMessageReceived: receiverToken != My FCM token")
+            }
         }
+
 
 //        if (remoteMessage.data.isNotEmpty()) {
 //        }
@@ -132,6 +140,7 @@ class CaleneeFirebaseMessagingService : FirebaseMessagingService() {
 
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         val channel =
             NotificationChannel(
                 channelId,
