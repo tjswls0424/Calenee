@@ -1,26 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/capture_dialog_layout"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="30dp"
-    android:background="@color/transparent"
-    android:gravity="center"
     android:orientation="vertical"
     android:paddingHorizontal="15dp"
-    android:paddingVertical="30dp">
+    android:paddingVertical="30dp"
+    tools:background="@color/dark_grey">
 
-    <com.google.android.material.button.MaterialButton
+    <TextView
         android:id="@+id/image_capture_btn"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:text="사진 촬영"
-        android:textSize="15sp" />
+        android:layout_marginVertical="5dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingHorizontal="30dp"
+        android:paddingVertical="5dp"
+        android:text="@string/capture_image"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:backgroundTint="@color/light_grey" />
 
-    <com.google.android.material.button.MaterialButton
+    <TextView
         android:id="@+id/video_capture_btn"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="동영상 촬영"
-        android:textSize="15sp" />
+        android:layout_marginVertical="5dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingHorizontal="30dp"
+        android:paddingVertical="5dp"
+        android:text="@string/capture_video"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:backgroundTint="@color/light_grey" />
 </LinearLayout>

@@ -61,6 +61,9 @@
     <string name="album">앨범</string>
     <string name="file">파일</string>
 
+    <string name="capture_image">사진 촬영</string>
+    <string name="capture_video">동영상 촬영</string>
+
     <string name="save">저장</string>
     <string name="cancel">취소</string>
     <string name="next">다음</string>
@@ -94,5 +97,7 @@
     <string name="set_white_background">흰 배경 적용</string>
     <string name="set_white_text">흰 텍스트 적용</string>
     <string name="set_black_text">검은 텍스트 적용</string>
+
+    <string name="chat_progress">전송 준비 중 [%1$.2f %2$s/ %3$.2f %4$s]</string>
 
 </resources>

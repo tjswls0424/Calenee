@@ -3,6 +3,8 @@ package org.jin.calenee.dialog
 import android.app.Dialog
 import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
+import org.jin.calenee.R
 import org.jin.calenee.chat.ChatData
 import org.jin.calenee.databinding.CaptureDialogBinding
 
@@ -15,6 +17,7 @@ class CaptureDialog(private val context: AppCompatActivity) {
         binding = CaptureDialogBinding.inflate(context.layoutInflater)
 
         dialog.apply {
+            window?.setBackgroundDrawable(AppCompatResources.getDrawable(context, R.drawable.alert_dialog_background))
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             setContentView(binding.root)
             setCancelable(true)
