@@ -21,7 +21,7 @@
     <color name="light_grey">#535353</color>
     <color name="light_grey2">#DCDCDC</color>
     <color name="light_grey3">#7E7E7E</color>
-    <color name="dark_grey">#B2373737</color>
+    <color name="dark_grey">#373737</color>
 
     <color name="chatting_message">#51E8E8E8</color>
     <color name="chatting_date_background">#7CA3A3A3</color>
