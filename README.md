@@ -15,9 +15,9 @@
 <table>
   <tbody align=center>
     <tr>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/5ea8ae3f-2d3c-47e4-9412-324208e98adc" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/235ce30d-6723-48d0-874d-db874730cf63" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/5c6531ef-c62a-46ee-9646-d6b494c41ae6" width=300></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/5ea8ae3f-2d3c-47e4-9412-324208e98adc" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/235ce30d-6723-48d0-874d-db874730cf63" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/5c6531ef-c62a-46ee-9646-d6b494c41ae6" width=250></td>
     </tr>
     <tr>
       <td rowspan=2>회원가입</td>
@@ -33,8 +33,8 @@
       <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/30207d94-de17-4b00-a692-fe21436c7ca7" width=300></td>
     </tr>
     <tr>
-      <td>user1 화면 (Android13)</td>
-      <td>user2 화면 (Android12)</td>
+      <td>user1 화면</td>
+      <td>user2 화면</td>
       <td rowspan=2>파일 타입 채팅</td>
     </tr>
     <tr>
