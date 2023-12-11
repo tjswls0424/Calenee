@@ -28,9 +28,9 @@
       <td colspan=2>로그인 및 커플 연결</td>
     </tr>
     <tr>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/c0afb5e3-cc35-45d7-99e5-df975e32008f" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/57b53d41-187d-44de-ab90-3c677a1095a0" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/30207d94-de17-4b00-a692-fe21436c7ca7" width=300></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/c0afb5e3-cc35-45d7-99e5-df975e32008f" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/57b53d41-187d-44de-ab90-3c677a1095a0" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/30207d94-de17-4b00-a692-fe21436c7ca7" width=250></td>
     </tr>
     <tr>
       <td>user1 화면</td>
@@ -41,9 +41,9 @@
       <td colspan=2>텍스트 메세지 전송 및 채팅 알림</td>
     </tr>
     <tr>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/0efdf6a2-1cd9-445e-a540-1258c1b52b6d" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/7314d271-94ee-48c5-85aa-13585663fb95" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/b3662c9a-9f62-45bd-8322-e9a800b95098" width=300"></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/0efdf6a2-1cd9-445e-a540-1258c1b52b6d" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/7314d271-94ee-48c5-85aa-13585663fb95" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/b3662c9a-9f62-45bd-8322-e9a800b95098" width=250"></td>
     </tr>
     <tr>
       <td>이미지 전송</td>
@@ -51,9 +51,9 @@
       <td>이미지 정보</td>
     </tr>
     <tr>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/524af385-a7c9-4919-b3e9-dd7c12655e04" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/fcaecaef-02f5-4674-a9ca-bd0dd6fcccaf" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/b5e684f1-200b-4eeb-9412-4216fb9764be" width=300></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/524af385-a7c9-4919-b3e9-dd7c12655e04" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/fcaecaef-02f5-4674-a9ca-bd0dd6fcccaf" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/b5e684f1-200b-4eeb-9412-4216fb9764be" width=250></td>
     </tr>
     <tr>
       <td>동영상 전송</td>
@@ -61,9 +61,9 @@
       <td>동영상 정보</td>
     </tr>
     <tr>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/bc0ebf86-cb45-41bf-a071-42414a292e10" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/301005e0-8694-4bfc-a158-6690369d3b39" width=300></td>
-      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/422b654e-0087-4460-a15a-eca320193e65" width=300></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/bc0ebf86-cb45-41bf-a071-42414a292e10" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/301005e0-8694-4bfc-a158-6690369d3b39" width=250></td>
+      <td><img src="https://github.com/tjswls0424/Calenee/assets/49965898/422b654e-0087-4460-a15a-eca320193e65" width=250></td>
     </tr>
     <tr>
       <td colspan=2>오늘의 한마디 설정</td>
