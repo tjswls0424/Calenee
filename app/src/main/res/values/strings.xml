@@ -99,5 +99,6 @@
     <string name="set_black_text">검은 텍스트 적용</string>
 
     <string name="chat_progress">전송 준비 중 [%1$.2f %2$s/ %3$.2f %4$s]</string>
+    <string name="home_background_progress">배경화면 준비 중..</string>
 
 </resources>
